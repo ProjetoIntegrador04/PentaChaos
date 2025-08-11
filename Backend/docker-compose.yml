@@ -1,0 +1,25 @@
+services:
+  web:
+    build:
+      context: . # Constrói a imagem a partir do Dockerfile no diretório atual
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000" # Mapeia a porta 8000 do host para a porta 8000 do container
+    volumes:
+      - ./app:/app/app # Monta o diretório 'app' do host para o container para hot-reloading em desenvolvimento
+    env_file: # <--- Adicionado: Carrega variáveis de ambiente do arquivo .env
+      - .env
+    depends_on:
+      - db # Garante que o banco de dados seja iniciado antes da aplicação web
+
+  db:
+    image: postgres:13-alpine # Imagem oficial do PostgreSQL, versão 13, leve
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Volume para persistir os dados do banco de dados
+    env_file: # <--- Adicionado: Carrega variáveis de ambiente do arquivo .env
+      - .env
+    ports:
+      - "5432:5432" # Mapeia a porta 5432 do host para a porta 5432 do container (opcional, para acesso direto)
+
+volumes:
+  pgdata: # Define o volume para persistência dos dados do PostgreSQL
