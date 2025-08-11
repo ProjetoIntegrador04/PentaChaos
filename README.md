@@ -1,5 +1,13 @@
 # �� Sistema de Gestão de Estágios (SGE)
 
+### Integrantes:
+- Gabriel Eliezer Rodrigues
+- David Francisco Vieira
+- Rafael Rodrigues
+- José Henrique Bernardes Vieira 
+- Pablo Vinicius Domingues Sanches
+- Daniel Marques De Melos Asiatico
+
 ## Visão Geral do Projeto
 
 Este `README.md` apresenta o Documento de Visão inicial para o desenvolvimento do **Sistema de Gestão de Estágios (SGE)**. O objetivo é transformar a gestão de estágios, migrando de processos manuais baseados em planilhas para uma solução digital eficiente e centralizada. Este documento serve como a base para alinhar a compreensão de todas as partes interessadas sobre o problema, objetivos, usuários e funcionalidades principais do sistema.
