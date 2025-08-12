@@ -8,6 +8,9 @@
 - Pablo Vinicius Domingues Sanches
 - Daniel Marques De Melos Asiatico
 
+## Protótipo Figma
+https://www.figma.com/design/D6GEmmBtiQgZz95ZBHu6e3/Projeto-Integrador-Final?node-id=0-1&p=f&t=pvhRwWWRpYH243TH-0
+
 ## Visão Geral do Projeto
 
 Este `README.md` apresenta o Documento de Visão inicial para o desenvolvimento do **Sistema de Gestão de Estágios (SGE)**. O objetivo é transformar a gestão de estágios, migrando de processos manuais baseados em planilhas para uma solução digital eficiente e centralizada. Este documento serve como a base para alinhar a compreensão de todas as partes interessadas sobre o problema, objetivos, usuários e funcionalidades principais do sistema.
