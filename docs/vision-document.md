@@ -288,3 +288,5 @@ No estágio atual de concepção inicial do Sistema de Gestão de Estágios (SGE
     *   Resultados de Pesquisas de Mercado ou Benchmarking
     *   Planos de Teste ou Casos de Teste (em fases posteriores)
     *   Relatórios de Feedback de Usuários
+
+### [**> Retornar à Página Inicial.**](/README.md)
