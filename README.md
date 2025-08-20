@@ -5,3 +5,4 @@
 3. [Ferramentas e Dependências](/docs/tools-and-dependencies.md)
 4. [Documento de Visão](/docs/vision-document.md)
 5. [Documento de Requisitos do Produto (PRD)](/docs/prd.md)
+6. [Guia de Configuração do Ambiente de Desenvolvimento - SGE](/docs/initial-setup-guide.md)
