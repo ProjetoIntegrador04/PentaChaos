@@ -1,0 +1,137 @@
+# SGE Project .gitignore
+
+# ---------------------------------------------------
+# 1. IDE and OS Generated Files
+# ---------------------------------------------------
+.idea/                          # IntelliJ IDEA project files
+.vscode/                        # VS Code specific files
+*.iml                           # IntelliJ IDEA module files
+.DS_Store                       # macOS thumbnail files
+Thumbs.db                       # Windows thumbnail cache
+ehthumbs.db
+.directory
+Desktop.ini
+*.swp                           # Vim swap files
+*.bak                           # Backup files
+*.log                           # Log files (e.g., application logs, npm debug logs)
+logs/                           # Directory for application logs
+tmp/                            # Temporary directories/files
+temp/                           # Temporary directories/files
+
+# ---------------------------------------------------
+# 2. Java / Spring Boot (Backend)
+# ---------------------------------------------------
+# Maven
+target/                         # Maven build output directory
+pom.xml.tag                     # Maven temporary files
+pom.xml.bak
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/wrapper/maven-wrapper.jar  # Maven wrapper jar (often included, but can be ignored if managing manually)
+
+# Gradle
+.gradle/                        # Gradle wrapper and cache directory
+build/                          # Gradle build output directory
+.project
+.classpath
+.settings/
+out/                            # Output directory for compiled classes
+*.jar                           # Compiled JAR files
+*.war                           # Compiled WAR files
+*.zip
+*.tar
+*.orig
+hs_err_pid*                     # JVM crash logs
+
+# Spring Boot specific
+.spring-boot                   # Spring Boot devtools remote restart
+.factorypath                   # Annotation processing
+*.jks                          # Keystore files (if not managed by infrastructure)
+
+# ---------------------------------------------------
+# 3. Node.js / React (Frontend)
+# ---------------------------------------------------
+node_modules/                   # Node.js dependency directory
+build/                          # React build output directory (for production builds)
+dist/                           # Another common build output directory
+.env                            # Environment variables (sensitive data)
+.env.local                      # Local environment variables
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
+npm-debug.log*                  # NPM debug logs
+yarn-debug.log*                 # Yarn debug logs
+yarn-error.log*                 # Yarn error logs
+.parcel-cache/                  # Parcel build cache
+.next/                          # Next.js build output
+out/                            # Another common output directory (e.g., for static exports)
+coverage/                       # Test coverage reports
+
+# ---------------------------------------------------
+# 4. React Native (Mobile)
+# ---------------------------------------------------
+# Node modules (already covered, but good to be explicit for mobile projects)
+node_modules/
+
+# Android
+android/build/                  # Android build output
+android/.gradle/                # Android Gradle cache
+android/app/build/              # Android app build output
+android/local.properties        # Android SDK location (user specific)
+android/.idea/                  # Android Studio project files
+*.iml                           # IntelliJ/Android Studio module files
+
+# iOS
+ios/build/                      # iOS build output
+ios/Pods/                       # CocoaPods dependencies
+ios/.xccheckout                 # Xcode checkout files
+ios/.xcworkspace                # Xcode workspace (if not managed by CocoaPods)
+ios/DerivedData/                # Xcode derived data
+ios/*.xcuserstate               # Xcode user specific settings
+ios/*.xcuserdatad               # Xcode user data
+ios/*.xcchemescheme             # Xcode scheme files
+
+# React Native specific
+packager-cache/                 # Metro bundler cache
+*.xcodeproj                     # Xcode project file (usually included if not using Pods entirely, but can be ignored if only `xcworkspace` is used)
+*.xcworkspace/xcuserdata      # Xcode user data within workspace
+
+# ---------------------------------------------------
+# 5. DevOps / Infrastructure (AWS CDK, Docker)
+# ---------------------------------------------------
+cdk.out/                        # AWS CDK synthesis output directory
+.cdkout/                        # Alternative for CDK output
+*.tfstate                       # Terraform state files (if applicable, though project mentions CDK)
+*.tfstate.backup                # Terraform backup state files
+docker-compose.override.yml     # Local Docker Compose overrides (if used for specific dev environments)
+.docker/                        # Docker related cache/config (if not part of repo)
+.env.docker                     # Docker environment variables
+
+# ---------------------------------------------------
+# 6. Database
+# ---------------------------------------------------
+*.db                            # SQLite databases (if used for local dev/testing)
+*.sqlite                        # SQLite databases
+*.h2.db                         # H2 database files
+data/                           # Directory for local database files (if any)
+
+# ---------------------------------------------------
+# 7. Security / Sensitive Information
+# ---------------------------------------------------
+*.key                           # Private keys
+*.pem                           # Certificate files
+*.p12                           # PKCS#12 keystores
+*.crt                           # Certificates
+*.pfx
+.env*                           # (reiterated for emphasis on sensitive data)
+credentials.json                # Google Cloud credentials (example)
+
+# ---------------------------------------------------
+# 8. Miscellaneous
+# ---------------------------------------------------
+.coverage                       # Coverage reports (Python, etc. - general)
+.project-specific-cache/        # Any other project-specific caches
+*.csv.bak                       # Backup CSV files
+*.json.bak                      # Backup JSON files
