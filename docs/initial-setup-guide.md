@@ -32,11 +32,15 @@ Essencial para clonar repositórios e gerenciar o código-fonte.
 Necessário para o desenvolvimento Frontend (Web e Mobile) e para ferramentas de build.
 *   **Recomendado (NVM ou Volta):** Utilize um gerenciador de versões para Node.js para facilitar a troca entre versões se necessário.
     *   **NVM (Node Version Manager):** [github.com/nvm-sh/nvm](https://github.com/nvm-sh/nvm) (macOS/Linux) ou [github.com/coreybutler/nvm-windows](https://github.com/coreybutler/nvm-windows) (Windows).
-    *   **Volta:** [volta.sh](https://volta.sh/) (Multi-plataforma).
+    *  **Comando para instalar NVM no windows:**
+    ```bash
+      winget install CoreyButler.NVMforWindows
+    ```
+
 *   **Instalação da Versão LTS (via NVM/Volta):**
     ```bash
-    nvm install --lts # Ou volta install node@lts
-    nvm use --lts     # Ou volta use node@lts
+    nvm install --lts 
+    nvm use lts
     ```
 *   **Verificação:** `node -v` e `npm -v`
 *   **Instalar Yarn (Opcional, mas recomendado para consistência):** `npm install -g yarn`
