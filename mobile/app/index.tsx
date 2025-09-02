@@ -47,8 +47,8 @@ export default function LoginScreen() {
             resizeMode="contain"
           />
           <Text style={styles.desc}>
-            2RP net | Monitoring, onde o gerenciamento, acompanhamento e
-            organização são possíveis
+            2RP net | Monitoramento, onde o gerenciamento, acompanhamento e
+            organização são possíveis.
           </Text>
         </LinearGradient>
 
