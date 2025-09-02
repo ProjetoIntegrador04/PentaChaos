@@ -36,7 +36,7 @@ Um gerenciamento eficiente de branches é fundamental para a organização e col
      ```
 
 2. **Trabalhar na Branch:**  
-   - Realize commits com mensagens claras e no [formato padrão](commit-patterns.md).  
+   - Realize commits com mensagens claras e no [formato padrão](commit-pattern.md).  
 
 3. **Abrir um Pull Request (PR):**  
    - Ao concluir o desenvolvimento, abra um PR para revisão do código.
