@@ -2,27 +2,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+          <groupId>projeto_integrador</groupId>
+          <artifactId>P_I</artifactId>
+          <version>0.0.1-SNAPSHOT</version>
+    </parent>
 
-  <parent>
     <groupId>projeto_integrador</groupId>
-    <artifactId>P_I</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
-    <relativePath>../pom.xml</relativePath>
-  </parent>
+    <artifactId>frequency</artifactId>
+    <version>1.0-SNAPSHOT</version>
 
-  <!-- groupId e version herdados do parent -->
-  <artifactId>frequency</artifactId>
-  <packaging>jar</packaging>
+    <properties>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+    </properties>
 
-  <name>frequency</name>
-  <description>Módulo de domínio: frequência (attendance)</description>
-
-  <dependencies>
-    <!-- shared sem versão: version vem do dependencyManagement do parent -->
-    <dependency>
-      <groupId>projeto_integrador</groupId>
-      <artifactId>shared</artifactId>
-    </dependency>
-  </dependencies>
 </project>

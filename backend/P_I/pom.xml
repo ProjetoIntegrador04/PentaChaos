@@ -33,6 +33,8 @@
         <module>tasks</module>
         <module>frequency</module>
         <module>reports</module>
+        <module>frequency</module>
+        <module>frequency</module>
     </modules>
 
     <dependencyManagement>
