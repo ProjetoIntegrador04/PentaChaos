@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  ScrollView, 
+  ScrollView,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -21,6 +21,8 @@ export default function LoginScreen() {
   const [lembrar, setLembrar] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
 
+  const senhaInputRef = useRef<TextInput>(null);
+
   const handleLogin = () => {
     Keyboard.dismiss();
     router.push("/home");
@@ -31,31 +33,27 @@ export default function LoginScreen() {
       style={{ flex: 1 }}
       behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
-      
       <ScrollView
         contentContainerStyle={styles.container}
         keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag" 
+        keyboardDismissMode="on-drag"
       >
-        
         <LinearGradient colors={["#1d64b5", "#2a77d4"]} style={styles.header}>
-          <Text style={styles.ola}>Olá,</Text>
-          <Text style={styles.bemVindo}>Bem vindo a</Text>
-          <Image
-            source={require("../assets/logo.png")}
-            style={styles.logo}
-            resizeMode="contain"
-          />
-          <Text style={styles.desc}>
-            2RP net | Monitoramento, onde o gerenciamento, acompanhamento e
-            organização são possíveis.
-          </Text>
+            <Text style={styles.ola}>Olá,</Text>
+            <Text style={styles.bemVindo}>Bem vindo a</Text>
+            <Image
+              source={require("../assets/logo.png")}
+              style={styles.logo}
+              resizeMode="contain"
+            />
+            <Text style={styles.desc}>
+              2RP net | Monitoramento, onde o gerenciamento, acompanhamento e
+              organização são possíveis.
+            </Text>
         </LinearGradient>
 
-      
         <Text style={styles.title}>Entre na sua conta agora!</Text>
 
-       
         <Text style={styles.label}>E-mail</Text>
         <TextInput
           style={styles.input}
@@ -65,17 +63,25 @@ export default function LoginScreen() {
           onChangeText={setEmail}
           keyboardType="email-address"
           autoCapitalize="none"
+          returnKeyType="next"
+          onSubmitEditing={() => {
+            senhaInputRef.current?.focus();
+          }}
+          blurOnSubmit={false}
         />
 
         <Text style={styles.label}>Senha</Text>
         <View style={styles.inputSenha}>
           <TextInput
-            style={{ flex: 1, color: '#000' }} 
+            ref={senhaInputRef}
+            style={{ flex: 1, color: '#000' }}
             placeholder="Digite sua senha"
             placeholderTextColor="#9aa3af"
             secureTextEntry={!mostrarSenha}
             value={senha}
             onChangeText={setSenha}
+            returnKeyType="go"
+            onSubmitEditing={handleLogin}
           />
           <TouchableOpacity onPress={() => setMostrarSenha(!mostrarSenha)}>
             <Ionicons
@@ -86,7 +92,6 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        
         <View style={styles.row}>
           <TouchableOpacity
             style={[styles.checkbox, lembrar ? styles.checkboxChecked : null]}
@@ -101,19 +106,16 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-       
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Entrar</Text>
         </TouchableOpacity>
 
-      
-        <TouchableOpacity>
-          <Text style={styles.linkSaber}>Saber mais</Text>
-        </TouchableOpacity>
+
       </ScrollView>
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: { 
@@ -192,5 +194,5 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
-  linkSaber: { color: "#2a77d4", fontSize: 14, textAlign: "center", marginTop: 30 },
+
 });
