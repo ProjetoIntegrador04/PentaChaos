@@ -1,0 +1,33 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.optionsRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 10px 0;
+}
+
+.forgotLink {
+  color: #4A90E2;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.forgotLink:hover {
+  color: #357ABD;
+  text-decoration: underline;
+}
+
+@media (max-width: 480px) {
+  .optionsRow {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}

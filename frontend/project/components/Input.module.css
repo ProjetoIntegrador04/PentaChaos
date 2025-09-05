@@ -1,0 +1,80 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.inputWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input {
+  width: 100%;
+  padding: 16px 20px;
+  border: 2px solid #E5E7EB;
+  border-radius: 12px;
+  font-size: 16px;
+  background: white;
+  transition: all 0.2s ease;
+  outline: none;
+  font-family: inherit;
+}
+
+.input::placeholder {
+  color: #9CA3AF;
+}
+
+.focused .input {
+  border-color: #4A90E2;
+  box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+}
+
+.error .input {
+  border-color: #EF4444;
+}
+
+.error.focused .input {
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+}
+
+.passwordToggle {
+  position: absolute;
+  right: 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  color: #6B7280;
+  padding: 4px;
+  border-radius: 4px;
+  transition: color 0.2s ease;
+}
+
+.passwordToggle:hover {
+  color: #4A90E2;
+}
+
+.passwordToggle:focus {
+  outline: 2px solid #4A90E2;
+  outline-offset: 2px;
+}
+
+.errorText {
+  color: #EF4444;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+@media (max-width: 480px) {
+  .input {
+    padding: 14px 16px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .passwordToggle {
+    right: 12px;
+  }
+}
