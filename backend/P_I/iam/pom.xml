@@ -3,23 +3,24 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <!-- O parent deve ser o seu módulo P_I, que gerencia as versões -->
         <groupId>projeto_integrador</groupId>
         <artifactId>P_I</artifactId>
-        <version>0.0.1-SNAPSHOT</version> <!-- A versão do seu P_I -->
+        <version>0.0.1-SNAPSHOT</version>
     </parent>
 
     <groupId>projeto_integrador</groupId>
     <artifactId>iam</artifactId>
-    <version>0.0.1-SNAPSHOT</version> <!-- Mantenha a mesma versão do P_I para consistência -->
+    <version>0.0.1-SNAPSHOT</version>
     <name>iam</name>
     <description>Módulo de Gerenciamento de Identidade e Acesso (IAM)</description>
 
     <properties>
-        <!-- Não é estritamente necessário definir java.version aqui, pois já está no P_I, -->
-        <!-- mas pode ser útil para garantir que IDEs reconheçam a versão correta do módulo. -->
-        <!-- **Certifique-se que esta versão é compatível com a do P_I!** -->
         <java.version>24</java.version>
+        <!-- Defina as versões das novas bibliotecas aqui se elas não forem gerenciadas pelo P_I -->
+        <!-- Caso o P_I tenha um dependencyManagement, estas propriedades podem ser omitidas. -->
+        <!-- Recomendo que as versões do JJWT e Springdoc sejam definidas no P_I. -->
+        <jjwt.version>0.12.5</jjwt.version>
+        <springdoc.version>2.5.0</springdoc.version>
     </properties>
 
     <dependencies>
@@ -53,6 +54,32 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
+        </dependency>
+
+        <!-- JJWT - JSON Web Tokens -->
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- Springdoc OpenAPI (Swagger UI) -->
+        <dependency>
+            <groupId>org.springdoc</groupId>
+            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <version>${springdoc.version}</version>
         </dependency>
 
         <!-- Dependências de teste -->
