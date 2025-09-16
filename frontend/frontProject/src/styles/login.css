@@ -25,13 +25,12 @@ body {
 
 .login-container {
   display: flex;
-  flex-direction: column; /* Coluna para mobile */
+  flex-direction: column; 
   width: 100%;
 }
 
-/* Na versão mobile, a estrutura da esquerda é um bloco simples */
 .login-left-wrapper {
-  display: flex; /* Mantém o flex para o .login-left preencher */
+  display: flex; 
   width: 100%;
 }
 
@@ -47,7 +46,6 @@ body {
   text-align: center;
 }
 
-/* O fundo extra e os clip-paths são escondidos em mobile */
 .login-left-background, .login-left::before {
   display: none;
 }
@@ -70,7 +68,6 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
 }
 
-/* Tipografia Fluida */
 .welcome-message h1, .welcome-message h2 {
   font-family: var(--font-primary);
   font-size: clamp(1.8rem, 6vw, 2.5rem);
@@ -91,7 +88,6 @@ body {
     height: 100vh;
   }
   
-  /* A estrutura da esquerda agora ocupa metade do espaço */
   .login-left-wrapper {
     flex: 1;
     position: relative;
@@ -100,13 +96,12 @@ body {
   .login-left {
     padding: 3rem;
     text-align: left;
-    background: transparent; /* O fundo vem do wrapper e background */
+    background: transparent; 
     z-index: 5;
   }
   
   .logo-section { justify-content: flex-start; }
 
-  /* Reativamos os seus containers com clip-path SÓ para telas grandes */
   .login-left-background {
     display: block;
     position: absolute;
@@ -134,7 +129,7 @@ body {
   
   .login-right { flex: 1; }
 
-  /* Reativamos o efeito de vidro */
+
   .login-form-container {
     background: rgba(255, 255, 255, 0.6);
     backdrop-filter: blur(15px);
@@ -144,9 +139,7 @@ body {
   }
 }
 
-/* ================================== */
-/* ESTILOS E ANIMAÇÕES RESTANTES */
-/* ================================== */
+
 
 /* Animações de Entrada */
 .welcome-message h1, .welcome-message h2, .logo-section, .description, .learn-more-btn, .login-form-container {
@@ -176,7 +169,6 @@ body {
 .particle:nth-child(10) { width: 2px; height: 2px; left: 66%; animation-delay: -11s; animation-duration: 23s; }
 @keyframes move-particle { 0% { transform: translateY(110vh) scale(0.5); opacity: 1; } 100% { transform: translateY(-10vh) scale(1.5); opacity: 0; } }
 
-/* Estilos de Componentes (mantidos) */
 .form-header { text-align: center; margin-bottom: 2rem; }
 .form-header h2 { font-family: var(--font-primary); font-size: 1.8rem; color: var(--text-color); font-weight: 300; line-height: 1.2; }
 .account-text { color: var(--primary-darker) !important; font-weight: 700 !important; }
