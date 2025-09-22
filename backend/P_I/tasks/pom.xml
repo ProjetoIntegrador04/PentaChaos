@@ -11,11 +11,39 @@
 
     <groupId>projeto_integrador</groupId>
     <artifactId>tasks</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <!-- REMOVIDO: A versão será herdada do pai (0.0.1-SNAPSHOT) para consistência. -->
+    <!-- <version>1.0-SNAPSHOT</version> -->
 
+    <!-- REMOVIDO: As propriedades de versão do compilador (maven.compiler.source e target)
+         serão herdadas do pai, que agora está configurado para Java 21. -->
+    <!--
     <properties>
         <maven.compiler.source>24</maven.compiler.source>
         <maven.compiler.target>24</maven.compiler.target>
     </properties>
+    -->
+
+    <dependencies>
+        <!-- ADICIONADO: Dependência para o módulo 'shared'. -->
+        <dependency>
+            <groupId>projeto_integrador</groupId>
+            <artifactId>shared</artifactId>
+            <!-- A versão será gerenciada pelo <dependencyManagement> do POM pai. -->
+        </dependency>
+
+        <!-- ADICIONADO: Dependência para o módulo 'iam' (Identity and Access Management).
+             Tarefas geralmente têm um responsável ou são atribuídas a usuários. -->
+        <dependency>
+            <groupId>projeto_integrador</groupId>
+            <artifactId>iam</artifactId>
+            <!-- A versão será gerenciada pelo <dependencyManagement> do POM pai. -->
+        </dependency>
+
+        <dependency>
+            <groupId>projeto_integrador</groupId>
+            <artifactId>squads</artifactId>
+
+        </dependency>
+    </dependencies>
 
 </project>

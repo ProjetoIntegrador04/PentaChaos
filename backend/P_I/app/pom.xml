@@ -11,13 +11,14 @@
     <relativePath>../pom.xml</relativePath>
   </parent>
 
+
   <artifactId>app</artifactId>
   <name>Gestao Estagiarios - App</name>
   <description>Aplicação Spring Boot (módulo executável)</description>
   <packaging>jar</packaging>
 
   <properties>
-    <java.version>24</java.version>
+    <!-- REMOVIDO: java.version aqui. Ele será herdado do POM pai (Java 21). -->
   </properties>
 
   <dependencies>
@@ -51,7 +52,7 @@
       <artifactId>flyway-core</artifactId>
     </dependency>
   
-      <dependency>
+    <dependency>
       <groupId>org.flywaydb</groupId>
       <artifactId>flyway-database-postgresql</artifactId>
       <optional>true</optional>
@@ -69,40 +70,47 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- ADICIONADO: Dependência para o módulo 'shared' -->
     <dependency>
-      <groupId>com.seuprojeto</groupId>
+      <groupId>projeto_integrador</groupId>
+      <artifactId>shared</artifactId>
+    </dependency>
+
+    <!-- DEPENDÊNCIAS DOS MÓDULOS INTERNOS (groupId CORRIGIDO, version REMOVIDO) -->
+    <dependency>
+      <groupId>projeto_integrador</groupId> <!-- CORRIGIDO -->
       <artifactId>iam</artifactId>
-      <version>${project.version}</version>
+      <!-- REMOVIDO: <version>${project.version}</version> (gerenciado pelo POM pai) -->
     </dependency>
     <dependency>
-      <groupId>com.seuprojeto</groupId>
+      <groupId>projeto_integrador</groupId> <!-- CORRIGIDO -->
       <artifactId>squads</artifactId>
-      <version>${project.version}</version>
+      <!-- REMOVIDO: <version>${project.version}</version> -->
     </dependency>
     <dependency>
-      <groupId>com.seuprojeto</groupId>
+      <groupId>projeto_integrador</groupId> <!-- CORRIGIDO -->
       <artifactId>tasks</artifactId>
-      <version>${project.version}</version>
+      <!-- REMOVIDO: <version>${project.version}</version> -->
     </dependency>
     <dependency>
-      <groupId>com.seuprojeto</groupId>
+      <groupId>projeto_integrador</groupId> <!-- CORRIGIDO -->
       <artifactId>frequency</artifactId>
-      <version>${project.version}</version>
+      <!-- REMOVIDO: <version>${project.version}</version> -->
     </dependency>
     <dependency>
-      <groupId>com.seuprojeto</groupId>
+      <groupId>projeto_integrador</groupId> <!-- CORRIGIDO -->
       <artifactId>reports</artifactId>
-      <version>${project.version}</version>
+      <!-- REMOVIDO: <version>${project.version}</version> -->
     </dependency>
     <dependency>
-      <groupId>com.seuprojeto</groupId>
+      <groupId>projeto_integrador</groupId> <!-- CORRIGIDO -->
       <artifactId>platform</artifactId>
-      <version>${project.version}</version>
+      <!-- REMOVIDO: <version>${project.version}</version> -->
     </dependency>
     <dependency>
-      <groupId>com.seuprojeto</groupId>
+      <groupId>projeto_integrador</groupId> <!-- CORRIGIDO -->
       <artifactId>database</artifactId>
-      <version>${project.version}</version>
+      <!-- REMOVIDO: <version>${project.version}</version> -->
       <optional>true</optional>
     </dependency>
 
@@ -123,31 +131,28 @@
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
       <scope>test</scope>
+    </dependency>
+
+  </dependencies>
 
   <build>
     <plugins>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-enforcer-plugin</artifactId>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
       </plugin>
-
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-failsafe-plugin</artifactId>
       </plugin>
-
-
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
@@ -156,6 +161,9 @@
             <goals>
               <goal>repackage</goal>
             </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
-
 </project>
