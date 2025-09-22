@@ -6,16 +6,34 @@
     <parent>
           <groupId>projeto_integrador</groupId>
           <artifactId>P_I</artifactId>
+          <!-- A versão aqui deve ser a mesma do parent, ou simplesmente omitida
+               para herdar a versão 0.0.1-SNAPSHOT -->
           <version>0.0.1-SNAPSHOT</version>
     </parent>
 
     <groupId>projeto_integrador</groupId>
     <artifactId>shared</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <!-- REMOVIDO: A versão será herdada do pai (0.0.1-SNAPSHOT) para consistência. -->
+    <!-- <version>1.0-SNAPSHOT</version> -->
 
+    <!-- REMOVIDO: As propriedades de versão do compilador (maven.compiler.source e target)
+         serão herdadas do pai, que agora está configurado para Java 21. -->
+    <!--
     <properties>
         <maven.compiler.source>24</maven.compiler.source>
         <maven.compiler.target>24</maven.compiler.target>
     </properties>
+    -->
+
+    <!-- Se houverem dependências específicas do módulo shared, elas viriam aqui. -->
+    <dependencies>
+        <!-- Exemplo: Se shared precisar de alguma lib específica -->
+        <!--
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        -->
+    </dependencies>
 
 </project>

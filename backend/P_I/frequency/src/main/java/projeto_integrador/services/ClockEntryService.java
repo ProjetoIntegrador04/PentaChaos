@@ -1,25 +1,28 @@
-// C:\Users\gabri\OneDrive\Área de Trabalho\PentaChaos\backend\P_I\frequency\src\main\java\projeto_integrador\service\ClockEntryService.java
-package projeto_integrador.services; // Ajustado para o seu pacote base
+package projeto_integrador.services;
 
-import projeto_integrador.dto.ClockEntryRequest; // Ajustado para o seu pacote DTO
-import projeto_integrador.dto.ClockEntryResponse; // Ajustado para o seu pacote DTO
-import projeto_integrador.models.ClockEntry; // Ajustado para o seu pacote Model
-import projeto_integrador.repositories.ClockEntryRepository; // Ajustado para o seu pacote Repository
+import projeto_integrador.dto.ClockEntryRequest;
+import projeto_integrador.dto.ClockEntryResponse;
+import projeto_integrador.models.ClockEntry;
+import projeto_integrador.repositories.ClockEntryRepository;
+import projeto_integrador.exceptions.ResourceNotFoundException;
+import projeto_integrador.exceptions.InvalidClockEntryException;
 
-import projeto_integrador.user.model.User; // **Assumindo que sua classe User está em projeto_integrador.user.model**
-import projeto_integrador.user.repository.UserRepository; // **Assumindo que seu UserRepository está em projeto_integrador.user.repository**
+import projeto_integrador.user.models.User;
+import projeto_integrador.user.repository.UserRepository;
+
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 @Service
 public class ClockEntryService {
 
     private final ClockEntryRepository clockEntryRepository;
-    private final UserRepository userRepository; // Para buscar o usuário
+    private final UserRepository userRepository;
 
     @Autowired
     public ClockEntryService(ClockEntryRepository clockEntryRepository, UserRepository userRepository) {
@@ -27,36 +30,43 @@ public class ClockEntryService {
         this.userRepository = userRepository;
     }
 
-    @Transactional // Garante que a operação seja atômica
+    @Transactional
     public ClockEntryResponse registrarPonto(ClockEntryRequest request) {
-        // 1. Buscar o usuário pelo ID
-        // **IMPORTANTE:** Certifique-se de que o UserRepository está configurado e que há usuários no seu DB.
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado com ID: " + request.getUserId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + request.getUserId()));
 
-        // 2. Criar a entidade ClockEntry a partir do DTO de requisição
-        // Os valores de latitude, longitude e precisao são definidos como 0.0f se forem nulos.
+        if (request.getTipo() == null || (!request.getTipo().equals("ENTRADA") && !request.getTipo().equals("SAIDA"))) {
+            throw new InvalidClockEntryException("Tipo de ponto inválido. Deve ser 'ENTRADA' ou 'SAIDA'.");
+        }
+
+        if (request.getTipo().equals("SAIDA")) {
+            boolean hasOpenEntry = clockEntryRepository.findByUserId(request.getUserId())
+                                      .stream()
+                                      .filter(ce -> ce.getTipo().equals("ENTRADA") && ce.getTimestamp() != null && ce.getOutTime() == null)
+                                      .findFirst()
+                                      .isPresent();
+            if (!hasOpenEntry) {
+                 throw new InvalidClockEntryException("Não é possível registrar SAÍDA sem um registro de ENTRADA ativo.");
+            }
+        }
+
         ClockEntry clockEntry = ClockEntry.builder()
-                .user(user) // Associa o usuário encontrado
+                .user(user)
                 .tipo(request.getTipo())
                 .timestamp(request.getTimestamp())
                 .latitude(request.getLatitude() != null ? request.getLatitude() : 0.0f)
                 .longitude(request.getLongitude() != null ? request.getLongitude() : 0.0f)
-                .precisao(request.getPrecisaos() != null ? request.getPrecisao() : 0.0f)
+                .precisao(request.getPrecisao() != null ? request.getPrecisao() : 0.0f)
                 .fonte(request.getFonte())
                 .deviceId(request.getDeviceId())
                 .ip(request.getIp())
                 .build();
 
-        // createdAt será preenchido automaticamente pela anotação @CreationTimestamp na entidade ClockEntry
-
-        // 3. Salvar a entidade no banco de dados
         ClockEntry savedClockEntry = clockEntryRepository.save(clockEntry);
 
-        // 4. Converter a entidade salva para o DTO de resposta
         return ClockEntryResponse.builder()
                 .id(savedClockEntry.getId())
-                .userId(savedClockEntry.getUser().getId()) // Retorna o ID do usuário
+                .userId(savedClockEntry.getUser().getId())
                 .tipo(savedClockEntry.getTipo())
                 .timestamp(savedClockEntry.getTimestamp())
                 .latitude(savedClockEntry.getLatitude())
@@ -69,16 +79,9 @@ public class ClockEntryService {
                 .build();
     }
 
-    /**
-     * Método para buscar um ponto de relógio pelo seu ID.
-     *
-     * @param id O ID do ponto de relógio a ser buscado.
-     * @return ClockEntryResponse contendo os detalhes do ponto de relógio.
-     * @throws IllegalArgumentException se o ponto de relógio não for encontrado.
-     */
     public ClockEntryResponse buscarPontoPorId(Long id) {
         ClockEntry clockEntry = clockEntryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Ponto não encontrado com ID: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Ponto não encontrado com ID: " + id));
 
         return ClockEntryResponse.builder()
                 .id(clockEntry.getId())
@@ -87,7 +90,7 @@ public class ClockEntryService {
                 .timestamp(clockEntry.getTimestamp())
                 .latitude(clockEntry.getLatitude())
                 .longitude(clockEntry.getLongitude())
-                .precisao(clockEntry.getPreciso())
+                .precisao(clockEntry.getPrecisao())
                 .fonte(clockEntry.getFonte())
                 .deviceId(clockEntry.getDeviceId())
                 .ip(clockEntry.getIp())
