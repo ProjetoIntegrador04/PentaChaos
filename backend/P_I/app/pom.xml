@@ -107,12 +107,6 @@
       <artifactId>platform</artifactId>
       <!-- REMOVIDO: <version>${project.version}</version> -->
     </dependency>
-    <dependency>
-      <groupId>projeto_integrador</groupId> <!-- CORRIGIDO -->
-      <artifactId>database</artifactId>
-      <!-- REMOVIDO: <version>${project.version}</version> -->
-      <optional>true</optional>
-    </dependency>
 
     <!-- Testes -->
     <dependency>
