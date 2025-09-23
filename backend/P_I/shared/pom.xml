@@ -6,34 +6,33 @@
     <parent>
           <groupId>projeto_integrador</groupId>
           <artifactId>P_I</artifactId>
-          <!-- A versão aqui deve ser a mesma do parent, ou simplesmente omitida
-               para herdar a versão 0.0.1-SNAPSHOT -->
           <version>0.0.1-SNAPSHOT</version>
+          <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>projeto_integrador</groupId>
     <artifactId>shared</artifactId>
-    <!-- REMOVIDO: A versão será herdada do pai (0.0.1-SNAPSHOT) para consistência. -->
-    <!-- <version>1.0-SNAPSHOT</version> -->
+    <name>Gestao Estagiarios - Shared Module</name> 
+    <description>Módulo para classes e interfaces compartilhadas entre outros módulos.</description>
 
-    <!-- REMOVIDO: As propriedades de versão do compilador (maven.compiler.source e target)
-         serão herdadas do pai, que agora está configurado para Java 21. -->
-    <!--
-    <properties>
-        <maven.compiler.source>24</maven.compiler.source>
-        <maven.compiler.target>24</maven.compiler.target>
-    </properties>
-    -->
-
-    <!-- Se houverem dependências específicas do módulo shared, elas viriam aqui. -->
     <dependencies>
-        <!-- Exemplo: Se shared precisar de alguma lib específica -->
-        <!--
+
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <scope>provided</scope>
         </dependency>
-        -->
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>
