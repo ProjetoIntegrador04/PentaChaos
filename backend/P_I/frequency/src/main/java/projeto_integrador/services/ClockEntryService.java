@@ -4,59 +4,57 @@ import projeto_integrador.dto.ClockEntryRequest;
 import projeto_integrador.dto.ClockEntryResponse;
 import projeto_integrador.models.ClockEntry;
 import projeto_integrador.repositories.ClockEntryRepository;
-import projeto_integrador.exceptions.ResourceNotFoundException;
-import projeto_integrador.exceptions.InvalidClockEntryException;
+import projeto_integrador.exception.ResourceNotFoundException;
+import projeto_integrador.exception.BusinessException;
 
-import projeto_integrador.user.models.User;
-import projeto_integrador.user.repository.UserRepository;
-
-
-import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class ClockEntryService {
 
-    private final ClockEntryRepository clockEntryRepository;
-    private final UserRepository userRepository;
+    private static final Set<String> VALID_TYPES = Set.of("ENTRY", "EXIT", "LUNCH_START", "LUNCH_END");
 
-    @Autowired
-    public ClockEntryService(ClockEntryRepository clockEntryRepository, UserRepository userRepository) {
+    private final ClockEntryRepository clockEntryRepository;
+
+   // @Autowired
+    public ClockEntryService(ClockEntryRepository clockEntryRepository) {
         this.clockEntryRepository = clockEntryRepository;
-        this.userRepository = userRepository;
     }
 
     @Transactional
     public ClockEntryResponse registrarPonto(ClockEntryRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + request.getUserId()));
-
-        if (request.getTipo() == null || (!request.getTipo().equals("ENTRADA") && !request.getTipo().equals("SAIDA"))) {
-            throw new InvalidClockEntryException("Tipo de ponto inválido. Deve ser 'ENTRADA' ou 'SAIDA'.");
+        if (request.getUserId() == null) {
+            throw new BusinessException("O ID do usuário é obrigatório");
         }
 
-        if (request.getTipo().equals("SAIDA")) {
-            boolean hasOpenEntry = clockEntryRepository.findByUserId(request.getUserId())
-                                      .stream()
-                                      .filter(ce -> ce.getTipo().equals("ENTRADA") && ce.getTimestamp() != null && ce.getOutTime() == null)
-                                      .findFirst()
-                                      .isPresent();
-            if (!hasOpenEntry) {
-                 throw new InvalidClockEntryException("Não é possível registrar SAÍDA sem um registro de ENTRADA ativo.");
+        String tipo = request.getTipo();
+        if (tipo == null || !VALID_TYPES.contains(tipo)) {
+            throw new BusinessException("Tipo de ponto inválido. Use: " + VALID_TYPES);
+        }
+
+        if ("EXIT".equals(tipo)) {
+            boolean hasPreviousEntry = clockEntryRepository
+                    .findTopByUserIdAndTipoOrderByCreatedAtDesc(request.getUserId(), "ENTRY")
+                    .isPresent();
+            if (!hasPreviousEntry) {
+                throw new BusinessException("Não é possível registrar EXIT sem um ENTRY anterior");
             }
         }
 
+        LocalDateTime timestamp = request.getTimestamp() != null ? request.getTimestamp() : LocalDateTime.now();
+
         ClockEntry clockEntry = ClockEntry.builder()
-                .user(user)
-                .tipo(request.getTipo())
-                .timestamp(request.getTimestamp())
-                .latitude(request.getLatitude() != null ? request.getLatitude() : 0.0f)
-                .longitude(request.getLongitude() != null ? request.getLongitude() : 0.0f)
-                .precisao(request.getPrecisao() != null ? request.getPrecisao() : 0.0f)
+                .userId(request.getUserId())
+                .tipo(tipo)
+                .timestamp(timestamp)
+                .latitude(request.getLatitude())
+                .longitude(request.getLongitude())
+                .precisao(request.getPrecisao())
                 .fonte(request.getFonte())
                 .deviceId(request.getDeviceId())
                 .ip(request.getIp())
@@ -66,7 +64,7 @@ public class ClockEntryService {
 
         return ClockEntryResponse.builder()
                 .id(savedClockEntry.getId())
-                .userId(savedClockEntry.getUser().getId())
+                .userId(savedClockEntry.getUserId())
                 .tipo(savedClockEntry.getTipo())
                 .timestamp(savedClockEntry.getTimestamp())
                 .latitude(savedClockEntry.getLatitude())
@@ -85,7 +83,7 @@ public class ClockEntryService {
 
         return ClockEntryResponse.builder()
                 .id(clockEntry.getId())
-                .userId(clockEntry.getUser().getId())
+                .userId(clockEntry.getUserId())
                 .tipo(clockEntry.getTipo())
                 .timestamp(clockEntry.getTimestamp())
                 .latitude(clockEntry.getLatitude())

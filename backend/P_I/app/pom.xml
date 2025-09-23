@@ -70,6 +70,13 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Swagger/OpenAPI -->
+    <dependency>
+      <groupId>org.springdoc</groupId>
+      <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+      <version>2.6.0</version>
+    </dependency>
+
     <!-- ADICIONADO: Dependência para o módulo 'shared' -->
     <dependency>
       <groupId>projeto_integrador</groupId>
@@ -157,6 +164,9 @@
             </goals>
           </execution>
         </executions>
+        <configuration>
+          <mainClass>projeto_integrador.PIApplication</mainClass>
+        </configuration>
       </plugin>
     </plugins>
   </build>

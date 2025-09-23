@@ -6,7 +6,7 @@ import projeto_integrador.services.ClockEntryService;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
+//import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +17,7 @@ public class ClockEntryController {
 
     private final ClockEntryService clockEntryService;
 
-    @Autowired
+ //   @Autowired
     public ClockEntryController(ClockEntryService clockEntryService) {
         this.clockEntryService = clockEntryService;
     }

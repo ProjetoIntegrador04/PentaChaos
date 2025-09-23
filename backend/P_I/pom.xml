@@ -31,6 +31,7 @@
     <spring-boot.version>3.5.6</spring-boot.version>
     <maven-compiler-plugin.version>3.13.0</maven-compiler-plugin.version>
     <maven-enforcer-plugin.version>3.5.0</maven-enforcer-plugin.version>
+    <lombok.version>1.18.32</lombok.version>
   </properties>
 
   <dependencyManagement>
@@ -126,6 +127,13 @@
           <configuration>
             <release>${java.version}</release>
             <encoding>UTF-8</encoding>
+            <annotationProcessorPaths>
+              <path>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok.version}</version>
+              </path>
+            </annotationProcessorPaths>
           </configuration>
         </plugin>
 
