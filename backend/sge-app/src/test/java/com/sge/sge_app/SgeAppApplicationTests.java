@@ -1,10 +1,10 @@
-package com.sge.sgeapp.sgeapp;
+package com.sge.sge_app;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class SgeappApplicationTests {
+class SgeAppApplicationTests {
 
 	@Test
 	void contextLoads() {
