@@ -1,0 +1,16 @@
+version: '3.8' # Versão da especificação do Docker Compose
+
+services:
+  db: # Nome do serviço do banco de dados
+    image: postgres:15-alpine # Imagem oficial do PostgreSQL. 'alpine' é mais leve.
+    ports:
+      - "5432:5432" # Mapeia a porta 5432 do seu host para a porta 5432 do contêiner
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB} # Nome do banco de dados a ser criado
+      POSTGRES_USER: ${POSTGRES_USER}} # Usuário para acessar o banco
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Senha para o usuário
+    volumes:
+      - db_data:/var/lib/postgresql/data # Volume para persistência dos dados
+
+volumes:
+  db_data: # Definição do volume para persistir os dados
