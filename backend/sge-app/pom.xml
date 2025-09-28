@@ -70,7 +70,6 @@
       <artifactId>spring-security-test</artifactId>
       <scope>test</scope>
     </dependency>
-
     <!-- JJWT API -->
     <dependency>
       <groupId>io.jsonwebtoken</groupId>
@@ -91,11 +90,19 @@
       <version>0.11.5</version>
       <scope>runtime</scope>
     </dependency>
-
     <dependency>
       <groupId>jakarta.persistence</groupId>
       <artifactId>jakarta.persistence-api</artifactId>
       <version>3.1.0</version> <!-- Garanta que a versão é compatível com Spring Boot 3 / Jakarta EE 10 -->
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.modelmapper</groupId>
+      <artifactId>modelmapper</artifactId>
+      <version>3.1.1</version> <!-- Verifique a versão mais recente em Maven Central -->
     </dependency>
 
   </dependencies>
