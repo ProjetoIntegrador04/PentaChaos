@@ -1,69 +1,46 @@
 package com.sge.sge_app.domain.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
-@MappedSuperclass // Indica que as classes que herdam de BaseEntity terão esses campos mapeados em
-                  // suas próprias tabelas.
-@EntityListeners(AuditingEntityListener.class) // Habilita o Spring Data JPA para preencher automaticamente @CreatedDate
-                                               // e @LastModifiedDate
-public abstract class BaseEntity {
+@Getter
+@Setter
+@MappedSuperclass // Indica que esta classe não é uma entidade, mas suas propriedades serão
+                  // mapeadas nas entidades filhas
+@EntityListeners(AuditingEntityListener.class) // Habilita a auditoria automática para createdAt e updatedAt
+public abstract class BaseEntity implements Serializable {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY) // Estratégia de geração de ID para PostgreSQL
-  private Long id;
+  @GeneratedValue(strategy = GenerationType.IDENTITY) // Geração de ID automática e incremental
+  protected Long id;
 
-  @CreatedDate
+  @CreatedDate // Anotação do Spring Data JPA para definir o momento da criação
   @Column(name = "created_at", nullable = false, updatable = false)
-  private LocalDateTime createdAt;
+  protected LocalDateTime createdAt;
 
-  @LastModifiedDate
-  @Column(name = "updated_at", nullable = false)
-  private LocalDateTime updatedAt;
+  @LastModifiedDate // Anotação do Spring Data JPA para definir o momento da última atualização
+  @Column(name = "updated_at")
+  protected LocalDateTime updatedAt;
 
-  // Getters e Setters
-  public Long getId() {
-    return id;
+  @PrePersist // Método que será executado antes de persistir a entidade
+  protected void onCreate() {
+    if (this.createdAt == null) {
+      this.createdAt = LocalDateTime.now();
+    }
+    if (this.updatedAt == null) {
+      this.updatedAt = LocalDateTime.now();
+    }
   }
 
-  public void setId(Long id) {
-    this.id = id;
-  }
-
-  public LocalDateTime getCreatedAt() {
-    return createdAt;
-  }
-
-  public void setCreatedAt(LocalDateTime createdAt) {
-    this.createdAt = createdAt;
-  }
-
-  public LocalDateTime getUpdatedAt() {
-    return updatedAt;
-  }
-
-  public void setUpdatedAt(LocalDateTime updatedAt) {
-    this.updatedAt = updatedAt;
-  }
-
-  // Métodos equals e hashCode baseados no ID para comparações de objetos
-  @Override
-  public boolean equals(Object o) {
-    if (this == o)
-      return true;
-    if (o == null || getClass() != o.getClass())
-      return false;
-    BaseEntity that = (BaseEntity) o;
-    return Objects.equals(id, that.id);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(id);
+  @PreUpdate // Método que será executado antes de atualizar a entidade
+  protected void onUpdate() {
+    this.updatedAt = LocalDateTime.now();
   }
 }

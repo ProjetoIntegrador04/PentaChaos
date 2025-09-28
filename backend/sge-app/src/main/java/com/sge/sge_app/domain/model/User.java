@@ -1,135 +1,93 @@
 package com.sge.sge_app.domain.model;
 
 import jakarta.persistence.*;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-@Entity // Marca a classe como uma entidade JPA
-@Table(name = "users") // Nome da tabela no banco de dados
+@Entity
+@Table(name = "users") // Define o nome da tabela no banco de dados
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User extends BaseEntity implements UserDetails {
 
-  @Column(name = "username", nullable = false, unique = true)
-  private String username;
+    @Column(nullable = false, unique = true)
+    private String username;
 
-  @Column(name = "email", nullable = false, unique = true)
-  private String email;
+    @Column(nullable = false, unique = true)
+    private String email;
 
-  @Column(name = "password", nullable = false)
-  private String password;
+    @Column(nullable = false)
+    private String password; // ATENÇÃO: Armazenar senhas HASHED, nunca em texto puro!
 
-  @Column(name = "enabled", nullable = false)
-  private boolean enabled = true; // Indica se a conta está ativa
+    private boolean enabled = true; // Indica se o usuário está ativo
+    private boolean accountLocked = false; // Indica se a conta do usuário está bloqueada
+    private boolean credentialsExpired = false; // Indica se as credenciais do usuário expiraram
+    private boolean accountExpired = false; // Indica se a conta do usuário expirou
 
-  @Column(name = "account_locked", nullable = false)
-  private boolean accountLocked = false; // Indica se a conta está bloqueada
+    @ManyToMany(fetch = FetchType.EAGER) // Carrega os papéis junto com o usuário para facilitar as verificações de segurança
+    @JoinTable(
+        name = "user_roles", // Nome da tabela de junção
+        joinColumns = @JoinColumn(name = "user_id"), // Coluna que referencia o ID do usuário
+        inverseJoinColumns = @JoinColumn(name = "role_id") // Coluna que referencia o ID do papel
+    )
+    private Set<Role> roles = new HashSet<>(); // Conjunto de papéis do usuário
 
-  @Column(name = "credentials_expired", nullable = false)
-  private boolean credentialsExpired = false; // Indica se as credenciais expiraram
+    // Métodos da interface UserDetails:
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return this.roles;
+    }
 
-  @Column(name = "account_expired", nullable = false)
-  private boolean accountExpired = false; // Indica se a conta expirou
+    @Override
+    public String getPassword() {
+        return this.password;
+    }
 
-  @ManyToMany(fetch = FetchType.EAGER) // Relacionamento muitos-para-muitos com Role
-  @JoinTable(name = "user_roles", // Tabela de junção
-      joinColumns = @JoinColumn(name = "user_id"), // Coluna que referencia o User
-      inverseJoinColumns = @JoinColumn(name = "role_id") // Coluna que referencia o Role
-  )
-  private Set<Role> roles = new HashSet<>(); // Conjunto de roles do usuário
+    @Override
+    public String getUsername() {
+        return this.username;
+    }
 
-  // Construtor padrão (necessário para JPA)
-  public User() {
-  }
+    @Override
+    public boolean isAccountNonExpired() {
+        return !this.accountExpired;
+    }
 
-  // Construtor com campos essenciais (pode ser útil para testes ou criação)
-  public User(String username, String email, String password, Set<Role> roles) {
-    this.username = username;
-    this.email = email;
-    this.password = password;
-    this.roles = roles;
-  }
+    @Override
+    public boolean isAccountNonLocked() {
+        return !this.accountLocked;
+    }
 
-  // --- Implementação da interface UserDetails ---
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return !this.credentialsExpired;
+    }
 
-  @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    // Retorna a coleção de roles (GrantedAuthority) que o usuário possui
-    return roles.stream().collect(Collectors.toSet());
-  }
+    @Override
+    public boolean isEnabled() {
+        return this.enabled;
+    }
 
-  @Override
-  public String getPassword() {
-    return password;
-  }
+    // Adicione equals e hashCode para entidades JPA
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        if (!super.equals(o)) return false;
+        User user = (User) o;
+        return id != null && id.equals(user.id); // Comparar pelo ID
+    }
 
-  @Override
-  public String getUsername() {
-    return username;
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return !accountExpired;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return !accountLocked;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return !credentialsExpired;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  // --- Getters e Setters específicos de User ---
-
-  public void setUsername(String username) {
-    this.username = username;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public void setPassword(String password) {
-    this.password = password;
-  }
-
-  public Set<Role> getRoles() {
-    return roles;
-  }
-
-  public void setRoles(Set<Role> roles) {
-    this.roles = roles;
-  }
-
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
-  }
-
-  public void setAccountLocked(boolean accountLocked) {
-    this.accountLocked = accountLocked;
-  }
-
-  public void setCredentialsExpired(boolean credentialsExpired) {
-    this.credentialsExpired = credentialsExpired;
-  }
-
-  public void setAccountExpired(boolean accountExpired) {
-    this.accountExpired = accountExpired;
-  }
+    @Override
+    public int hashCode() {
+        return id != null ? id.hashCode() : super.hashCode(); // Usar ID para hashCode
+    }
 }
