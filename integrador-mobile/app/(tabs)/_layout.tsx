@@ -1,6 +1,6 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-// A CORREÇÃO ESTÁ AQUI: trocamos '~/' por '@/':
+
 import CustomTabBar from '@/components/CustomTabBar'; 
 
 export default function TabsLayout() {

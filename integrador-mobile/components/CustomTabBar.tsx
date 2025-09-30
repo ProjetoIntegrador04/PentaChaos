@@ -3,18 +3,17 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { FontAwesome5, Ionicons, Foundation, AntDesign } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
-// Interface para definir o formato de cada item da configuração
 interface TabConfigItem {
   icon: (color: string) => React.ReactNode;
   label: string;
 }
 
-// Mapeamento dos nomes das rotas para ícones e textos
 const tabConfig: { [key: string]: TabConfigItem } = {
   ranking: { icon: (color: string) => <Foundation name="graph-trend" size={24} color={color} />, label: 'Ranking' },
   squads: { icon: (color: string) => <FontAwesome5 name="users" size={24} color={color} />, label: 'Squads' },
   home: { icon: (color: string) => <Ionicons name="home-outline" size={32} color={color} />, label: 'Home' },
-  usuarios: { icon: (color: string) => <AntDesign name="solution1" size={24} color={color} />, label: 'Usuários' },
+  // A CORREÇÃO ESTÁ AQUI: trocamos 'solution1' por 'user'
+  usuarios: { icon: (color: string) => <AntDesign name="user" size={24} color={color} />, label: 'Usuários' },
   notificacoes: { icon: (color: string) => <Ionicons name="notifications-outline" size={24} color={color} />, label: 'Notificações' },
 };
 
@@ -40,7 +39,6 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
           }
         };
 
-        // Renderiza o botão central de forma diferente
         if (route.name === 'home') {
           return (
             <TouchableOpacity
@@ -58,7 +56,6 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
           );
         }
 
-        // Renderiza os outros botões
         return (
           <TouchableOpacity
             key={route.key}
@@ -114,7 +111,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     alignItems: 'center',
-    bottom: 25, // Puxa o botão para cima
+    bottom: 25,
     borderColor: '#f0f0f0',
     borderWidth: 1,
     shadowColor: '#000',
