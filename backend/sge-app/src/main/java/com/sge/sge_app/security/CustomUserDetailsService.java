@@ -20,11 +20,11 @@ public class CustomUserDetailsService implements UserDetailsService {
   // Método principal da interface UserDetailsService.
   // Ele é chamado pelo Spring Security quando tenta autenticar um usuário.
   @Override
-  public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-    // Busca o usuário no banco de dados pelo username.
-    // Se o seu UserEntity implementa UserDetails, você pode retorná-lo diretamente.
-    // Se não, você precisaria mapear para um objeto User do Spring Security.
-    return userRepository.findByUsername(username)
-        .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
+  public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+    // Tenta buscar pelo username
+    return userRepository.findByUsername(identifier)
+        // Se não encontrar, tenta buscar pelo email
+        .or(() -> userRepository.findByEmail(identifier))
+        .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + identifier));
   }
 }
