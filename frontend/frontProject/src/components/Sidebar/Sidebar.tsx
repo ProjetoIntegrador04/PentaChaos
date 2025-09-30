@@ -1,29 +1,38 @@
 import React from 'react';
-import { Home, Users, Shield, TrendingUp, Settings } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+import { Home, Users, Shield, LogOut, Settings } from 'lucide-react';
 import './Sidebar.css';
-import logo from '../../assets/images/image.png'
+import logo from '../../assets/images/image.png';
 
 const Sidebar: React.FC = () => {
   const menuItems = [
-    { icon: Home, label: 'Menu', active: false },
-    { icon: Users, label: 'Usuarios', active: false },
-    { icon: Shield, label: 'Squads', active: true },
-    { icon: TrendingUp, label: 'Ranking', active: false },
-    { icon: Settings, label: 'Configuracoes', active: false },
+    { icon: Home, label: 'Menu', path: '/dashboard' },
+    { icon: Users, label: 'Usuarios', path: '/usuarios' },
+    { icon: Shield, label: 'Squads', path: '/squads' },
+    { icon: Settings, label: 'Configuracoes', path: '/configuracoes' },
+    { icon: LogOut, label: 'Sair', path: '/logout' },
   ];
 
   return (
     <div className="sidebar">
+      {/* Logo */}
       <div className="sidebar-header">
         <img src={logo} alt="Company Logo" className="sidebar-logo" />
       </div>
       
+      {/* Navegação */}
       <nav className="sidebar-nav">
         {menuItems.map((item, index) => (
-          <div key={index} className={`nav-item ${item.active ? 'active' : ''}`}>
+          <NavLink
+            key={index}
+            to={item.path}
+            className={({ isActive }) =>
+              `nav-item ${isActive ? 'active' : ''}`
+            }
+          >
             <item.icon size={20} />
             <span>{item.label}</span>
-          </div>
+          </NavLink>
         ))}
       </nav>
     </div>

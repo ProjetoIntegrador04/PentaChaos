@@ -2,8 +2,8 @@ import React, { useState } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 // 1. Importe o hook useNavigate
 import { useNavigate } from "react-router-dom"; 
-import "../styles/login.css";
-import logoImage from "../assets/images/image.png";
+import "../../styles/login.css";
+import logoImage from "../../assets/images/image.png";
 
 function Login() {
   const [email, setEmail] = useState("");

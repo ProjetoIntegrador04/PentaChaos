@@ -1,26 +1,25 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-
-import Login from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import MainLayout from './components/Layout/MainLayout'; 
-
-const Usuarios = () => <div><h1>Página de Usuários</h1></div>;
-const Squads = () => <div><h1>Página de Squads</h1></div>;
+// src/App.tsx
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Dashboard from "./pages/Coordinator/Dashboard";
+import Login from "./pages/Coordinator/Login";
+import MainLayout from "./components/Layout/MainLayout";
 
 function App() {
   return (
-    <Router>
+    <BrowserRouter>
       <Routes>
+        {/* 🔹 Login fora do layout */}
         <Route path="/" element={<Login />} />
 
+        {/* 🔹 Páginas dentro do layout com Sidebar */}
         <Route element={<MainLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/usuarios" element={<Usuarios />} />
-          <Route path="/squads" element={<Squads />} />
+          {/* aqui você adiciona novas páginas */}
+          <Route path="/frequencia" element={<h2>Frequência</h2>} />
+          <Route path="/membros" element={<h2>Integrantes</h2>} />
         </Route>
       </Routes>
-    </Router>
+    </BrowserRouter>
   );
 }
 
