@@ -1,6 +1,7 @@
 package com.sge.sge_app.security;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,6 +11,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Component;
 
 import jakarta.annotation.PostConstruct;
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 import java.util.stream.Collectors;
@@ -36,9 +38,23 @@ public class JwtTokenProvider {
   // Método que é executado após a injeção das dependências
   @PostConstruct
   public void init() {
-    // A chave secreta (jwtSecret) deve ser uma string Base64 válida.
-    // Decodifica a string Base64 para bytes e usa para gerar a chave.
-    this.key = Keys.hmacShaKeyFor(jwtSecret.getBytes());
+    // Tenta decodificar Base64; se falhar, usa bytes da string diretamente.
+    byte[] keyBytes;
+    try {
+      keyBytes = Decoders.BASE64.decode(jwtSecret);
+    } catch (IllegalArgumentException e) {
+      // Não é Base64, usar como UTF-8 literal
+      keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+    }
+
+    // HS512 exige chave >= 512 bits (64 bytes)
+    if (keyBytes.length < 64) {
+      logger.warn("jwt.secret-key is too small ({} bytes). Generating a secure ephemeral key for HS512. Set a Base64-encoded 512-bit key in properties to avoid this.", keyBytes.length);
+      this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
+      return;
+    }
+
+    this.key = Keys.hmacShaKeyFor(keyBytes);
   }
 
   /**
