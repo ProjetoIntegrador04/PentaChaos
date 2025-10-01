@@ -1,8 +1,9 @@
-package com.sge.sge_app.service.impl;
+package com.sge.sge_app.services.impl;
 
 import com.sge.sge_app.domain.model.Role;
 import com.sge.sge_app.repository.RoleRepository;
-import com.sge.sge_app.service.RoleService;
+import com.sge.sge_app.services.RoleService;
+
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
