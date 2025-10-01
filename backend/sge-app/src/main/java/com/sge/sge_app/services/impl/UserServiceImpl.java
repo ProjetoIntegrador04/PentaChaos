@@ -49,13 +49,16 @@ public class UserServiceImpl implements UserService {
 
   @Override
   public UserResponseDTO registerNewUser(UserRegisterRequestDTO request) {
+
+    System.out.println("Attempting to register user: " + request.getUsername() + ", " + request.getEmail());
     if (userRepository.existsByUsername(request.getUsername())) {
       throw new ResourceAlreadyExistsException("Usuário com este username já existe.");
     }
+    System.out.println("lInha: 57 Username is available.");
     if (userRepository.existsByEmail(request.getEmail())) {
       throw new ResourceAlreadyExistsException("Usuário com este e-mail já existe.");
     }
-
+    System.out.println("Email is available.");
     User user = new User();
     user.setUsername(request.getUsername());
     user.setEmail(request.getEmail());
@@ -70,7 +73,9 @@ public class UserServiceImpl implements UserService {
     roles.add(userRole);
     user.setRoles(roles);
 
+    System.out.println("Saving user: " + user.getUsername() + ", " + user.getEmail());
     User savedUser = userRepository.save(user);
+    System.out.println("User registered successfully with ID: " + savedUser.getId());
     return modelMapper.map(savedUser, UserResponseDTO.class);
   }
 

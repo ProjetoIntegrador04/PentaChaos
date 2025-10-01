@@ -83,12 +83,7 @@ public class SecurityConfig {
         .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
         // Define as regras de autorização para as requisições HTTP
         .authorizeHttpRequests(authorize -> authorize
-            // Permite acesso a todos os endpoints de autenticação (/auth/**)
-            .requestMatchers("/auth/**").permitAll()
-            // Permite acesso aos endpoints do Swagger/OpenAPI
-            .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
-            // Todas as outras requisições exigem autenticação
-            .anyRequest().authenticated());
+            .anyRequest().permitAll()); // Permite todas as requisições (ajuste conforme necessário);
 
     // Adiciona o filtro JWT antes do filtro de autenticação de usuário e senha
     // padrão do Spring Security
