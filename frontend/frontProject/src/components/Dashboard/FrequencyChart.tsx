@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiUser, FiLogOut, FiChevronLeft, FiChevronRight } from "react-icons/fi";
+import { FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import "./FrequencyChart.css";
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
 
 const FrequencyChart: React.FC<Props> = ({ onViewDetails }) => {
   const months = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-  const [activeIndex, setActiveIndex] = useState(new Date().getMonth()); // começa no mês atual
+  const [activeIndex, setActiveIndex] = useState(new Date().getMonth()); 
 
   const prevMonth = () => {
     setActiveIndex((prev) => (prev - 1 + months.length) % months.length);
@@ -23,7 +23,6 @@ const FrequencyChart: React.FC<Props> = ({ onViewDetails }) => {
       <div className="chart-header">
         <h3>Frequência</h3>
 
-        {/* 🔹 Seletor de mês com setas */}
         <div className="month-selector">
           <button className="arrow-btn" onClick={prevMonth} aria-label="Mês anterior">
             <FiChevronLeft />
@@ -36,7 +35,6 @@ const FrequencyChart: React.FC<Props> = ({ onViewDetails }) => {
 
       </div>
 
-      {/* 🔹 Gráfico */}
       <div className="pie-chart">
         <svg width="180" height="180" viewBox="0 0 180 180" role="img" aria-label="Gráfico de presença e faltas">
           <circle cx="90" cy="90" r="70" fill="none" stroke="#e2e8f0" strokeWidth="20" />
@@ -53,7 +51,6 @@ const FrequencyChart: React.FC<Props> = ({ onViewDetails }) => {
         </svg>
       </div>
 
-      {/* 🔹 Legenda */}
       <div className="chart-legend">
         <div className="legend-item">
           <div className="legend-color presencas" />
@@ -65,7 +62,6 @@ const FrequencyChart: React.FC<Props> = ({ onViewDetails }) => {
         </div>
       </div>
 
-      {/* 🔹 Botão detalhes */}
       <div className="chart-actions">
         <button
           className="details-btn"

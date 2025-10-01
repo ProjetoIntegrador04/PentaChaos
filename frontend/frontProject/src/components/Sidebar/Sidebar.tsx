@@ -10,7 +10,7 @@ const Sidebar: React.FC = () => {
     { icon: Users, label: 'Usuarios', path: '/usuarios' },
     { icon: Shield, label: 'Squads', path: '/squads' },
     { icon: Settings, label: 'Configuracoes', path: '/configuracoes' },
-    { icon: LogOut, label: 'Sair', path: '/logout' },
+    { icon: LogOut, label: 'Sair', path: '/' },
   ];
 
   return (
@@ -20,7 +20,6 @@ const Sidebar: React.FC = () => {
         <img src={logo} alt="Company Logo" className="sidebar-logo" />
       </div>
       
-      {/* Navegação */}
       <nav className="sidebar-nav">
         {menuItems.map((item, index) => (
           <NavLink
