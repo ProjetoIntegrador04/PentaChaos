@@ -1,4 +1,4 @@
-package com.sge.sge_app.service.impl;
+package com.sge.sge_app.services.impl;
 
 import com.sge.sge_app.dto.request.UserRegisterRequestDTO;
 import com.sge.sge_app.dto.response.UserResponseDTO;
@@ -6,9 +6,10 @@ import com.sge.sge_app.domain.model.Role;
 import com.sge.sge_app.domain.model.User;
 import com.sge.sge_app.exception.ResourceAlreadyExistsException;
 import com.sge.sge_app.repository.UserRepository;
-import com.sge.sge_app.service.RoleService;
+import com.sge.sge_app.services.RoleService;
+import com.sge.sge_app.services.UserService;
+
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import com.sge.sge_app.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;

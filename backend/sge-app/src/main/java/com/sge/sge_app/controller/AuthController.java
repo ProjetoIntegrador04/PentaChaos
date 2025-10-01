@@ -5,7 +5,8 @@ import com.sge.sge_app.dto.request.UserRegisterRequestDTO;
 import com.sge.sge_app.dto.response.JwtResponseDTO;
 import com.sge.sge_app.dto.response.UserResponseDTO;
 import com.sge.sge_app.security.JwtTokenProvider;
-import com.sge.sge_app.service.UserService;
+import com.sge.sge_app.services.UserService;
+
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

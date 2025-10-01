@@ -1,4 +1,4 @@
-package com.sge.sge_app.service;
+package com.sge.sge_app.services;
 
 import com.sge.sge_app.dto.request.UserRegisterRequestDTO;
 import com.sge.sge_app.dto.response.UserResponseDTO;
