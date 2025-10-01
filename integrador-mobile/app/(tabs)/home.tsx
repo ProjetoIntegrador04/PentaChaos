@@ -10,6 +10,8 @@ const squadData = [
   { name: 'LSD Squad', interns: 5 },
   { name: '404 Squad', interns: 2 },
   { name: 'Alpha Squad', interns: 8 },
+  { name: 'Infra Squad', interns: 4 },
+  { name: 'Pernambuncanas Squad', interns: 10 },
 ];
 
 const attendanceDataPie = [
