@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-// 1. Importe o hook useNavigate
 import { useNavigate } from "react-router-dom"; 
-import "../styles/login.css";
-import logoImage from "../assets/images/image.png";
+import "../../styles/Coordinator/login.css";
+import logoImage from "../../assets/images/image.png";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -11,23 +10,18 @@ function Login() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
-  // 2. Inicialize a função de navegação
   const navigate = useNavigate();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log("Login attempt:", { email, password, rememberMe });
     
-    // Lógica de autenticação viria aqui...
-    // Por enquanto, vamos navegar diretamente.
-    
-    // 3. Chame a navegação para a rota do dashboard
+  
     navigate("/dashboard");
   };
 
   return (
     <div className="login-container">
-      {/* O resto do seu JSX permanece exatamente igual... */}
       <div className="login-left-wrapper">
         <div className="login-left-background"></div>
         <div className="login-left">

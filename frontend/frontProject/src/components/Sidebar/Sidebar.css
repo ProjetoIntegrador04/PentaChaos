@@ -13,6 +13,12 @@
   margin-bottom: 40px;
 }
 
+.sidebar-logo {
+  max-width: 150px; 
+  height: auto;
+  margin-bottom: 1.5rem; 
+}
+
 .sidebar-nav {
   display: flex;
   flex-direction: column;
@@ -28,19 +34,15 @@
   cursor: pointer;
   transition: all 0.2s ease;
   font-size: 16px;
+  color: white;
+  text-decoration: none;
 }
 
 .nav-item:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
 }
 
 .nav-item.active {
-  background-color: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.25);
   font-weight: 600;
-}
-
-.sidebar-logo {
-  max-width: 150px; 
-  height: auto;
-  margin-bottom: 1.5rem; 
 }
