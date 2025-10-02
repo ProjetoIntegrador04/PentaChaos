@@ -1,5 +1,6 @@
 package com.sge.sge_app.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Builder;
 import lombok.Data;
@@ -9,6 +10,7 @@ import lombok.Data;
 public class LoginRequestDTO {
 
   @NotBlank(message = "O nome de usuário ou e-mail não pode estar em branco.")
+  @JsonAlias({"username", "email"})
   private String usernameOrEmail; // Pode ser username ou email para login
 
   @NotBlank(message = "A senha não pode estar em branco.")
