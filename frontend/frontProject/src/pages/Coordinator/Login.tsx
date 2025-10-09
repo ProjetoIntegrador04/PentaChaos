@@ -20,13 +20,12 @@ function Login() {
     setLoading(true);
 
     try {
-      // ✅ backend espera usernameOrEmail e password
+      // backend espera usernameOrEmail e password
       const res = await api.post("/auth/login", {
         usernameOrEmail: email,
         password,
       });
 
-      // ✅ backend retorna JwtResponseDTO
       const { accessToken, refreshToken, expiresIn } = res.data;
 
       if (rememberMe) {
