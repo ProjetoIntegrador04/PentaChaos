@@ -1,23 +1,50 @@
 import React, { useState } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
-import { useNavigate } from "react-router-dom"; 
+import { useNavigate } from "react-router-dom";
 import "../../styles/Coordinator/login.css";
 import logoImage from "../../assets/images/image.png";
-
+import api from "../../api/https"; 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Login attempt:", { email, password, rememberMe });
-    
-  
-    navigate("/dashboard");
+    setError("");
+    setLoading(true);
+
+    try {
+      // backend espera usernameOrEmail e password
+      const res = await api.post("/auth/login", {
+        usernameOrEmail: email,
+        password,
+      });
+
+      const { accessToken, refreshToken, expiresIn } = res.data;
+
+      if (rememberMe) {
+        localStorage.setItem("token", accessToken);
+        localStorage.setItem("refreshToken", refreshToken);
+      } else {
+        sessionStorage.setItem("token", accessToken);
+        sessionStorage.setItem("refreshToken", refreshToken);
+      }
+
+      console.log("Login OK:", { accessToken, expiresIn });
+
+      navigate("/dashboard"); 
+    } catch (err) {
+      console.error("Erro no login:", err);
+      setError("E-mail/usuário ou senha inválidos.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -26,7 +53,9 @@ function Login() {
         <div className="login-left-background"></div>
         <div className="login-left">
           <div className="particles-background">
-            {[...Array(10)].map((_, i) => <div key={i} className="particle"></div>)}
+            {[...Array(10)].map((_, i) => (
+              <div key={i} className="particle"></div>
+            ))}
           </div>
           <div className="welcome-content">
             <div className="welcome-message">
@@ -60,7 +89,7 @@ function Login() {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="form-input"
-                placeholder="E-mail"
+                placeholder="E-mail ou usuário"
               />
             </div>
             <div className="input-group">
@@ -80,7 +109,11 @@ function Login() {
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? "Hide password" : "Show password"}
                 >
-                  {showPassword ? <EyeSlashIcon className="show-password-icon" /> : <EyeIcon className="show-password-icon" />}
+                  {showPassword ? (
+                    <EyeSlashIcon className="show-password-icon" />
+                  ) : (
+                    <EyeIcon className="show-password-icon" />
+                  )}
                 </button>
               </div>
             </div>
@@ -97,9 +130,10 @@ function Login() {
                 Esqueci minha senha
               </button>
             </div>
-            <button type="submit" className="login-btn">
-              Entrar
+            <button type="submit" className="login-btn" disabled={loading}>
+              {loading ? "Entrando..." : "Entrar"}
             </button>
+            {error && <p className="error">{error}</p>}
           </form>
         </div>
       </div>
