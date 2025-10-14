@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiPlus, FiEdit, FiPower } from "react-icons/fi"; 
+import { FiPlus, FiEdit, FiPower, FiDownload } from "react-icons/fi"; 
 import "../../styles/Coordinator/Users.css";
 
 interface Usuario {
@@ -23,7 +23,6 @@ const Usuarios: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>(mockUsuarios);
   const [busca, setBusca] = useState("");
 
-  // 🔹 Alternar status (ATIVO <-> INATIVO)
   const toggleStatus = (id: number) => {
     setUsuarios((prev) =>
       prev.map((u) =>
@@ -45,9 +44,16 @@ const Usuarios: React.FC = () => {
     <div className="usuarios-page">
       <header className="usuarios-header">
         <h1>Controle de Usuários</h1>
-        <button className="add-btn">
-          <FiPlus size={16} /> Cadastrar usuário
-        </button>
+
+        <div className="header-actions">
+          <button className="report-btn">
+            <FiDownload size={16} /> Gerar relatório
+          </button>
+
+          <button className="add-btn">
+            <FiPlus size={16} /> Cadastrar usuário
+          </button>
+        </div>
       </header>
 
       <div className="search-box">

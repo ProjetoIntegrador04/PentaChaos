@@ -1,9 +1,6 @@
 import React, { useState } from "react";
-import { FiSave, FiKey, FiBell, FiUser, FiLink } from "react-icons/fi";
-
-// Topo igual ao Users
+import { FiSave, FiKey, FiUser } from "react-icons/fi";
 import "../../styles/Coordinator/Users.css";
-// Estilos específicos desta página
 import "../../styles/Coordinator/Settings.css";
 
 type SettingsState = {
@@ -14,19 +11,9 @@ type SettingsState = {
   // Preferências
   locale: "pt-BR" | "en-US";
   theme: "light" | "dark";
-  pageSize: 10 | 20 | 50;
 
-  // Notificações
-  notifySquadChanges: boolean;
-  notifyNewUsers: boolean;
-  notifyWeeklyDigest: boolean;
-
-  // Segurança
   twoFactor: boolean;
-
-  // Integrações
-  slackWebhook: string;
-  googleOAuthEnabled: boolean;
+  
 };
 
 const initialState: SettingsState = {
@@ -35,16 +22,9 @@ const initialState: SettingsState = {
 
   locale: "pt-BR",
   theme: "light",
-  pageSize: 20,
 
-  notifySquadChanges: true,
-  notifyNewUsers: true,
-  notifyWeeklyDigest: false,
 
   twoFactor: false,
-
-  slackWebhook: "",
-  googleOAuthEnabled: true,
 };
 
 export default function Settings() {
@@ -64,7 +44,6 @@ export default function Settings() {
 
   const save = async () => {
     setSaving(true);
-    // 👉 Aqui você dispara seu PUT/PATCH para /api/settings
     await new Promise((r) => setTimeout(r, 700));
     setSaving(false);
     setSavedAt(new Date().toLocaleTimeString());
@@ -74,7 +53,6 @@ export default function Settings() {
 
   return (
     <div className="usuarios-page">
-      {/* Topo reaproveitado do Users */}
       <header className="usuarios-header">
         <h1>Configurações</h1>
         <div className="settings-actions">
@@ -85,9 +63,7 @@ export default function Settings() {
         </div>
       </header>
 
-      {/* Conteúdo */}
       <div className="settings-grid">
-        {/* Perfil */}
         <section className="card settings-card">
           <div className="card-title">
             <FiUser /> <span>Perfil</span>
@@ -130,52 +106,8 @@ export default function Settings() {
               <option value="dark">Escuro</option>
             </select>
           </div>
-          <div className="form-row">
-            <label>Itens por página</label>
-            <select
-              value={form.pageSize}
-              onChange={(e) => setForm((p) => ({ ...p, pageSize: Number(e.target.value) as any }))}
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-            </select>
-          </div>
         </section>
 
-        {/* Notificações */}
-        <section className="card settings-card">
-          <div className="card-title">
-            <FiBell /> <span>Notificações</span>
-          </div>
-
-          <label className="switch-row">
-            <input
-              type="checkbox"
-              checked={form.notifySquadChanges}
-              onChange={onChange("notifySquadChanges")}
-            />
-            <span>Alterações nas squads</span>
-          </label>
-
-          <label className="switch-row">
-            <input
-              type="checkbox"
-              checked={form.notifyNewUsers}
-              onChange={onChange("notifyNewUsers")}
-            />
-            <span>Novo usuário adicionado</span>
-          </label>
-
-          <label className="switch-row">
-            <input
-              type="checkbox"
-              checked={form.notifyWeeklyDigest}
-              onChange={onChange("notifyWeeklyDigest")}
-            />
-            <span>Resumo semanal</span>
-          </label>
-        </section>
 
         {/* Segurança */}
         <section className="card settings-card">
@@ -195,30 +127,6 @@ export default function Settings() {
           <div className="hint">Recomendado para contas com privilégios de coordenação.</div>
         </section>
 
-        {/* Integrações */}
-        <section className="card settings-card">
-          <div className="card-title">
-            <FiLink /> <span>Integrações</span>
-          </div>
-
-          <label className="switch-row">
-            <input
-              type="checkbox"
-              checked={form.googleOAuthEnabled}
-              onChange={onChange("googleOAuthEnabled")}
-            />
-            <span>Login com Google</span>
-          </label>
-
-          <div className="form-row">
-            <label>Slack Webhook</label>
-            <input
-              value={form.slackWebhook}
-              onChange={onChange("slackWebhook")}
-              placeholder="https://hooks.slack.com/services/..."
-            />
-          </div>
-        </section>
       </div>
 
       <div className="settings-footer">

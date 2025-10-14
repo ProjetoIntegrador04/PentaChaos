@@ -1,18 +1,15 @@
-import { Navigate } from "react-router-dom";
-import type { ReactNode } from "react";
+// src/components/Login/ProtectedRoute.tsx
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { getStoredToken, isValidJwt, clearToken } from "../../auth";
 
-type Props = {
-  children: ReactNode;
-};
+export function ProtectedRoute() {
+  const location = useLocation();
+  const token = getStoredToken();
+  const ok = isValidJwt(token);
 
-export function ProtectedRoute({ children }: Props) {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
-
-  if (!token) {
-    // 🔒 SEMPRE manda pro login se não tiver token
-    return <Navigate to="/" replace />;
+  if (!ok) {
+    clearToken();
+    return <Navigate to="/" replace state={{ from: location }} />;
   }
-
-  return <>{children}</>;
+  return <Outlet />;
 }

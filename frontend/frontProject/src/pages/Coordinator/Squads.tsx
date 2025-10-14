@@ -1,9 +1,7 @@
 import React, { useMemo, useState } from "react";
-import { FiPlus, FiEdit, FiUsers } from "react-icons/fi";
+import { FiPlus, FiEdit, FiUsers, FiDownload } from "react-icons/fi";
 
-// ⬇️ Reaproveita o mesmo CSS do Users para título, busca e botão
 import "../../styles/Coordinator/Users.css";
-// ⬇️ Estilos específicos da listagem/tabela de squads
 import "../../styles/Coordinator/Squads.css";
 
 type Member = { id: string; name: string; role: string };
@@ -29,13 +27,11 @@ export default function Squads() {
   const [selectedId, setSelectedId] = useState<string>(mockSquads[0].id);
   const [busca, setBusca] = useState("");
 
-  // Busca igual à de Users (apenas reaproveitando UI); aqui filtra o nome da squad
   const squadsFiltrados = useMemo(() => {
     const q = busca.trim().toLowerCase();
     return q ? squads.filter((s) => s.name.toLowerCase().includes(q)) : squads;
   }, [busca, squads]);
 
-  // Se a selecionada sumir no filtro, evita erro
   const selected = useMemo(() => {
     const fromFilter = squadsFiltrados.find((s) => s.id === selectedId);
     return fromFilter ?? squadsFiltrados[0] ?? null;
@@ -43,12 +39,17 @@ export default function Squads() {
 
   return (
     <div className="usuarios-page">
-      {/* Topo idêntico ao Users */}
       <header className="usuarios-header">
         <h1>Controle de Squads</h1>
-        <button className="add-btn">
-          <FiPlus size={16} /> Cadastrar squad
-        </button>
+        
+        <div className="header-actions">
+          <button className="report-btn">
+            <FiDownload size={16} /> Gerar relatório
+          </button>
+          <button className="add-btn">
+            <FiPlus size={16} /> Cadastrar squad
+          </button>
+        </div>
       </header>
 
       <div className="search-box">
@@ -60,7 +61,6 @@ export default function Squads() {
         />
       </div>
 
-      {/* Conteúdo (lista esquerda + tabela direita) */}
       <div className="squads-content">
         <aside className="teams-panel">
           <h2>Equipes</h2>
