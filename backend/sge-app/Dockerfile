@@ -1,29 +1,37 @@
-
+# syntax=docker/dockerfile:1.4
+# ------------------------------
+# ETAPA 1 - BUILD DA APLICAÇÃO
+# ------------------------------
 FROM maven:3.9-eclipse-temurin-21 AS builder
 
 WORKDIR /app
 
-# Copia primeiro o pom.xml para otimizar o cache das dependências do Maven
+# Copia o arquivo pom.xml e baixa as dependências para aproveitar o cache
 COPY pom.xml .
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:go-offline
 
-# Copia o código-fonte
+# Copia o código fonte e realiza o build
 COPY src ./src
+RUN --mount=type=cache,target=/root/.m2 mvn clean package -DskipTests
 
-RUN --mount=type=cache,target=/root/.m2 mvn clean package -Dmaven.test.skip=true
+# ------------------------------
+# ETAPA 2 - IMAGEM FINAL
+# ------------------------------
+FROM eclipse-temurin:21-jre-slim
 
-
-FROM eclipse-temurin:21-jre-alpine
-
-# Cria um usuário não-root para rodar a aplicação por segurança
+# Cria um usuário não-root para segurança
 RUN addgroup --system spring && adduser --system --ingroup spring spring
 USER spring
 
 WORKDIR /app
 
-# Copia APENAS o arquivo .jar final que foi gerado no estágio 'builder'
+# Copia apenas o artefato gerado
 COPY --from=builder /app/target/*.jar app.jar
+
+# Define variáveis opcionais para configuração de memória ou logs
+ENV JAVA_OPTS=""
 
 EXPOSE 8080
 
-# Comando final para executar a aplicação
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Comando de execução (permite passar JAVA_OPTS se quiser)
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
