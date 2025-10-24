@@ -3,8 +3,8 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    container_name: postgres_db
-    restart: always
+    ports:
+      - "5432:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -13,14 +13,9 @@ services:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
-    networks:
-      - app_network
 
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: spring_app
+    build: .
     ports:
       - "8080:8080"
     environment:
@@ -33,12 +28,6 @@ services:
     depends_on:
       - db
     restart: on-failure
-    networks:
-      - app_network
 
 volumes:
   db_data:
-
-networks:
-  app_network:
-    driver: bridge
