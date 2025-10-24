@@ -48,6 +48,7 @@ public class JwtTokenProvider {
     }
 
     // HS512 exige chave >= 512 bits (64 bytes)
+    // Esta lógica é mantida, pois o Refresh Token ainda usa HS512
     if (keyBytes.length < 64) {
       logger.warn("jwt.secret-key is too small ({} bytes). Generating a secure ephemeral key for HS512. Set a Base64-encoded 512-bit key in properties to avoid this.", keyBytes.length);
       this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
@@ -59,9 +60,8 @@ public class JwtTokenProvider {
 
   /**
    * Gera um Access Token para a autenticação bem-sucedida.
-   * 
-   * @param authentication Objeto Authentication contendo os detalhes do usuário
-   *                       autenticado.
+   * * @param authentication Objeto Authentication contendo os detalhes do usuário
+   * autenticado.
    * @return Access Token JWT.
    */
   public String generateAccessToken(Authentication authentication) {
@@ -80,15 +80,14 @@ public class JwtTokenProvider {
         .claim("roles", roles) // Adiciona os papéis como uma claim personalizada
         .setIssuedAt(new Date()) // Data de emissão
         .setExpiration(expiryDate) // Data de expiração
-        .signWith(key, SignatureAlgorithm.HS512) // Assina o token com a chave e algoritmo HS512
+        .signWith(key, SignatureAlgorithm.HS256) // <-- ALTERADO CONFORME SOLICITADO
         .compact(); // Constrói e compacta o token em uma string JWT
   }
 
   /**
    * Gera um Refresh Token.
-   * 
-   * @param authentication Objeto Authentication contendo os detalhes do usuário
-   *                       autenticado.
+   * * @param authentication Objeto Authentication contendo os detalhes do usuário
+   * autenticado.
    * @return Refresh Token JWT.
    */
   public String generateRefreshToken(Authentication authentication) {
@@ -101,14 +100,13 @@ public class JwtTokenProvider {
         .setSubject(userPrincipal.getUsername())
         .setIssuedAt(new Date())
         .setExpiration(expiryDate)
-        .signWith(key, SignatureAlgorithm.HS512)
+        .signWith(key, SignatureAlgorithm.HS512) // Mantido como HS512
         .compact();
   }
 
   /**
    * Obtém o username do token JWT.
-   * 
-   * @param token Token JWT.
+   * * @param token Token JWT.
    * @return Username do usuário.
    */
   public String getUsernameFromToken(String token) {
@@ -123,8 +121,7 @@ public class JwtTokenProvider {
 
   /**
    * Valida um token JWT.
-   * 
-   * @param authToken Token JWT a ser validado.
+   * * @param authToken Token JWT a ser validado.
    * @return true se o token é válido, false caso contrário.
    */
   public boolean validateToken(String authToken) {
@@ -147,8 +144,7 @@ public class JwtTokenProvider {
 
   /**
    * Obtém o tempo de expiração do Access Token.
-   * 
-   * @return Tempo de expiração em milissegundos.
+   * * @return Tempo de expiração em milissegundos.
    */
   public long getJwtExpirationInMs() {
     return jwtExpirationInMs;

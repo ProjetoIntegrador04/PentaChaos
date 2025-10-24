@@ -37,4 +37,8 @@ public class Role extends BaseEntity implements GrantedAuthority {
     public int hashCode() {
         return id != null ? id.hashCode() : super.hashCode(); // Usar ID para hashCode
     }
+
+    public enum SystemRole {
+    ROLE_COORDINATOR, ROLE_INTERN
+    }
 }

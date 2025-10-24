@@ -1,15 +1,19 @@
 // src/components/Login/ProtectedRoute.tsx
-import { Navigate, Outlet, useLocation } from "react-router-dom";
-import { getStoredToken, isValidJwt, clearToken } from "../../auth";
+import React from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { hasAnyRole } from "../../auth";
 
-export function ProtectedRoute() {
-  const location = useLocation();
-  const token = getStoredToken();
-  const ok = isValidJwt(token);
+type Props = {
+  allowedRoles?: string[];
+  redirectTo?: string;
+};
 
-  if (!ok) {
-    clearToken();
-    return <Navigate to="/" replace state={{ from: location }} />;
-  }
+export const ProtectedRoute: React.FC<Props> = ({ allowedRoles = [], redirectTo = "/" }) => {
+  const { isAuthenticated, roles } = useAuth();
+
+  if (!isAuthenticated) return <Navigate to={redirectTo} replace />;
+  if (!hasAnyRole(roles, allowedRoles)) return <Navigate to={redirectTo} replace />;
+
   return <Outlet />;
-}
+};

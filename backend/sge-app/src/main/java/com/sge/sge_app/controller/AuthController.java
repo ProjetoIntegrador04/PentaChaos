@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority; // Import necessário
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -54,11 +55,19 @@ public class AuthController {
         String refreshToken = tokenProvider.generateRefreshToken(authentication);
         long expiresIn = tokenProvider.getJwtExpirationInMs();
 
+        // --- INÍCIO DA ATUALIZAÇÃO ---
+        // Extrai as roles da autenticação
+        var roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+        // --- FIM DA ATUALIZAÇÃO ---
+
         return ResponseEntity.ok(
                 JwtResponseDTO.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
                         .expiresIn(expiresIn)
+                        .roles(roles) // <-- CAMPO ADICIONADO
                         .build()
         );
     }
@@ -82,15 +91,36 @@ public class AuthController {
             String newRefreshToken = tokenProvider.generateRefreshToken(authentication); // Gerando um novo refresh token
             long expiresIn = tokenProvider.getJwtExpirationInMs();
 
+            // Pega as roles para o refresh (boa prática manter consistência)
+             var roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
             return ResponseEntity.ok(
                     JwtResponseDTO.builder()
                             .accessToken(newAccessToken)
                             .refreshToken(newRefreshToken) // Retorna o novo refresh token
                             .expiresIn(expiresIn)
+                            .roles(roles) // <-- Adicionado aqui também
                             .build()
             );
         } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // Refresh token inválido ou expirado
         }
     }
+
+    // --- INÍCIO DO NOVO ENDPOINT ---
+    @GetMapping("/me")
+    public ResponseEntity<UserResponseDTO> me(Authentication auth) { // O Spring injeta o usuário autenticado
+        var username = auth.getName();
+        
+        // Conforme seu snippet, assumindo que:
+        // 1. Você implementará `findByUsernameOrEmail` no seu UserService
+        // 2. Este método retorna a *entidade* User (e não um Optional ou UserDetails)
+        // 3. O `UserResponseDTO` possui um método estático `from(User user)`
+        
+        var user = userService.findByUsernameOrEmail(username); 
+        return ResponseEntity.ok(UserResponseDTO.from(user));
+    }
+    // --- FIM DO NOVO ENDPOINT ---
 }

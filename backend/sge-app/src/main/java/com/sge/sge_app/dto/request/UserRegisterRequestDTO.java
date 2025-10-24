@@ -22,4 +22,7 @@ public class UserRegisterRequestDTO {
   @NotBlank(message = "A senha não pode estar em branco.")
   @Size(min = 6, max = 100, message = "A senha deve ter pelo menos 6 caracteres.")
   private String password;
+
+  // --- CAMPO ADICIONADO ---
+  private String role;
 }

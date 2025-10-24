@@ -3,30 +3,38 @@ import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Coordinator/login.css";
 import logoImage from "../../assets/images/image.png";
-import api from "../../api/https"; 
+import api from "../../api/https";
+// --- Importações Adicionadas ---
+import { useAuth } from "../../context/AuthContext"; // Para atualizar o contexto
+import { saveRoles } from "../../auth"; // Para salvar roles no storage
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false); // Mantido 'false' do seu original
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  // --- Lógica Adicionada ---
+  const { setRoles } = useAuth(); // Hook do contexto de autenticação
 
+  // --- Lógica do handleSubmit ATUALIZADA ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     setLoading(true);
 
     try {
-      // backend espera usernameOrEmail e password
+      // O backend espera usernameOrEmail e password
       const res = await api.post("/auth/login", {
-        usernameOrEmail: email,
+        usernameOrEmail: email, // Mantido do seu código original
         password,
       });
 
-      const { accessToken, refreshToken, expiresIn } = res.data;
+      // Captura as roles da resposta
+      const { accessToken, refreshToken, expiresIn, roles = [] } = res.data || {};
 
       if (rememberMe) {
         localStorage.setItem("token", accessToken);
@@ -36,17 +44,30 @@ function Login() {
         sessionStorage.setItem("refreshToken", refreshToken);
       }
 
-      console.log("Login OK:", { accessToken, expiresIn });
+      // --- Nova Lógica de Roles ---
+      saveRoles(roles, rememberMe); // Salva roles no storage (localStorage/sessionStorage)
+      setRoles(roles); // Atualiza o AuthContext
 
-      navigate("/dashboard"); 
-    } catch (err) {
+      console.log("Login OK:", { accessToken, expiresIn, roles });
+
+      // Redireciona por perfil
+      if (roles.includes("ROLE_COORDINATOR")) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/intern/home", { replace: true });
+      }
+      // --- Fim da Nova Lógica ---
+
+    } catch (err: any) { // Tipado como 'any' para acessar 'response'
       console.error("Erro no login:", err);
-      setError("E-mail/usuário ou senha inválidos.");
+      // Mensagem de erro dinâmica vinda do backend
+      setError(err?.response?.data?.message ?? "E-mail/usuário ou senha inválidos.");
     } finally {
       setLoading(false);
     }
   };
 
+  // --- O SEU JSX FOI MANTIDO INTACTO ---
   return (
     <div className="login-container">
       <div className="login-left-wrapper">
@@ -83,7 +104,7 @@ function Login() {
           <form onSubmit={handleSubmit} className="login-form">
             <div className="input-group">
               <input
-                type="email"
+                type="email" // O tipo "email" ainda funciona para username
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
