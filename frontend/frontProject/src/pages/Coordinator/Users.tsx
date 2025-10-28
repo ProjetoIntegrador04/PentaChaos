@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { FiPlus, FiEdit, FiPower } from "react-icons/fi"; 
+import { FiPlus, FiEdit, FiPower, FiDownload } from "react-icons/fi"; 
 import "../../styles/Coordinator/Users.css";
 
 interface Usuario {
@@ -8,22 +8,21 @@ interface Usuario {
   nome: string;
   email: string;
   ra: string;
-  tipo: string;
+  squad: string;
 }
 
 const mockUsuarios: Usuario[] = [
-  { id: 1, status: "ATIVO", nome: "David Franco", email: "david.franco@email.com", ra: "554033", tipo: "Estagiário" },
-  { id: 2, status: "ATIVO", nome: "Maria Souza", email: "maria.souza@email.com", ra: "778899", tipo: "Estagiário" },
-  { id: 3, status: "INATIVO", nome: "João Silva", email: "joao.silva@email.com", ra: "112233", tipo: "Estagiário    " },
-  { id: 4, status: "ATIVO", nome: "Thóris Merdeiros", email: "thoris.merds@email.com", ra: "778865", tipo: "Estagiário" },
-  { id: 5, status: "INATIVO", nome: "Carlos Eduardo", email: "carlos.edu@email.com", ra: "112267", tipo: "Estagiário    " },
+  { id: 1, status: "ATIVO", nome: "David Franco", email: "david.franco@email.com", ra: "554033", squad: "CASE" },
+  { id: 2, status: "ATIVO", nome: "Maria Souza", email: "maria.souza@email.com", ra: "778899", squad: "CASE" },
+  { id: 3, status: "INATIVO", nome: "João Silva", email: "joao.silva@email.com", ra: "112233", squad: "LSD" },
+  { id: 4, status: "ATIVO", nome: "Thóris Merdeiros", email: "thoris.merds@email.com", ra: "778865", squad: "LSD" },
+  { id: 5, status: "INATIVO", nome: "Carlos Eduardo", email: "carlos.edu@email.com", ra: "112267", squad: "INFRA" },
 ];
 
 const Usuarios: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>(mockUsuarios);
   const [busca, setBusca] = useState("");
 
-  // 🔹 Alternar status (ATIVO <-> INATIVO)
   const toggleStatus = (id: number) => {
     setUsuarios((prev) =>
       prev.map((u) =>
@@ -45,9 +44,16 @@ const Usuarios: React.FC = () => {
     <div className="usuarios-page">
       <header className="usuarios-header">
         <h1>Controle de Usuários</h1>
-        <button className="add-btn">
-          <FiPlus size={16} /> Cadastrar usuário
-        </button>
+
+        <div className="header-actions">
+          <button className="report-btn">
+            <FiDownload size={16} /> Gerar relatório
+          </button>
+
+          <button className="add-btn">
+            <FiPlus size={16} /> Cadastrar usuário
+          </button>
+        </div>
       </header>
 
       <div className="search-box">
@@ -67,7 +73,7 @@ const Usuarios: React.FC = () => {
               <th>Nome</th>
               <th>Email</th>
               <th>RA</th>
-              <th>Tipo</th>
+              <th>Squad</th>
               <th>Ações</th>
             </tr>
           </thead>
@@ -80,7 +86,7 @@ const Usuarios: React.FC = () => {
                 <td>{u.nome}</td>
                 <td>{u.email}</td>
                 <td>{u.ra}</td>
-                <td>{u.tipo}</td>
+                <td>{u.squad}</td>
                 <td className="acoes">
                   <button className="icon-btn edit">
                     <FiEdit />

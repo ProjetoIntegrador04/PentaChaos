@@ -1,36 +1,48 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+// src/App.tsx
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+import { ProtectedRoute } from "./components/Login/ProtectedRoute";
+import MainLayout from "./components/Layout/MainLayout";
+
+// Páginas do coordenador
 import Login from "./pages/Coordinator/Login";
 import Dashboard from "./pages/Coordinator/Dashboard";
-import Usuarios from "./pages/Coordinator/Users";
-import MainLayout from "./components/Layout/MainLayout";
-import { ProtectedRoute } from "./components/Login/ProtectedRoute";
+import Users from "./pages/Coordinator/Users";
+import Squads from "./pages/Coordinator/Squads";
+import Settings from "./pages/Coordinator/Settings";
+import Frequency from "./pages/Coordinator/Frequency";
 
-function App() {
+// Estagiário
+import InternHome from "./pages/Intern/Home";
+
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* 🔓 Rota pública */}
-        <Route path="/" element={<Login />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* pública */}
+          <Route path="/" element={<Login />} />
 
-        {/* 🔒 Rotas protegidas */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/usuarios" element={<Usuarios />} />
-          <Route path="/squads" element={<h2>Squads</h2>} />
-          <Route path="/configuracoes" element={<h2>Configurações</h2>} />
-        </Route>
+          {/* coordenador */}
+          <Route element={<ProtectedRoute allowedRoles={["ROLE_COORDINATOR"]} />}>
+            <Route element={<MainLayout />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/usuarios" element={<Users />} />
+              <Route path="/squads" element={<Squads />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/frequencia" element={<Frequency />} />
+            </Route>
+          </Route>
 
-        {/* fallback → qualquer rota desconhecida leva ao login */}
-        <Route path="*" element={<Login />} />
-      </Routes>
-    </BrowserRouter>
+          {/* estagiário (coord também pode ver) */}
+          <Route element={<ProtectedRoute allowedRoles={["ROLE_INTERN","ROLE_COORDINATOR"]} />}>
+            <Route path="/intern/home" element={<InternHome />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-export default App;
