@@ -1,4 +1,3 @@
-// src/api/https.ts
 import axios from "axios";
 import { getStoredToken, getStoredRefreshToken, isValidJwt, clearAuth } from "../auth";
 
@@ -7,7 +6,6 @@ const api = axios.create({
   withCredentials: false,
 });
 
-// Request: injeta Bearer
 api.interceptors.request.use((config) => {
   const token = getStoredToken();
   if (token && isValidJwt(token)) {
@@ -17,7 +15,6 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response: tenta refresh no 401
 let refreshing = false;
 let queue: Array<() => void> = [];
 
@@ -28,20 +25,18 @@ async function refreshToken() {
   }
   refreshing = true;
   try {
-    const refreshToken = getStoredRefreshToken();
-    if (!refreshToken) throw new Error("No refresh token");
-    const res = await axios.post(
-      `${api.defaults.baseURL}/auth/refresh`,
-      { refreshToken }
-    );
-    const { accessToken, refreshToken: newRefreshToken } = res.data;
-    // Salva nos mesmos storages (local ou session) em que estavam
+    const rt = getStoredRefreshToken();
+    if (!rt) throw new Error("No refresh token");
+    const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, { refreshToken: rt });
+    const { accessToken, refreshToken: newRt } = res.data;
+
+    // mantém no mesmo storage (local vs session) onde já está o refresh atual
     if (localStorage.getItem("refreshToken")) {
       localStorage.setItem("token", accessToken);
-      localStorage.setItem("refreshToken", newRefreshToken);
+      localStorage.setItem("refreshToken", newRt);
     } else {
       sessionStorage.setItem("token", accessToken);
-      sessionStorage.setItem("refreshToken", newRefreshToken);
+      sessionStorage.setItem("refreshToken", newRt);
     }
   } finally {
     refreshing = false;
@@ -56,13 +51,9 @@ api.interceptors.response.use(
     if (error?.response?.status === 401) {
       try {
         await refreshToken();
-        // repete a request original
-        const cfg = error.config;
-        return api(cfg);
+        return api(error.config);
       } catch {
         clearAuth();
-        // redireciono opcionalmente:
-        // window.location.href = "/";
       }
     }
     return Promise.reject(error);

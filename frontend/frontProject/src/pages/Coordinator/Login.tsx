@@ -4,36 +4,32 @@ import { useNavigate } from "react-router-dom";
 import "../../styles/Coordinator/login.css";
 import logoImage from "../../assets/images/image.png";
 import api from "../../api/https";
-// --- Importações Adicionadas ---
-import { useAuth } from "../../context/AuthContext"; // Para atualizar o contexto
-import { saveRoles } from "../../auth"; // Para salvar roles no storage
+import { useAuth } from "../../context/AuthContext"; 
+import { saveRoles } from "../../auth"; 
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false); // Mantido 'false' do seu original
+  const [rememberMe, setRememberMe] = useState(false); 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
-  // --- Lógica Adicionada ---
-  const { setRoles } = useAuth(); // Hook do contexto de autenticação
+  const { setRoles } = useAuth(); 
 
-  // --- Lógica do handleSubmit ATUALIZADA ---
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; 
     setError("");
     setLoading(true);
 
     try {
-      // O backend espera usernameOrEmail e password
       const res = await api.post("/auth/login", {
-        usernameOrEmail: email, // Mantido do seu código original
-        password,
+        usernameOrEmail: email.trim(), 
+        password: password,
       });
 
-      // Captura as roles da resposta
       const { accessToken, refreshToken, expiresIn, roles = [] } = res.data || {};
 
       if (rememberMe) {
@@ -44,30 +40,25 @@ function Login() {
         sessionStorage.setItem("refreshToken", refreshToken);
       }
 
-      // --- Nova Lógica de Roles ---
-      saveRoles(roles, rememberMe); // Salva roles no storage (localStorage/sessionStorage)
-      setRoles(roles); // Atualiza o AuthContext
+      saveRoles(roles, rememberMe);
+      setRoles(roles);
 
       console.log("Login OK:", { accessToken, expiresIn, roles });
 
-      // Redireciona por perfil
       if (roles.includes("ROLE_COORDINATOR")) {
         navigate("/dashboard", { replace: true });
       } else {
         navigate("/intern/home", { replace: true });
       }
-      // --- Fim da Nova Lógica ---
 
-    } catch (err: any) { // Tipado como 'any' para acessar 'response'
+    } catch (err: any) {
       console.error("Erro no login:", err);
-      // Mensagem de erro dinâmica vinda do backend
       setError(err?.response?.data?.message ?? "E-mail/usuário ou senha inválidos.");
     } finally {
       setLoading(false);
     }
   };
 
-  // --- O SEU JSX FOI MANTIDO INTACTO ---
   return (
     <div className="login-container">
       <div className="login-left-wrapper">
@@ -101,16 +92,17 @@ function Login() {
             <h2>Entre na sua</h2>
             <h2 className="account-text">conta agora!</h2>
           </div>
-          <form onSubmit={handleSubmit} className="login-form">
+          <form onSubmit={handleSubmit} className="login-form" autoComplete="on">
             <div className="input-group">
               <input
-                type="email" // O tipo "email" ainda funciona para username
+                type="email" 
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="form-input"
                 placeholder="E-mail ou usuário"
+                autoComplete="username"
               />
             </div>
             <div className="input-group">
@@ -123,6 +115,7 @@ function Login() {
                   required
                   className="form-input"
                   placeholder="Senha"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"

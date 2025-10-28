@@ -1,5 +1,4 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useContext, useMemo, useState, useEffect } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 import { getStoredRoles, getStoredToken, isValidJwt, clearAuth } from "../auth";
 
 type AuthCtx = {
@@ -16,10 +15,7 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
 
   useEffect(() => {
     const token = getStoredToken();
-    if (!isValidJwt(token)) {
-      clearAuth();
-      setRoles([]);
-    }
+    if (!isValidJwt(token)) { clearAuth(); setRoles([]); }
   }, []);
 
   const value = useMemo<AuthCtx>(() => ({

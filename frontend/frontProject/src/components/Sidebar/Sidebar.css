@@ -38,9 +38,6 @@
   text-decoration: none;
 }
 
-/* A MÁGICA ESTÁ AQUI:
-  Aplica o hover apenas em nav-item que NÃO tem a classe .open
-*/
 .nav-item:not(.open):hover {
   background: rgba(255, 255, 255, 0.15);
 }

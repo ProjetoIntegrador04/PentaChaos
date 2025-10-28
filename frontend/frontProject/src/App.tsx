@@ -2,10 +2,10 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
-import MainLayout from "./components/Layout/MainLayout";
 import { ProtectedRoute } from "./components/Login/ProtectedRoute";
+import MainLayout from "./components/Layout/MainLayout";
 
-// Coordinator pages
+// Páginas do coordenador
 import Login from "./pages/Coordinator/Login";
 import Dashboard from "./pages/Coordinator/Dashboard";
 import Users from "./pages/Coordinator/Users";
@@ -13,8 +13,10 @@ import Squads from "./pages/Coordinator/Squads";
 import Settings from "./pages/Coordinator/Settings";
 import Frequency from "./pages/Coordinator/Frequency";
 
+// Estagiário
+import InternHome from "./pages/Intern/Home";
 
-function App() {
+export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
@@ -23,7 +25,7 @@ function App() {
           <Route path="/" element={<Login />} />
 
           {/* coordenador */}
-          <Route element={<ProtectedRoute allowedRoles={["ROLE_COORDINATOR"]} redirectTo="/" />}>
+          <Route element={<ProtectedRoute allowedRoles={["ROLE_COORDINATOR"]} />}>
             <Route element={<MainLayout />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/usuarios" element={<Users />} />
@@ -33,16 +35,14 @@ function App() {
             </Route>
           </Route>
 
-          {/* estagiário */}
-          <Route element={<ProtectedRoute allowedRoles={["ROLE_INTERN", "ROLE_COORDINATOR"]} redirectTo="/" />}>
+          {/* estagiário (coord também pode ver) */}
+          <Route element={<ProtectedRoute allowedRoles={["ROLE_INTERN","ROLE_COORDINATOR"]} />}>
+            <Route path="/intern/home" element={<InternHome />} />
           </Route>
 
-          {/* fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
 }
-
-export default App;

@@ -1,19 +1,13 @@
-// src/components/Login/ProtectedRoute.tsx
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { hasAnyRole } from "../../auth";
 
-type Props = {
-  allowedRoles?: string[];
-  redirectTo?: string;
-};
+type Props = { allowedRoles?: string[]; redirectTo?: string; };
 
 export const ProtectedRoute: React.FC<Props> = ({ allowedRoles = [], redirectTo = "/" }) => {
   const { isAuthenticated, roles } = useAuth();
-
   if (!isAuthenticated) return <Navigate to={redirectTo} replace />;
   if (!hasAnyRole(roles, allowedRoles)) return <Navigate to={redirectTo} replace />;
-
   return <Outlet />;
 };

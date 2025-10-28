@@ -22,7 +22,7 @@ public class CustomUserDetailsService implements UserDetailsService {
   // Método principal da interface UserDetailsService.
   // Ele é chamado pelo Spring Security quando tenta autenticar um usuário.
   
-  // --- INÍCIO DA ATUALIZAÇÃO ---
+
   @Override
   public UserDetails loadUserByUsername(String usernameOrEmail) throws UsernameNotFoundException {
     var user = userRepository.findByUsername(usernameOrEmail)
@@ -36,5 +36,4 @@ public class CustomUserDetailsService implements UserDetailsService {
         user.getAuthorities()
     );
   }
-  // --- FIM DA ATUALIZAÇÃO ---
 }

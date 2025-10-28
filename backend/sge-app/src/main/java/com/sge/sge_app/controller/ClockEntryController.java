@@ -1,8 +1,8 @@
-package com.sge.sge_app.controller; // PACOTE CORRIGIDO COM BASE NO CAMINHO COMPLETO
+package com.sge.sge_app.controller; 
 
-import com.sge.sge_app.dto.request.ClockEntryRequest; // Importação corrigida
-import com.sge.sge_app.dto.response.ClockEntryResponse; // Importação corrigida
-import com.sge.sge_app.services.ClockEntryService; // Importação corrigida
+import com.sge.sge_app.dto.request.ClockEntryRequest; 
+import com.sge.sge_app.dto.response.ClockEntryResponse; 
+import com.sge.sge_app.services.ClockEntryService; 
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;

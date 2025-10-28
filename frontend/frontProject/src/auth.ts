@@ -1,4 +1,3 @@
-// src/auth.ts
 export type JwtPayload = { exp?: number; sub?: string; roles?: string | string[] };
 
 export function getStoredToken(): string | null {
@@ -22,7 +21,7 @@ export function isValidJwt(token: string | null): boolean {
   const parts = token.split(".");
   if (parts.length !== 3) return false;
   try {
-    const payload = parseJwt(token);
+    const payload = JSON.parse(atob(parts[1]));
     if (payload?.exp && Date.now() >= payload.exp * 1000) return false;
     return true;
   } catch {
@@ -38,10 +37,9 @@ export function parseJwt(token: string): JwtPayload {
 
 // ---- ROLES ----
 export function saveRoles(roles: string[], remember: boolean) {
-  const key = "roles";
   const value = JSON.stringify(roles ?? []);
-  if (remember) localStorage.setItem(key, value);
-  else sessionStorage.setItem(key, value);
+  if (remember) localStorage.setItem("roles", value);
+  else sessionStorage.setItem("roles", value);
 }
 
 export function getStoredRoles(): string[] {
@@ -57,10 +55,8 @@ export function hasAnyRole(roles: string[], allowed: string[] = []): boolean {
 }
 
 export function clearAuth() {
-  localStorage.removeItem("token");
-  localStorage.removeItem("refreshToken");
-  localStorage.removeItem("roles");
-  sessionStorage.removeItem("token");
-  sessionStorage.removeItem("refreshToken");
-  sessionStorage.removeItem("roles");
+  for (const k of ["token","refreshToken","roles"]) {
+    localStorage.removeItem(k);
+    sessionStorage.removeItem(k);
+  }
 }

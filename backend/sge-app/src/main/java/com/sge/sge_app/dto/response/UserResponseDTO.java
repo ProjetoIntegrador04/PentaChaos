@@ -43,7 +43,7 @@ public class UserResponseDTO {
                 .email(u.getEmail())
                 .enabled(u.isEnabled())
                 .roles(roleNames)
-                .createdAt(u.getCreatedAt()) // agora tipos batem
+                .createdAt(u.getCreatedAt()) 
                 .updatedAt(u.getUpdatedAt())
                 .build();
     }

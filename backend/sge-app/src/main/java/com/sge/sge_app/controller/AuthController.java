@@ -4,6 +4,7 @@ import com.sge.sge_app.dto.request.LoginRequestDTO;
 import com.sge.sge_app.dto.request.UserRegisterRequestDTO;
 import com.sge.sge_app.dto.response.JwtResponseDTO;
 import com.sge.sge_app.dto.response.UserResponseDTO;
+import com.sge.sge_app.security.CustomUserDetailsService;
 import com.sge.sge_app.security.JwtTokenProvider;
 import com.sge.sge_app.services.UserService;
 
@@ -13,8 +14,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority; // Import necessário
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,104 +26,106 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
-    private final UserService userService; // Usado para registro e carregamento de UserDetails
+    private final UserService userService;
+    private final CustomUserDetailsService userDetailsService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, UserService userService) {
+    public AuthController(AuthenticationManager authenticationManager,
+                          JwtTokenProvider tokenProvider,
+                          UserService userService,
+                          CustomUserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userService = userService;
+        this.userDetailsService = userDetailsService;
     }
 
-    @PostMapping("/register")
+    @PostMapping(
+        value = "/register",
+        consumes = "application/json",
+        produces = "application/json"
+    )
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegisterRequestDTO registerRequest) {
         UserResponseDTO newUser = userService.registerNewUser(registerRequest);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
-    @PostMapping("/login")
+    @PostMapping(
+        value = "/login",
+        consumes = "application/json",
+        produces = "application/json"
+    )
     public ResponseEntity<JwtResponseDTO> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        // Autentica o usuário usando o AuthenticationManager
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsernameOrEmail(), // Usaremos este campo para username/email no UserDetailsService
+                        loginRequest.getUsernameOrEmail(),
                         loginRequest.getPassword()
                 )
         );
 
-        // Define a autenticação no contexto de segurança do Spring
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Gera os tokens JWT
         String accessToken = tokenProvider.generateAccessToken(authentication);
         String refreshToken = tokenProvider.generateRefreshToken(authentication);
         long expiresIn = tokenProvider.getJwtExpirationInMs();
 
-        // --- INÍCIO DA ATUALIZAÇÃO ---
-        // Extrai as roles da autenticação
         var roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
-        // --- FIM DA ATUALIZAÇÃO ---
 
         return ResponseEntity.ok(
                 JwtResponseDTO.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
                         .expiresIn(expiresIn)
-                        .roles(roles) // <-- CAMPO ADICIONADO
+                        .roles(roles)
                         .build()
         );
     }
 
-    @PostMapping("/refresh")
+    @PostMapping(
+        value = "/refresh",
+        consumes = "application/json",
+        produces = "application/json"
+    )
     public ResponseEntity<JwtResponseDTO> refreshAccessToken(@RequestBody JwtResponseDTO refreshRequest) {
         String refreshToken = refreshRequest.getRefreshToken();
 
-        if (tokenProvider.validateToken(refreshToken)) {
-            String username = tokenProvider.getUsernameFromToken(refreshToken);
-            // Para gerar um novo Access Token, precisamos reautenticar o usuário
-            // Carregamos os detalhes do usuário, criamos uma autenticação 'dummy' para gerar o token
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userService.findByUsername(username).orElseThrow(() -> new RuntimeException("Usuário não encontrado para refresh token")),
-                    null, // Senha não é necessária para refresh token
-                    userService.findByUsername(username).get().getAuthorities() // Carrega as autoridades do usuário
-            );
+        if (!tokenProvider.validateToken(refreshToken)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
 
-            String newAccessToken = tokenProvider.generateAccessToken(authentication);
-            // Opcional: Gerar um novo refresh token também, ou manter o mesmo até expirar
-            String newRefreshToken = tokenProvider.generateRefreshToken(authentication); // Gerando um novo refresh token
-            long expiresIn = tokenProvider.getJwtExpirationInMs();
+        String username = tokenProvider.getUsernameFromToken(refreshToken);
 
-            // Pega as roles para o refresh (boa prática manter consistência)
-             var roles = authentication.getAuthorities().stream()
+        // Carrega UserDetails (NÃO use sua entidade aqui)
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+
+        String newAccessToken = tokenProvider.generateAccessToken(authentication);
+        String newRefreshToken = tokenProvider.generateRefreshToken(authentication);
+        long expiresIn = tokenProvider.getJwtExpirationInMs();
+
+        var roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .toList();
 
-            return ResponseEntity.ok(
-                    JwtResponseDTO.builder()
-                            .accessToken(newAccessToken)
-                            .refreshToken(newRefreshToken) // Retorna o novo refresh token
-                            .expiresIn(expiresIn)
-                            .roles(roles) // <-- Adicionado aqui também
-                            .build()
-            );
-        } else {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // Refresh token inválido ou expirado
-        }
+        return ResponseEntity.ok(
+                JwtResponseDTO.builder()
+                        .accessToken(newAccessToken)
+                        .refreshToken(newRefreshToken)
+                        .expiresIn(expiresIn)
+                        .roles(roles)
+                        .build()
+        );
     }
 
-    // --- INÍCIO DO NOVO ENDPOINT ---
-    @GetMapping("/me")
-    public ResponseEntity<UserResponseDTO> me(Authentication auth) { // O Spring injeta o usuário autenticado
-        var username = auth.getName();
-        
-        // Conforme seu snippet, assumindo que:
-        // 1. Você implementará `findByUsernameOrEmail` no seu UserService
-        // 2. Este método retorna a *entidade* User (e não um Optional ou UserDetails)
-        // 3. O `UserResponseDTO` possui um método estático `from(User user)`
-        
-        var user = userService.findByUsernameOrEmail(username); 
+    @GetMapping(value = "/me", produces = "application/json")
+    public ResponseEntity<UserResponseDTO> me(@AuthenticationPrincipal UserDetails principal) {
+        var user = userService.findByUsernameOrEmail(principal.getUsername());
         return ResponseEntity.ok(UserResponseDTO.from(user));
     }
-    // --- FIM DO NOVO ENDPOINT ---
 }

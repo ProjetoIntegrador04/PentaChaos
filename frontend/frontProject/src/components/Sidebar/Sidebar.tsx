@@ -23,7 +23,6 @@ const Sidebar: React.FC = () => {
     { icon: LogOut, label: 'Sair', path: '/' },
   ];
 
-  // Efeito para abrir o menu correto ao carregar a página
   useEffect(() => {
     const parentMenu = menuItems.find(item => 
       item.subItems?.some(sub => sub.path === location.pathname)
@@ -31,7 +30,7 @@ const Sidebar: React.FC = () => {
     if (parentMenu) {
       setOpenMenu(parentMenu.label);
     }
-  }, [location.pathname]); // Executa quando a rota muda
+  }, [location.pathname]); 
 
   const handleMenuClick = (label: string) => {
     setOpenMenu(currentOpenMenu => (currentOpenMenu === label ? null : label));
