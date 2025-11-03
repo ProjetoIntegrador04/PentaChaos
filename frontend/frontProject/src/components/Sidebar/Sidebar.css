@@ -1,5 +1,16 @@
+/* --- (opcional, mas recomendado) reset global --- */
+html, body, #root { height: 100%; }
+body { margin: 0; }
+
+/* --- SIDEBAR --- */
 .sidebar {
+  position: fixed;        /* fixa no viewport */
+  left: 0;
+  top: 0;
+  bottom: 0;              /* ocupa até o fim */
+  height: 100dvh;         /* melhor que 100vh em mobile */
   width: 280px;
+
   background: linear-gradient(135deg, #3c75ba, #12407b);
   color: white;
   padding: 24px;
@@ -7,24 +18,35 @@
   flex-direction: column;
   border-top-right-radius: 40px;
   border-bottom-right-radius: 40px;
+
+  overflow-y: auto;       /* rola se o conteúdo passar da tela */
+  overscroll-behavior: contain;
 }
 
+/* Scrollbar opcional */
+.sidebar::-webkit-scrollbar { width: 8px; }
+.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.25); border-radius: 4px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.4); }
+
+/* Header / Logo */
 .sidebar-header {
   margin-bottom: 40px;
 }
 
 .sidebar-logo {
-  max-width: 150px;  
+  max-width: 150px;
   height: auto;
-  margin-bottom: 1.5rem;  
+  margin-bottom: 1.5rem;
 }
 
+/* Navegação */
 .sidebar-nav {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
+/* Item padrão */
 .nav-item {
   display: flex;
   align-items: center;
@@ -36,14 +58,22 @@
   font-size: 16px;
   color: white;
   text-decoration: none;
+  background: transparent;
+  border: 0;
+  text-align: left;
 }
 
 .nav-item:not(.open):hover {
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Estado ativo para links de topo */
+.nav-item.active {
+  background: rgba(255, 255, 255, 0.2);
+  font-weight: 500;
+}
 
-
+/* Item com submenu (gaveta) */
 .nav-item.has-submenu {
   justify-content: space-between;
 }
@@ -62,6 +92,7 @@
   transform: rotate(180deg);
 }
 
+/* Submenu (gaveta) */
 .submenu {
   max-height: 0;
   overflow: hidden;
@@ -71,11 +102,12 @@
 }
 
 .submenu.open {
-  max-height: 200px;
+  max-height: 240px; /* pode ajustar se tiver mais itens */
   opacity: 1;
   margin-top: 4px;
 }
 
+/* Item do submenu */
 .submenu-item {
   position: relative;
   display: flex;
@@ -86,7 +118,7 @@
   cursor: pointer;
   transition: all 0.2s ease-out;
   font-size: 15px;
-  color: rgba(255, 255, 255, 0.8);
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
   overflow: hidden;
 }
@@ -122,4 +154,30 @@
 
 .submenu-item.active::before {
   transform: scaleY(1);
+}
+
+/* MainLayout.css */
+
+.app-layout {
+  display: flex;
+  height: 100vh;
+  width: 100%;
+  background-color: #f0f4f8; 
+}
+
+.content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  margin-left: 280px; /* 🔹 ADICIONE ESTA LINHA (igual à largura da sidebar) */
+  /* Garante que o conteúdo não fique "preso" se a sidebar sumir */
+  min-width: 0; 
+}
+
+/* ... (o resto do seu CSS permanece igual) ... */
+
+.main-content {
+  flex: 1;
+  padding: 2rem;
+  overflow-y: auto;
 }

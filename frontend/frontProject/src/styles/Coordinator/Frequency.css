@@ -13,10 +13,8 @@
 }
 
 .frequencia-header h1 {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  font-weight: 800;
+  font-size: 1.6rem;
+  font-weight: 700;
   color: #3b5fbf;
 }
 

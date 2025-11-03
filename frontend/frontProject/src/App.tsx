@@ -1,4 +1,3 @@
-// src/App.tsx
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
@@ -13,8 +12,13 @@ import Squads from "./pages/Coordinator/Squads";
 import Settings from "./pages/Coordinator/Settings";
 import Frequency from "./pages/Coordinator/Frequency";
 
-// Estagiário
+// Páginas do Estagiário
+import MainLayoutIntern from "./components/Layout/MainLayoutIntern";
 import InternHome from "./pages/Intern/Home";
+import Ponto from "./pages/Intern/Point";
+import Frequencia from "./pages/Intern/Frequency";
+import Settings2 from "./pages/Intern/Settings2";
+
 
 export default function App() {
   return (
@@ -31,13 +35,18 @@ export default function App() {
               <Route path="/usuarios" element={<Users />} />
               <Route path="/squads" element={<Squads />} />
               <Route path="/settings" element={<Settings />} />
-              <Route path="/frequencia" element={<Frequency />} />
+              <Route path="/frequencia" element={<Frequency/>} />
             </Route>
           </Route>
 
           {/* estagiário (coord também pode ver) */}
-          <Route element={<ProtectedRoute allowedRoles={["ROLE_INTERN","ROLE_COORDINATOR"]} />}>
-            <Route path="/intern/home" element={<InternHome />} />
+          <Route element={<ProtectedRoute allowedRoles={["ROLE_INTERN", "ROLE_COORDINATOR"]} />}>
+            <Route element={<MainLayoutIntern />}>
+              <Route path="/intern/home" element={<InternHome />} />
+              <Route path="/intern/ponto" element={<Ponto />} />
+              <Route path="/intern/frequencia" element={<Frequencia />} />
+              <Route path="/intern/settings" element={<Settings2 />} />
+            </Route>
           </Route>
 
           <Route path="*" element={<Navigate to="/" replace />} />

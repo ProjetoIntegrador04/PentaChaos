@@ -1,0 +1,81 @@
+/* src/components/Topbar/Topbar.css */
+
+.topbar {
+  /* Fica "grudado" no topo da área de conteúdo */
+  position: sticky;
+  top: 0;
+  z-index: 50; /* Garante que fique acima do conteúdo que rola */
+
+  display: flex;
+  justify-content: flex-end; /* Joga os ícones para a direita */
+  align-items: center;
+  gap: 12px;
+  
+  /* O padding é no layout pai para o conteúdo rolar corretamente */
+  padding: 1rem 2rem; 
+  /* Fundo que combina com a página, para o conteúdo rolar "por baixo" */
+  background-color: #f0f4f8; 
+  
+  /* Linha sutil que aparece quando o conteúdo rola por baixo */
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+/* Opcional: Se você quiser que a linha apareça ao rolar, 
+  você precisará de um pouco de JS no layout para
+  detectar o scroll e adicionar uma classe ao .topbar 
+*/
+
+/* Botão do Sino (circular) */
+.topbar-icon-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: none;
+  background-color: #ffffff;
+  color: #3b82f6; /* Ícone azul */
+  box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative; /* Para o ponto de notificação */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.topbar-icon-btn:hover {
+  background-color: #f1f5f9;
+  transform: translateY(-2px);
+}
+
+/* Ponto vermelho de notificação */
+.notification-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 8px;
+  height: 8px;
+  background-color: #ff4d4f;
+  border-radius: 50%;
+  border: 1.5px solid white;
+}
+
+/* Botão de Perfil (formato de pílula) */
+.profile-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  
+  padding: 10px; /* Ajustado para ser mais redondo, como na imagem */
+  background-color: #3b82f6; /* Fundo azul */
+  color: white;
+  border-radius: 20px; /* Borda bem arredondada */
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+.profile-btn:hover {
+
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+}
