@@ -1,29 +1,29 @@
-# Nome do pipeline (como vai aparecer na aba "Actions" do GitHub)
-name: CI Pipeline
+# Nome do pipeline (como aparecerá na aba "Actions" do GitHub)
+name: CI Pipeline - Build, Testes e Docker
 
-# Eventos que disparam a execução do pipeline
+# Define quando o pipeline é executado
 on:
-  push:                           # Quando houver push de código
-    branches: [ main, develop, feature/** ]  # Em quais branches ele roda
-  pull_request:                   # Quando abrir um pull request
-    branches: [ main, develop ]   # Apenas para main e develop
+  push:
+    branches: [ main, develop, feature/** ]  # Executa ao fazer push nessas branches
+  pull_request:
+    branches: [ main, develop ]              # Executa também ao abrir PRs
 
-# Definição dos "jobs" (etapas paralelas/independentes)
+# Definição dos "jobs" (etapas do pipeline)
 jobs:
-  build-test-docker:              # Nome do job principal
-    runs-on: ubuntu-latest        # O ambiente onde o pipeline será executado
+  build-test:
+    runs-on: ubuntu-latest                   # Sistema operacional do runner
 
-    # Serviços auxiliares (containers que o GitHub Actions sobe junto)
+    # Serviços auxiliares (containers usados durante o build/teste)
     services:
-      postgres:                   # Nome do serviço (banco PostgreSQL)
-        image: postgres:15-alpine # Imagem usada no container
-        env:                      # Variáveis de ambiente do Postgres
+      postgres:                              # Banco de dados para testes
+        image: postgres:15-alpine
+        env:
           POSTGRES_DB: test_db
           POSTGRES_USER: test_user
           POSTGRES_PASSWORD: test_pass
         ports:
-          - 5432:5432             # Expõe a porta 5432
-        options: >-               # Comando para checar se o Postgres está pronto
+          - 5432:5432
+        options: >-
           --health-cmd="pg_isready -U test_user -d test_db"
           --health-interval=10s
           --health-timeout=5s
@@ -37,19 +37,19 @@ jobs:
         uses: actions/checkout@v4
 
       # -----------------------------
-      # 2️⃣ Configura o Java 24 (para Maven e build)
+      # 2️⃣ Configura o Java 24 (Temurin)
       # -----------------------------
       - name: Configurar JDK 24
         uses: actions/setup-java@v4
         with:
-          java-version: '24'      # Sua versão de Java
-          distribution: 'temurin' # Distribuição (OpenJDK Temurin)
-          cache: 'maven'          # Habilita cache do Maven para builds mais rápidos
+          java-version: '24'                 # Sua versão do Java
+          distribution: 'temurin'
+          cache: 'maven'                     # Cacheia dependências do Maven
 
       # -----------------------------
-      # 3️⃣ Cria o arquivo .env com variáveis para os testes
+      # 3️⃣ Cria um arquivo .env para simular ambiente local de testes
       # -----------------------------
-      - name: Criar arquivo .env para testes
+      - name: Criar arquivo .env
         run: |
           echo "POSTGRES_DB=test_db" >> .env
           echo "POSTGRES_USER=test_user" >> .env
@@ -59,44 +59,43 @@ jobs:
           echo "JWT_REFRESH_EXPIRATION=86400000" >> .env
 
       # -----------------------------
-      # 4️⃣ Sobe o banco de dados do docker-compose (apenas o serviço 'db')
+      # 4️⃣ Sobe o banco de dados do Docker Compose (se existir)
       # -----------------------------
-      - name: Subir serviços Docker Compose (banco e app)
+      - name: Subir banco via Docker Compose
         run: docker compose up -d db
 
       # -----------------------------
-      # 5️⃣ Dá um tempo para o banco inicializar (evita erro de conexão)
+      # 5️⃣ Aguarda o banco estar pronto
       # -----------------------------
       - name: Aguardar inicialização do banco
         run: sleep 15
 
       # -----------------------------
-      # 6️⃣ Build Maven (gera o .jar, mas sem rodar testes ainda)
+      # 6️⃣ Compila o projeto (gera o .jar)
       # -----------------------------
       - name: Build Maven (sem testes)
-        run: ./mvnw clean package -DskipTests
+        run: ./mvnw -f ./pom.xml clean package -DskipTests
 
       # -----------------------------
-      # 7️⃣ Executa os testes Maven
+      # 7️⃣ Executa os testes automatizados
       # -----------------------------
       - name: Rodar testes Maven
-        run: ./mvnw test
+        run: ./mvnw -f ./pom.xml test
 
       # -----------------------------
-      # 8️⃣ Faz o build da imagem Docker da aplicação
+      # 8️⃣ Faz o build da imagem Docker local
       # -----------------------------
       - name: Build da imagem Docker
         run: docker build -t penta-chaos-app .
 
       # -----------------------------
-      # 9️⃣ Mostra todos os containers rodando (pra debug)
+      # 9️⃣ Mostra os containers em execução (debug)
       # -----------------------------
-      - name: Verificar containers em execução
+      - name: Listar containers em execução
         run: docker ps -a
 
       # -----------------------------
-      # 🔟 Encerra todos os containers e remove volumes/rede
-      # (executa mesmo se houver falha nos testes)
+      # 🔟 Finaliza os containers após o build
       # -----------------------------
       - name: Encerrar serviços Docker
         if: always()
