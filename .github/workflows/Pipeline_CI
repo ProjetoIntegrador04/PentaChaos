@@ -1,0 +1,103 @@
+# Nome do pipeline (como vai aparecer na aba "Actions" do GitHub)
+name: CI Pipeline
+
+# Eventos que disparam a execução do pipeline
+on:
+  push:                           # Quando houver push de código
+    branches: [ main, develop, feature/** ]  # Em quais branches ele roda
+  pull_request:                   # Quando abrir um pull request
+    branches: [ main, develop ]   # Apenas para main e develop
+
+# Definição dos "jobs" (etapas paralelas/independentes)
+jobs:
+  build-test-docker:              # Nome do job principal
+    runs-on: ubuntu-latest        # O ambiente onde o pipeline será executado
+
+    # Serviços auxiliares (containers que o GitHub Actions sobe junto)
+    services:
+      postgres:                   # Nome do serviço (banco PostgreSQL)
+        image: postgres:15-alpine # Imagem usada no container
+        env:                      # Variáveis de ambiente do Postgres
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_pass
+        ports:
+          - 5432:5432             # Expõe a porta 5432
+        options: >-               # Comando para checar se o Postgres está pronto
+          --health-cmd="pg_isready -U test_user -d test_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      # -----------------------------
+      # 1️⃣ Baixa o código do repositório
+      # -----------------------------
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      # -----------------------------
+      # 2️⃣ Configura o Java 24 (para Maven e build)
+      # -----------------------------
+      - name: Configurar JDK 24
+        uses: actions/setup-java@v4
+        with:
+          java-version: '24'      # Sua versão de Java
+          distribution: 'temurin' # Distribuição (OpenJDK Temurin)
+          cache: 'maven'          # Habilita cache do Maven para builds mais rápidos
+
+      # -----------------------------
+      # 3️⃣ Cria o arquivo .env com variáveis para os testes
+      # -----------------------------
+      - name: Criar arquivo .env para testes
+        run: |
+          echo "POSTGRES_DB=test_db" >> .env
+          echo "POSTGRES_USER=test_user" >> .env
+          echo "POSTGRES_PASSWORD=test_pass" >> .env
+          echo "JWT_SECRET_KEY=test_secret" >> .env
+          echo "JWT_EXPIRATION=3600000" >> .env
+          echo "JWT_REFRESH_EXPIRATION=86400000" >> .env
+
+      # -----------------------------
+      # 4️⃣ Sobe o banco de dados do docker-compose (apenas o serviço 'db')
+      # -----------------------------
+      - name: Subir serviços Docker Compose (banco e app)
+        run: docker compose up -d db
+
+      # -----------------------------
+      # 5️⃣ Dá um tempo para o banco inicializar (evita erro de conexão)
+      # -----------------------------
+      - name: Aguardar inicialização do banco
+        run: sleep 15
+
+      # -----------------------------
+      # 6️⃣ Build Maven (gera o .jar, mas sem rodar testes ainda)
+      # -----------------------------
+      - name: Build Maven (sem testes)
+        run: ./mvnw clean package -DskipTests
+
+      # -----------------------------
+      # 7️⃣ Executa os testes Maven
+      # -----------------------------
+      - name: Rodar testes Maven
+        run: ./mvnw test
+
+      # -----------------------------
+      # 8️⃣ Faz o build da imagem Docker da aplicação
+      # -----------------------------
+      - name: Build da imagem Docker
+        run: docker build -t penta-chaos-app .
+
+      # -----------------------------
+      # 9️⃣ Mostra todos os containers rodando (pra debug)
+      # -----------------------------
+      - name: Verificar containers em execução
+        run: docker ps -a
+
+      # -----------------------------
+      # 🔟 Encerra todos os containers e remove volumes/rede
+      # (executa mesmo se houver falha nos testes)
+      # -----------------------------
+      - name: Encerrar serviços Docker
+        if: always()
+        run: docker compose down
