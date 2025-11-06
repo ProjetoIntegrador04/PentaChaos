@@ -1,11 +1,14 @@
 import React, { useState, useRef } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, Image, StyleSheet,
-  Keyboard, KeyboardAvoidingView, Platform, ScrollView,
+  Keyboard, KeyboardAvoidingView, Platform, ScrollView, Alert,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+// Removidas as importações do axios e SecureStore
+
+// A constante API_URL foi removida
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
@@ -14,23 +17,31 @@ export default function LoginScreen() {
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const senhaInputRef = useRef<TextInput>(null);
 
+  // --- LÓGICA DE LOGIN SIMPLIFICADA ---
   const handleLogin = () => {
-    Keyboard.dismiss();
-    router.push({ pathname: "/home" }); 
+    Keyboard.dismiss(); // Apenas fecha o teclado
+    console.log("Navegando para /home...");
+    router.replace({ pathname: "/home" }); // Navega direto para a home
   };
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+      <ScrollView 
+        contentContainerStyle={styles.container} 
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+      >
+        {/* Cabeçalho */}
         <LinearGradient colors={["#1d64b5", "#2a77d4"]} style={styles.header}>
             <Text style={styles.ola}>Olá,</Text>
             <Text style={styles.bemVindo}>Bem vindo a</Text>
-           <Image source={require("../assets/images/logo.png.png")} style={styles.logo} resizeMode="contain" />
+            <Image source={require("../assets/images/icon.png")} style={styles.logo} resizeMode="contain" />
             <Text style={styles.desc}>
               2RP net | Monitoramento, onde o gerenciamento, acompanhamento e organização são possíveis.
             </Text>
         </LinearGradient>
 
+        {/* Formulário */}
         <Text style={styles.title}>Entre na sua conta agora!</Text>
         <Text style={styles.label}>E-mail</Text>
         <TextInput
@@ -38,7 +49,6 @@ export default function LoginScreen() {
           value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none"
           returnKeyType="next" onSubmitEditing={() => senhaInputRef.current?.focus()} blurOnSubmit={false}
         />
-
         <Text style={styles.label}>Senha</Text>
         <View style={styles.inputSenha}>
           <TextInput
@@ -51,9 +61,13 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
+        {/* Opções */}
         <View style={styles.row}>
-          <TouchableOpacity style={[styles.checkbox, lembrar && styles.checkboxChecked]} onPress={() => setLembrar(!lembrar)}>
-            {lembrar && <Ionicons name="checkmark" size={16} color="#fff" />}
+          <TouchableOpacity 
+            style={[styles.checkbox, lembrar ? styles.checkboxChecked : null]} 
+            onPress={() => setLembrar(!lembrar)}
+          >
+            {lembrar && <Ionicons name="checkmark" size={16} color="#fff" />} 
           </TouchableOpacity>
           <Text style={styles.checkboxText}>Lembrar-me</Text>
           <TouchableOpacity style={{ marginLeft: "auto" }}>
@@ -61,8 +75,12 @@ export default function LoginScreen() {
           </TouchableOpacity>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Entrar</Text>
+        {/* Botão Entrar */}
+        <TouchableOpacity 
+          style={styles.button}
+          onPress={handleLogin} 
+        >
+          <Text style={styles.buttonText}>Entrar</Text> 
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -82,9 +100,9 @@ const styles = StyleSheet.create({
     inputSenha: { flexDirection: "row", alignItems: "center", backgroundColor: "#f1f5f9", borderRadius: 25, paddingHorizontal: 15, paddingVertical: 12, },
     row: { flexDirection: "row", alignItems: "center", marginTop: 15 },
     checkbox: { width: 20, height: 20, borderRadius: 4, borderWidth: 1, borderColor: "#2a77d4", alignItems: "center", justifyContent: "center", },
-    checkboxChecked: { backgroundColor: "#2a77d4", },
+    checkboxChecked: { backgroundColor: "#2a77d4", borderColor: "#2a77d4" }, 
     checkboxText: { marginLeft: 8, color: "#333" },
     link: { color: "#2a77d4", fontSize: 12, textDecorationLine: "underline" },
-    button: { backgroundColor: "#2a77d4", borderRadius: 25, paddingVertical: 12, alignItems: "center", marginTop: 30, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 5, elevation: 3, },
+    button: { backgroundColor: "#2a77d4", borderRadius: 25, paddingVertical: 12, alignItems: "center", marginTop: 30, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 5, elevation: 3, minHeight: 45, justifyContent: 'center' }, 
     buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });
