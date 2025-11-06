@@ -1,4 +1,3 @@
-// src/components/Sidebar/SidebarIntern.tsx
 import React, { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
@@ -13,7 +12,6 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../assets/images/image.png";
 import "./Sidebar.css";
-import "./SidebarIntern.css"
 
 type MenuItem = {
   icon: React.ComponentType<{ size?: number }>;
@@ -29,10 +27,10 @@ const SidebarIntern: React.FC = () => {
 
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
-  // Itens do ESTAGIÁRIO — ajuste os paths conforme suas rotas reais
   const menuItems: MenuItem[] = [
     { icon: Home,          label: "Início",            path: "/intern/home" },
-    { icon: ClipboardList, label: "Minhas atividades", path: "/intern/atividades" },
+    // 🔹 CORREÇÃO AQUI: path atualizado para '/intern/task' (singular) para bater com o App.tsx
+    { icon: ClipboardList, label: "Minhas atividades", path: "/intern/task" },
     {
       icon: Clock,
       label: "Ponto",
@@ -42,10 +40,10 @@ const SidebarIntern: React.FC = () => {
       ],
     },
     { icon: Settings, label: "Configurações",      path: "/intern/settings" },
-    { icon: LogOut,   label: "Sair" }, // ação
+    { icon: LogOut,   label: "Sair" }, 
   ];
 
-  // Abre automaticamente a gaveta se alguma subrota estiver ativa
+  // ... (resto do componente igual)
   useEffect(() => {
     const parent = menuItems.find((item) =>
       item.subItems?.some((sub) => sub.path === location.pathname)
@@ -70,7 +68,6 @@ const SidebarIntern: React.FC = () => {
 
       <nav className="sidebar-nav">
         {menuItems.map((item, index) => {
-          // Botão de sair
           if (item.label === "Sair") {
             const Icon = item.icon;
             return (
@@ -87,7 +84,6 @@ const SidebarIntern: React.FC = () => {
             );
           }
 
-          // Item com subItens (gaveta)
           if (item.subItems && item.subItems.length > 0) {
             const Icon = item.icon;
             const hasActiveSub = item.subItems.some((sub) => sub.path === location.pathname);
@@ -124,7 +120,6 @@ const SidebarIntern: React.FC = () => {
             );
           }
 
-          // Item simples
           const Icon = item.icon;
           return (
             <NavLink

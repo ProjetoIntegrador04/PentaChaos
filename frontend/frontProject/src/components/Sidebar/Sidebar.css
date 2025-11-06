@@ -19,18 +19,23 @@ body { margin: 0; }
   border-top-right-radius: 40px;
   border-bottom-right-radius: 40px;
 
-  overflow-y: auto;       /* rola se o conteúdo passar da tela */
-  overscroll-behavior: contain;
+  /* 🔹 ALTERAÇÃO AQUI 🔹 */
+  /* A rolagem foi removida daqui e passada para o .sidebar-nav */
+  overflow: hidden;
+  /* overscroll-behavior: contain; -> Movido */
 }
 
-/* Scrollbar opcional */
-.sidebar::-webkit-scrollbar { width: 8px; }
-.sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,.25); border-radius: 4px; }
-.sidebar::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.4); }
+/* 🔹 ALTERAÇÃO AQUI 🔹 */
+/* A barra de rolagem agora pertence ao .sidebar-nav */
+.sidebar-nav::-webkit-scrollbar { width: 8px; }
+.sidebar-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,.25); border-radius: 4px; }
+.sidebar-nav::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.4); }
 
 /* Header / Logo */
 .sidebar-header {
   margin-bottom: 40px;
+  /* Impede que o header encolha */
+  flex-shrink: 0;
 }
 
 .sidebar-logo {
@@ -44,6 +49,14 @@ body { margin: 0; }
   display: flex;
   flex-direction: column;
   gap: 8px;
+  
+  /* 🔹 ALTERAÇÃO AQUI 🔹 */
+  flex: 1; /* Faz a navegação ocupar todo o espaço restante */
+  overflow-y: auto; /* Adiciona a rolagem APENAS aqui */
+  overscroll-behavior: contain; /* Impede a rolagem de "vazar" */
+  
+  /* Adiciona um pequeno espaço para a barra de rolagem não colar no texto */
+  padding-right: 5px; 
 }
 
 /* Item padrão */
@@ -156,7 +169,10 @@ body { margin: 0; }
   transform: scaleY(1);
 }
 
-/* MainLayout.css */
+/* ================================== */
+/* CSS DO MAINLAYOUT (JÁ CORRETO) */
+/* =adicionado ao seu CSS
+/* ================================== */
 
 .app-layout {
   display: flex;
@@ -169,15 +185,13 @@ body { margin: 0; }
   flex: 1;
   display: flex;
   flex-direction: column;
-  margin-left: 280px; /* 🔹 ADICIONE ESTA LINHA (igual à largura da sidebar) */
-  /* Garante que o conteúdo não fique "preso" se a sidebar sumir */
+  margin-left: 280px;
   min-width: 0; 
+  overflow: hidden; /* Correção para o scroll funcionar no .main-content */
 }
-
-/* ... (o resto do seu CSS permanece igual) ... */
 
 .main-content {
   flex: 1;
   padding: 2rem;
-  overflow-y: auto;
+  overflow-y: auto; /* Scroll do conteúdo principal */
 }

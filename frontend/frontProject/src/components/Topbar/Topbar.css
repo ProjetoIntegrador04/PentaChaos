@@ -59,23 +59,3 @@
   border: 1.5px solid white;
 }
 
-/* Botão de Perfil (formato de pílula) */
-.profile-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  
-  padding: 10px; /* Ajustado para ser mais redondo, como na imagem */
-  background-color: #3b82f6; /* Fundo azul */
-  color: white;
-  border-radius: 20px; /* Borda bem arredondada */
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
-.profile-btn:hover {
-
-  filter: brightness(1.1);
-  transform: translateY(-2px);
-}

@@ -84,6 +84,14 @@ export default function InternSettings() {
               placeholder="email@exemplo.com"
             />
           </div>
+<div className="form-row">
+            <label>Tipo de Conta</label>
+            <input
+              value="Estagiário" // Valor fixo, já que esta é a tela do Estagiário
+              readOnly        // O usuário não pode editar
+              disabled        // Aplica o estilo visual de desabilitado
+            />
+          </div>
         </section>
 
         {/* Preferências */}
@@ -106,31 +114,12 @@ export default function InternSettings() {
             </select>
           </div>
         </section>
-
-        {/* Segurança */}
-        <section className="card settings-card">
-          <div className="card-title">
-            <FiKey /> <span>Segurança</span>
-          </div>
-
-          <label className="switch-row">
-            <input
-              type="checkbox"
-              checked={form.twoFactor}
-              onChange={onChange("twoFactor")}
-            />
-            <span>Ativar autenticação em duas etapas (2FA)</span>
-          </label>
-
-          {/* 5. Texto do "hint" atualizado */}
-          <div className="hint">Recomendado para aumentar a segurança da sua conta.</div>
-        </section>
       </div>
 
       <div className="settings-footer">
         <button className="btn-secondary" onClick={reset}>Restaurar padrão</button>
         <span className="saved-hint">
-          {savedAt ? `Salvo às ${savedAt}` : "—"}
+          {savedAt ? `Salvo às ${savedAt}` : ""}
         </span>
       </div>
     </div>
