@@ -1,6 +1,7 @@
 # Relatório de Tarefas – PentaChaos
 
-**Integrantes:** David Francisco, Daniel Marks, Gabriel Eliezer, José Henrique, Juan Pablo, Pablo, Pablo Vinicius, Rafael Rodrigues
+**Integrantes:** David Francisco, Daniel Marks, Gabriel Eliezer, José Henrique, Juan Pablo, Pablo Vinicius, Rafael Rodrigues
+
 **Professor:** Glauco Todesco
 
 ---
