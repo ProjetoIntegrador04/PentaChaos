@@ -1,14 +1,17 @@
 .app-layout {
   display: flex;
-  height: 100vh;
+  height: 100vh; 
   width: 100%;
   background-color: #f0f4f8; 
 }
 
 .content-wrapper {
-  flex: 1;
+  flex: 1; 
   display: flex;
   flex-direction: column;
+  margin-left: 280px; 
+  min-width: 0; 
+  overflow: hidden; /* 🔹 ADICIONADO: Força o scroll para o filho */
 }
 
 .page-header-actions {
@@ -56,10 +59,17 @@
   line-height: 1;
 }
 
-
-
 .main-content {
-  flex: 1;
-  padding: 2rem;
-  overflow-y: auto;
+  flex: 1; 
+  padding: 2rem; 
+  overflow-y: auto; /* A barra de rolagem agora aparece aqui */
+}
+
+@media (max-width: 768px) {
+  .content-wrapper {
+    margin-left: 0; 
+  }
+  .main-content {
+    padding: 1rem; 
+  }
 }

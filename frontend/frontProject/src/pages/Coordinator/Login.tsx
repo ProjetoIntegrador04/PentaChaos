@@ -3,30 +3,34 @@ import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
 import "../../styles/Coordinator/login.css";
 import logoImage from "../../assets/images/image.png";
-import api from "../../api/https"; 
+import api from "../../api/https";
+import { useAuth } from "../../context/AuthContext"; 
+import { saveRoles } from "../../auth"; 
+
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false); 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const navigate = useNavigate();
+  const { setRoles } = useAuth(); 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; 
     setError("");
     setLoading(true);
 
     try {
-      // backend espera usernameOrEmail e password
       const res = await api.post("/auth/login", {
-        usernameOrEmail: email,
-        password,
+        usernameOrEmail: email.trim(), 
+        password: password,
       });
 
-      const { accessToken, refreshToken, expiresIn } = res.data;
+      const { accessToken, refreshToken, expiresIn, roles = [] } = res.data || {};
 
       if (rememberMe) {
         localStorage.setItem("token", accessToken);
@@ -36,12 +40,20 @@ function Login() {
         sessionStorage.setItem("refreshToken", refreshToken);
       }
 
-      console.log("Login OK:", { accessToken, expiresIn });
+      saveRoles(roles, rememberMe);
+      setRoles(roles);
 
-      navigate("/dashboard"); 
-    } catch (err) {
+      console.log("Login OK:", { accessToken, expiresIn, roles });
+
+      if (roles.includes("ROLE_COORDINATOR")) {
+        navigate("/dashboard", { replace: true });
+      } else {
+        navigate("/intern/home", { replace: true });
+      }
+
+    } catch (err: any) {
       console.error("Erro no login:", err);
-      setError("E-mail/usuário ou senha inválidos.");
+      setError(err?.response?.data?.message ?? "E-mail/usuário ou senha inválidos.");
     } finally {
       setLoading(false);
     }
@@ -80,16 +92,17 @@ function Login() {
             <h2>Entre na sua</h2>
             <h2 className="account-text">conta agora!</h2>
           </div>
-          <form onSubmit={handleSubmit} className="login-form">
+          <form onSubmit={handleSubmit} className="login-form" autoComplete="on">
             <div className="input-group">
               <input
-                type="email"
+                type="email" 
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="form-input"
                 placeholder="E-mail ou usuário"
+                autoComplete="username"
               />
             </div>
             <div className="input-group">
@@ -102,6 +115,7 @@ function Login() {
                   required
                   className="form-input"
                   placeholder="Senha"
+                  autoComplete="current-password"
                 />
                 <button
                   type="button"

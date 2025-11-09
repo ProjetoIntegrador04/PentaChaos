@@ -1,36 +1,65 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "./context/AuthContext";
+// import { ProtectedRoute } from "./components/Login/ProtectedRoute"; // Comentado temporariamente
+import MainLayout from "./components/Layout/MainLayout";
+
+// Páginas do coordenador
 import Login from "./pages/Coordinator/Login";
 import Dashboard from "./pages/Coordinator/Dashboard";
-import Usuarios from "./pages/Coordinator/Users";
-import MainLayout from "./components/Layout/MainLayout";
-import { ProtectedRoute } from "./components/Login/ProtectedRoute";
+import Users from "./pages/Coordinator/Users";
+import Squads from "./pages/Coordinator/Squads";
+import CoordinatorSettings from "./pages/Coordinator/Settings";
+import CoordinatorFrequency from "./pages/Coordinator/Frequency";
+import Task from "./pages/Coordinator/Task";
 
-function App() {
+// Páginas do Estagiário
+import MainLayoutIntern from "./components/Layout/MainLayoutIntern";
+import InternHome from "./pages/Intern/Home";
+import Ponto from "./pages/Intern/Point";
+import InternFrequency from "./pages/Intern/Frequency";
+import InternSettings from "./pages/Intern/Settings2";
+import InternTasks from "./pages/Intern/Task";
+
+export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        {/* 🔓 Rota pública */}
-        <Route path="/" element={<Login />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          {/* Rota pública (Login) */}
+          <Route path="/" element={<Login />} />
 
-        {/* 🔒 Rotas protegidas */}
-        <Route
-          element={
-            <ProtectedRoute>
-              <MainLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/usuarios" element={<Usuarios />} />
-          <Route path="/squads" element={<h2>Squads</h2>} />
-          <Route path="/configuracoes" element={<h2>Configurações</h2>} />
-        </Route>
+          {/* ======================================================= */}
+          {/* ROTAS DO COORDENADOR (Temporariamente Públicas) */}
+          {/* ======================================================= */}
+          {/* <Route element={<ProtectedRoute allowedRoles={["ROLE_COORDINATOR"]} />}> */}
+             <Route element={<MainLayout />}>
+               <Route path="/dashboard" element={<Dashboard />} />
+               <Route path="/usuarios" element={<Users />} />
+               <Route path="/squads" element={<Squads />} />
+               <Route path="/settings" element={<CoordinatorSettings />} />
+               <Route path="/frequencia" element={<CoordinatorFrequency />} />
+               <Route path="/task" element={<Task />} />
+             </Route>
+          {/* </Route> */}
 
-        {/* fallback → qualquer rota desconhecida leva ao login */}
-        <Route path="*" element={<Login />} />
-      </Routes>
-    </BrowserRouter>
+          {/* ======================================================= */}
+          {/* ROTAS DO ESTAGIÁRIO (Temporariamente Públicas) */}
+          {/* ======================================================= */}
+          {/* <Route element={<ProtectedRoute allowedRoles={["ROLE_INTERN", "ROLE_COORDINATOR"]} />}> */}
+             <Route element={<MainLayoutIntern />}>
+               <Route path="/intern/home" element={<InternHome />} />
+               <Route path="/intern/ponto" element={<Ponto />} />
+               <Route path="/intern/frequencia" element={<InternFrequency />} />
+               <Route path="/intern/settings" element={<InternSettings />} />
+               <Route path="/intern/task" element={<InternTasks />} />
+             </Route>
+          {/* </Route> */}
+          
+          {/* Fallback - Redireciona para o dashboard por conveniência agora */}
+          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 }
-
-export default App;
