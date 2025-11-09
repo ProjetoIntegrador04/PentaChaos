@@ -72,3 +72,188 @@
 @media (max-width: 980px) {
   .squads-content { grid-template-columns: 1fr; }
 }
+
+/* ... (seu CSS anterior permanece aqui) ... */
+
+/* ================================== */
+/* ESTILOS DO MODAL DE CADASTRO */
+/* ================================== */
+
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(3px); /* Efeito moderno de desfoque no fundo */
+}
+
+.modal-container {
+  background: white;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 500px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  animation: modalSlideIn 0.3s ease;
+}
+
+@keyframes modalSlideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.4rem;
+  color: #3b5fbf;
+}
+.close-btn {
+  background: transparent; border: none; cursor: pointer;
+  color: #64748b; transition: color 0.2s;
+  display: flex; align-items: center; justify-content: center;
+}
+.close-btn:hover { color: #ef4444; }
+
+.modal-form {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.form-group, .form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.form-group label, .form-section label {
+  font-weight: 600;
+  color: #334155;
+  font-size: 0.95rem;
+}
+.form-group input {
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+}
+.form-group input:focus, .input-with-action input:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Input com botão de adicionar ao lado */
+.input-with-action {
+  display: flex;
+  gap: 8px;
+}
+.input-with-action input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  outline: none;
+}
+.icon-btn.add-small {
+  background: #3b82f6;
+  color: white;
+  width: 40px; height: 40px; /* Altura igual ao input */
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  border: none; cursor: pointer; transition: filter 0.2s;
+}
+.icon-btn.add-small:hover {
+  filter: brightness(1.1);
+}
+
+/* Lista de Membros (Chips) */
+.member-chips-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-top: 0.5rem;
+}
+.member-chip {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px 4px 12px;
+  border-radius: 999px;
+  font-size: 0.9rem; font-weight: 500;
+}
+.member-chip.monitor {
+  background: #dbeafe; color: #1e40af; /* Azul claro para monitores */
+}
+.member-chip.intern {
+  background: #f1f5f9; color: #334155; /* Cinza para estagiários */
+}
+.member-chip button {
+  background: rgba(0,0,0,0.1); border: none; border-radius: 50%;
+  width: 20px; height: 20px; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: inherit; opacity: 0.7; transition: opacity 0.2s;
+}
+.member-chip button:hover { opacity: 1; }
+
+/* Rodapé do Modal */
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 12px;
+  margin-top: 1rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0;
+}
+.btn-secondary {
+  padding: 10px 16px; border: 1px solid #cbd5e1; background: white;
+  color: #334155; border-radius: 8px; font-weight: 600; cursor: pointer;
+  transition: background 0.2s;
+}
+.btn-secondary:hover { background: #f1f5f9; }
+
+.team-item {
+  display: flex;
+  justify-content: space-between; /* Separa info do botão de editar */
+  align-items: center;
+  padding: 12px 16px;
+  /* ... outros estilos ... */
+}
+
+.team-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Estilo para o botão de editar pequeno na lista lateral */
+.icon-btn.edit-small {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0; /* Escondido por padrão */
+}
+
+.team-item:hover .icon-btn.edit-small {
+  opacity: 1; /* Aparece no hover do item */
+}
+
+.icon-btn.edit-small:hover {
+  background-color: #e2e8f0;
+  color: #3b82f6;
+}
+
+/* Melhoria visual nos chips de membros */
+.member-chip span small {
+  opacity: 0.7;
+  font-weight: 400;
+  margin-left: 4px;
+}
