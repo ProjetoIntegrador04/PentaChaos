@@ -4,14 +4,33 @@ import CustomTabBar from '@/components/CustomTabBar';
 
 export default function TabsLayout() {
   return (
-    <Tabs tabBar={(props) => <CustomTabBar {...props} />}>
-      <Tabs.Screen name="ranking" options={{ headerShown: false }} />
-      <Tabs.Screen name="squads" options={{ headerShown: false }} />
-      <Tabs.Screen name="home" options={{ headerShown: false }} />
-      {/* LINHA ADICIONADA */}
-      <Tabs.Screen name="ponto" options={{ headerShown: false }} /> 
-      <Tabs.Screen name="usuarios" options={{ headerShown: false }} />
-      <Tabs.Screen name="notificacoes" options={{ headerShown: false }} />
+    // AQUI ESTÁ A CORREÇÃO DEFINITIVA:
+    // Esta opção 'screenOptions' aplicada diretamente no 'Tabs'
+    // esconde o cabeçalho "pai" de TODAS as abas de uma vez por todas.
+    <Tabs 
+      tabBar={(props) => <CustomTabBar {...props} />}
+      screenOptions={{ headerShown: false }} 
+    >
+      <Tabs.Screen 
+        name="ranking" 
+        options={{ title: "Ranking" }} 
+      />
+      <Tabs.Screen 
+        name="squads" 
+        options={{ title: "Squads" }} 
+      />
+      <Tabs.Screen 
+        name="home" 
+        options={{ title: "Dashboard" }} 
+      />
+      <Tabs.Screen 
+        name="uusuarios" 
+        options={{ title: "Usuários" }} 
+      />
+      <Tabs.Screen 
+        name="notificacoes" 
+        options={{ title: "Notificações" }} 
+      />
     </Tabs>
   );
 }

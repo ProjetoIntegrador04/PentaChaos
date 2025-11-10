@@ -1,29 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; 
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LineChart, PieChart } from 'react-native-chart-kit';
+import { router, useFocusEffect } from 'expo-router'; 
+import AsyncStorage from '@react-native-async-storage/async-storage'; 
 
 const screenWidth = Dimensions.get('window').width;
+
+const PROFILE_NOME_KEY = 'profile_nome';
+
 
 const squadData = [
   { name: 'LSD Squad', interns: 5 },
   { name: '404 Squad', interns: 2 },
   { name: 'Alpha Squad', interns: 8 },
-  { name: 'Infra Squad', interns: 4 },
-  { name: 'Pernambuncanas Squad', interns: 10 },
 ];
-
 const attendanceDataPie = [
   { name: 'Presenças', population: 80, color: '#0A4A8E', legendFontColor: '#333', legendFontSize: 14 },
   { name: 'Faltas', population: 20, color: '#ff8c00', legendFontColor: '#333', legendFontSize: 14 },
 ];
-
 const deliveriesDataLine = {
   labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai'],
   datasets: [ { data: [20, 45, 28, 80, 99], color: (opacity = 1) => `rgba(255, 140, 0, ${opacity})`, strokeWidth: 2, }, ],
 };
-
 const chartConfig = {
     backgroundGradientFrom: "#ffffff",
     backgroundGradientTo: "#ffffff",
@@ -34,21 +34,46 @@ const chartConfig = {
     propsForDots: { r: "6", strokeWidth: "2", stroke: "#ff8c00" }
 };
 
+
 export default function DashboardScreen() {
+  // 5. Criar um estado para guardar o nome do usuário
+  const [userName, setUserName] = useState("Marcelo"); 
+
+
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadUserName = async () => {
+        try {
+          const savedName = await AsyncStorage.getItem(PROFILE_NOME_KEY);
+          if (savedName !== null) {
+            setUserName(savedName); // Atualiza o nome na tela
+          }
+        } catch (e) {
+          console.error("Falha ao carregar o nome do usuário", e);
+        }
+      };
+
+      loadUserName();
+    }, [])
+  );
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
+        {/* Cabeçalho */}
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            <View style={styles.headerProfile}>
+            {/* 7. Conectar o nome ao estado 'userName' */}
+            <TouchableOpacity style={styles.headerProfile} onPress={() => router.push('/usuarios')}>
               <FontAwesome5 name="user-circle" size={28} color="white" />
-              <Text style={styles.headerName}>Marcelo</Text>
-            </View>
+              <Text style={styles.headerName}>{userName}</Text> 
+            </TouchableOpacity>
             <Ionicons name="menu" size={32} color="white" />
           </View>
           <Text style={styles.sectionTitle}>Dashboard</Text>
         </View>
 
+        
         <View style={styles.dashboardSection}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.squadCardsContainer}>
             {squadData.map((squad, index) => (
@@ -119,6 +144,7 @@ export default function DashboardScreen() {
   );
 }
 
+// Estilos
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#0A4A8E', },
   container: { flex: 1, backgroundColor: '#F0F2F5', },
