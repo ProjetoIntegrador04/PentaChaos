@@ -1,11 +1,22 @@
 import axios from "axios";
-import { getStoredToken, getStoredRefreshToken, isValidJwt, clearAuth } from "../auth";
+import {
+  getStoredToken,
+  getStoredRefreshToken,
+  isValidJwt,
+  clearAuth,
+} from "../auth";
 
+// Base da API
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8080",
   withCredentials: false,
+  headers: {
+    "Content-Type": "application/json",
+    Accept: "application/json",
+  },
 });
 
+// Interceptor de requisição (anexa JWT)
 api.interceptors.request.use((config) => {
   const token = getStoredToken();
   if (token && isValidJwt(token)) {
@@ -15,6 +26,7 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+// Controle de refresh
 let refreshing = false;
 let queue: Array<() => void> = [];
 
@@ -23,21 +35,27 @@ async function refreshToken() {
     await new Promise<void>((res) => queue.push(res));
     return;
   }
+
   refreshing = true;
   try {
     const rt = getStoredRefreshToken();
-    if (!rt) throw new Error("No refresh token");
-    const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, { refreshToken: rt });
+    if (!rt) throw new Error("Sem refresh token válido");
+
+    const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
+      refreshToken: rt,
+    });
+
     const { accessToken, refreshToken: newRt } = res.data;
 
-    // mantém no mesmo storage (local vs session) onde já está o refresh atual
-    if (localStorage.getItem("refreshToken")) {
-      localStorage.setItem("token", accessToken);
-      localStorage.setItem("refreshToken", newRt);
-    } else {
-      sessionStorage.setItem("token", accessToken);
-      sessionStorage.setItem("refreshToken", newRt);
-    }
+    // Atualiza token no mesmo storage onde estava o anterior
+    const useLocal = !!localStorage.getItem("refreshToken");
+    const storage = useLocal ? localStorage : sessionStorage;
+
+    storage.setItem("token", accessToken);
+    storage.setItem("refreshToken", newRt);
+  } catch (err) {
+    console.error("Erro ao atualizar token:", err);
+    clearAuth(); // limpa e força logout
   } finally {
     refreshing = false;
     queue.forEach((fn) => fn());
@@ -45,17 +63,27 @@ async function refreshToken() {
   }
 }
 
+// Interceptor de resposta (auto refresh no 401)
 api.interceptors.response.use(
   (r) => r,
   async (error) => {
-    if (error?.response?.status === 401) {
+    const originalRequest = error.config;
+
+    // Evita loop de refresh
+    if (error?.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
       try {
         await refreshToken();
-        return api(error.config);
+        const newToken = getStoredToken();
+        if (newToken) {
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        }
+        return api(originalRequest);
       } catch {
         clearAuth();
       }
     }
+
     return Promise.reject(error);
   }
 );

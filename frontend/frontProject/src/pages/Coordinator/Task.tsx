@@ -1,10 +1,9 @@
-import React, { useState, useMemo } from 'react';
-// 1. Ícones atualizados para a nova interface
-import { Plus, Edit, Search } from 'lucide-react'; 
-import '../../styles/Coordinator/Task.css'; 
-// import api from '../../api/https'; 
+import React, { useState, useMemo, useEffect } from 'react';
+import { Plus, Edit, Search } from 'lucide-react';
+import '../../styles/Coordinator/Task.css';
+import api from '../../api/https';
 
-// --- Tipos e Mocks (Sem alteração) ---
+// --- Tipos ---
 type TaskStatus = "PENDENTE" | "EM_ANDAMENTO" | "CONCLUIDA";
 type TaskPriority = "Alta" | "Media" | "Baixa";
 
@@ -19,19 +18,11 @@ interface Task {
   dataConclusao?: string | null;
 }
 
-const mockTasks: Task[] = [
-  { id: 1, titulo: "Criar módulo backend", descricao: "Implementar CRUD de tarefas", status: "PENDENTE", prioridade: "Alta", responsavel: "Juan", dataCriacao: "2025-10-27" },
-  { id: 2, titulo: "Atualizar módulo backend", descricao: "Ajustar endpoints REST", status: "EM_ANDAMENTO", prioridade: "Alta", responsavel: "Juan", dataCriacao: "2025-10-26" },
-  { id: 3, titulo: "Testar deploy", descricao: "Verificar deploy em dev", status: "EM_ANDAMENTO", prioridade: "Media", responsavel: "Pablo", dataCriacao: "2025-10-25" },
-  { id: 4, titulo: "Documentar API", descricao: "Usar Swagger", status: "PENDENTE", prioridade: "Baixa", responsavel: "Ana", dataCriacao: "2025-10-27" },
-  { id: 5, titulo: "Revisar Frontend", descricao: "Corrigir bugs de layout", status: "CONCLUIDA", prioridade: "Media", responsavel: "Maria", dataCriacao: "2025-10-20", dataConclusao: "2025-10-25" },
-];
-
-// --- Sub-componente: Modal (Sem alteração, está perfeito) ---
+// --- Sub-componente: Modal ---
 interface TaskModalProps {
-  task: Partial<Task> | null; 
+  task: Partial<Task> | null;
   onClose: () => void;
-  onSave: (task: Task) => void; 
+  onSave: (task: Task) => void;
 }
 
 const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSave }) => {
@@ -63,7 +54,6 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSave }) => {
             <button type="button" className="close-btn" onClick={onClose}>&times;</button>
           </div>
           <div className="modal-body">
-            {/* ... (Todo o formulário do modal permanece igual) ... */}
             <div className="form-row">
               <label>Título</label>
               <input name="titulo" value={formData.titulo} onChange={handleChange} required />
@@ -105,16 +95,28 @@ const TaskModal: React.FC<TaskModalProps> = ({ task, onClose, onSave }) => {
   );
 };
 
-
-// --- Componente Principal da Página ---
+// --- Página Principal ---
 const Task: React.FC = () => {
-  const [tasks, setTasks] = useState<Task[]>(mockTasks);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Partial<Task> | null>(null);
-  
-  // 2. Estado para a busca
   const [searchQuery, setSearchQuery] = useState("");
 
+  // 🔹 Buscar tarefas ao montar
+  useEffect(() => {
+    const fetchTasks = async () => {
+      try {
+        const response = await api.get('/tasks');
+        setTasks(response.data);
+      } catch (error) {
+        console.error("Erro ao buscar tarefas:", error);
+        alert("Falha ao carregar tarefas. Verifique sua conexão ou login.");
+      }
+    };
+    fetchTasks();
+  }, []);
+
+  // 🔹 Abrir/fechar modal
   const handleOpenModal = (task: Partial<Task> | null) => {
     setCurrentTask(task);
     setIsModalOpen(true);
@@ -125,20 +127,26 @@ const Task: React.FC = () => {
     setCurrentTask(null);
   };
 
+  // 🔹 Criar ou atualizar tarefa
   const handleSaveTask = async (taskToSave: Task) => {
-    // ... (Lógica de salvar permanece a mesma) ...
-    if (taskToSave.id) {
-      setTasks(prev => prev.map(t => t.id === taskToSave.id ? taskToSave : t));
-      alert("Tarefa atualizada!");
-    } else {
-      const newTask = { ...taskToSave, id: Date.now() }; 
-      setTasks(prev => [newTask, ...prev]);
-      alert("Tarefa criada!");
+    try {
+      if (taskToSave.id) {
+        const response = await api.put(`/tasks/${taskToSave.id}`, taskToSave);
+        setTasks(prev => prev.map(t => t.id === taskToSave.id ? response.data : t));
+        alert("Tarefa atualizada com sucesso!");
+      } else {
+        const response = await api.post('/tasks', taskToSave);
+        setTasks(prev => [response.data, ...prev]);
+        alert("Tarefa criada com sucesso!");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar tarefa:", error);
+      alert("Erro ao salvar tarefa.");
     }
     handleCloseModal();
   };
 
-  // 3. Memo para filtrar as tarefas
+  // 🔹 Filtro de pesquisa
   const filteredTasks = useMemo(() => {
     const query = searchQuery.toLowerCase();
     return tasks.filter(task =>
@@ -147,7 +155,7 @@ const Task: React.FC = () => {
       task.status.toLowerCase().includes(query)
     );
   }, [tasks, searchQuery]);
-  
+
   return (
     <div className="tasks-page">
       <header className="tasks-header">
@@ -157,7 +165,6 @@ const Task: React.FC = () => {
         </button>
       </header>
 
-      {/* 4. Barra de Busca Adicionada */}
       <div className="search-box">
         <span className="search-icon"><Search size={18} /></span>
         <input
@@ -168,7 +175,6 @@ const Task: React.FC = () => {
         />
       </div>
 
-      {/* 5. Layout de Tabela (inspirado no Users.tsx) */}
       <div className="tasks-table">
         <table>
           <thead>
@@ -209,10 +215,10 @@ const Task: React.FC = () => {
       </div>
 
       {isModalOpen && (
-        <TaskModal 
-          task={currentTask} 
-          onClose={handleCloseModal} 
-          onSave={handleSaveTask} 
+        <TaskModal
+          task={currentTask}
+          onClose={handleCloseModal}
+          onSave={handleSaveTask}
         />
       )}
     </div>
