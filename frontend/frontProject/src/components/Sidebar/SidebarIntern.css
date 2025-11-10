@@ -1,0 +1,9 @@
+.sidebar {
+  position: fixed;
+  left: 0; top: 0; bottom: 0;
+  width: 280px;
+  height: 100dvh;
+  z-index: 1000;            /* <-- garante que fique acima do conteúdo */
+  /* ... resto do seu estilo ... */
+}
+

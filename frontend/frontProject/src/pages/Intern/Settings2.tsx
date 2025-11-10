@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { FiSave, FiKey, FiUser } from "react-icons/fi";
-import "../../styles/Coordinator/Users.css";
-import "../../styles/Coordinator/Settings.css";
+import "../../styles/Coordinator/Users.css"; // Pode reutilizar este se for comum
+import "../../styles/Intern/Settings.css";    // 1. Caminho do CSS atualizado
 
 type SettingsState = {
   // Perfil
@@ -13,21 +13,19 @@ type SettingsState = {
   theme: "light" | "dark";
 
   twoFactor: boolean;
-  
 };
 
+// 2. Dados iniciais atualizados para o Estagiário
 const initialState: SettingsState = {
-  name: "Coordenador",
-  email: "coordenador@empresa.com",
-
+  name: "Pablo", // Usando seu nome
+  email: "pablo.estagiario@2rpnet.com.br", // Exemplo
   locale: "pt-BR",
   theme: "light",
-
-
   twoFactor: false,
 };
 
-export default function Settings() {
+// 3. Nome do componente atualizado
+export default function InternSettings() {
   const [form, setForm] = useState<SettingsState>(initialState);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
@@ -44,7 +42,7 @@ export default function Settings() {
 
   const save = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 700));
+    await new Promise((r) => setTimeout(r, 700)); // Simula chamada de API
     setSaving(false);
     setSavedAt(new Date().toLocaleTimeString());
   };
@@ -52,9 +50,10 @@ export default function Settings() {
   const reset = () => setForm(initialState);
 
   return (
+    // 4. Título da página atualizado
     <div className="usuarios-page">
       <header className="usuarios-header">
-        <h1>Configurações</h1>
+        <h1>Minhas Configurações</h1>
         <div className="settings-actions">
           <button className="add-btn" onClick={save} disabled={saving}>
             <FiSave size={16} />
@@ -66,7 +65,7 @@ export default function Settings() {
       <div className="settings-grid">
         <section className="card settings-card">
           <div className="card-title">
-            <FiUser /> <span>Perfil</span>
+            <FiUser /> <span>Meu Perfil</span>
           </div>
           <div className="form-row">
             <label>Nome</label>
@@ -85,10 +84,10 @@ export default function Settings() {
               placeholder="email@exemplo.com"
             />
           </div>
-          <div className="form-row">
+<div className="form-row">
             <label>Tipo de Conta</label>
             <input
-              value="Gestor" // Valor fixo, já que esta é a tela do Estagiário
+              value="Estagiário" // Valor fixo, já que esta é a tela do Estagiário
               readOnly        // O usuário não pode editar
               disabled        // Aplica o estilo visual de desabilitado
             />

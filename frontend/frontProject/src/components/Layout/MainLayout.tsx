@@ -1,31 +1,17 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '../Sidebar/Sidebar'; 
-import { FiBell, FiUser } from 'react-icons/fi';
-import './MainLayout.css';
+import Sidebar from '../Sidebar/Sidebar'; // Sidebar do Coordenador
+import Topbar from '../Topbar/topbar';   // 1. Importe o Topbar
+import './MainLayout.css'; 
 
 const MainLayout: React.FC = () => {
-  const notificationCount = 3; // mock
-
   return (
     <div className="app-layout">
       <Sidebar />
-
       <div className="content-wrapper">
-
+        <Topbar /> {/* 2. Adicione o Topbar aqui */}
+        {/* Esta área de main-content é que terá o scroll */}
         <main className="main-content">
-          <div className="page-header-actions">
-            <button className="icon-btn notification-icon" aria-label="Notificações">
-              <FiBell size={20} />
-              {notificationCount > 0 && (
-                <span className="badge">{notificationCount}</span>
-              )}
-            </button>
-            <div className="icon-btn user-avatar" aria-label="Usuário">
-              <FiUser size={20} />
-            </div>
-          </div>
-
           <Outlet />
         </main>
       </div>
