@@ -8,7 +8,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.Authentication;
 
 @RestController
 @RequestMapping("/api/v1/clockentries")
@@ -21,21 +24,26 @@ public class ClockEntryController {
     }
 
     @PostMapping
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<ClockEntryResponse> registrarPonto(
             @Valid @RequestBody ClockEntryRequest request,
-            HttpServletRequest httpServletRequest) {
+            HttpServletRequest httpServletRequest,
+            Authentication authentication) {
 
+        // Capturar IP automaticamente se não fornecido
         if (request.getIp() == null || request.getIp().isEmpty()) {
             String clientIp = httpServletRequest.getRemoteAddr();
             request.setIp(clientIp);
         }
 
-        ClockEntryResponse response = clockEntryService.registrarPonto(request);
+        // Registrar ponto com validação de usuário autenticado
+        ClockEntryResponse response = clockEntryService.registrarPonto(request, authentication);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ClockEntryResponse> getClockEntryById(@PathVariable Long id) {
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<ClockEntryResponse> getClockEntryById(@PathVariable Long id, Authentication authentication) {
         ClockEntryResponse response = clockEntryService.buscarPontoPorId(id);
         return ResponseEntity.ok(response);
     }

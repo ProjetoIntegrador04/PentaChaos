@@ -1,0 +1,242 @@
+package com.sge.sge_app.integration;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.sge.sge_app.dto.request.ClockEntryRequest;
+import com.sge.sge_app.dto.request.LoginRequestDTO;
+import com.sge.sge_app.dto.request.UserRegisterRequestDTO;
+import com.sge.sge_app.dto.response.JwtResponseDTO;
+import com.sge.sge_app.dto.response.UserResponseDTO;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+@AutoConfigureWebMvc
+@ActiveProfiles("test")
+@Transactional
+@DisplayName("Sistema Completo - Testes de Integração")
+class FullSystemIntegrationTest {
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Test
+    @DisplayName("Fluxo completo: Registro -> Login -> Bater Ponto")
+    void fluxoCompletoRegistroLoginBaterPonto() throws Exception {
+        // 1. Registrar usuário
+        UserRegisterRequestDTO registerRequest = UserRegisterRequestDTO.builder()
+                .username("integration_user")
+                .email("integration@test.com")
+                .password("password123")
+                .build();
+
+        MvcResult registerResult = mockMvc.perform(post("/auth/register")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(registerRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.username").value("integration_user"))
+                .andReturn();
+
+        UserResponseDTO registeredUser = objectMapper.readValue(
+                registerResult.getResponse().getContentAsString(),
+                UserResponseDTO.class);
+        assertNotNull(registeredUser.getId());
+
+        // 2. Fazer login
+        LoginRequestDTO loginRequest = LoginRequestDTO.builder()
+                .usernameOrEmail("integration_user")
+                .password("password123")
+                .build();
+
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").exists())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andReturn();
+
+        JwtResponseDTO jwtResponse = objectMapper.readValue(
+                loginResult.getResponse().getContentAsString(),
+                JwtResponseDTO.class);
+        String token = jwtResponse.getAccessToken();
+
+        // 3. Bater ponto de entrada (com token)
+        ClockEntryRequest clockRequest = ClockEntryRequest.builder()
+                .tipo("ENTRY")
+                .timestamp(LocalDateTime.now())
+                .latitude(-23.550520f)
+                .longitude(-46.633308f)
+                .precisao(10.5f)
+                .fonte("WEB")
+                .deviceId("integration_device")
+                .build();
+
+        mockMvc.perform(post("/api/v1/clockentries")
+                        .with(csrf())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(clockRequest)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.tipo").value("ENTRY"))
+                .andExpect(jsonPath("$.userId").value(registeredUser.getId()));
+    }
+
+    @Test
+    @DisplayName("Deve testar endpoint de teste de saúde")
+    void deveTestarEndpointDeSaude() throws Exception {
+        mockMvc.perform(get("/api/test/health"))
+                .andExpect(status().isOk())
+                .andExpect(content().string("Clock Entry System is UP and RUNNING!"));
+    }
+
+    @Test
+    @DisplayName("Deve testar informações do sistema de ponto")
+    void deveTestarInformacoesSistemaPonto() throws Exception {
+        mockMvc.perform(get("/api/test/clock-entry-info"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("Sistema de Bater Ponto")))
+                .andExpect(content().string(org.hamcrest.Matchers.containsString("POST /api/v1/clockentries")));
+    }
+
+    @Test
+    @DisplayName("Deve falhar ao bater ponto sem autenticação")
+    void deveFalharBaterPontoSemAutenticacao() throws Exception {
+        ClockEntryRequest clockRequest = ClockEntryRequest.builder()
+                .tipo("ENTRY")
+                .build();
+
+        mockMvc.perform(post("/api/v1/clockentries")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(clockRequest)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    @DisplayName("Deve falhar registro com dados duplicados")
+    void deveFalharRegistroComDadosDuplicados() throws Exception {
+        // Primeiro registro
+        UserRegisterRequestDTO firstUser = UserRegisterRequestDTO.builder()
+                .username("duplicate_user")
+                .email("duplicate@test.com")
+                .password("password123")
+                .build();
+
+        mockMvc.perform(post("/auth/register")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(firstUser)))
+                .andExpect(status().isCreated());
+
+        // Segundo registro com mesmo username
+        UserRegisterRequestDTO duplicateUser = UserRegisterRequestDTO.builder()
+                .username("duplicate_user") // Mesmo username
+                .email("different@test.com")
+                .password("password123")
+                .build();
+
+        mockMvc.perform(post("/auth/register")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(duplicateUser)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    @DisplayName("Deve validar sequência de pontos (ENTRY -> EXIT)")
+    void deveValidarSequenciaDePontos() throws Exception {
+        // 1. Registrar e fazer login
+        UserRegisterRequestDTO user = UserRegisterRequestDTO.builder()
+                .username("sequence_user")
+                .email("sequence@test.com")
+                .password("password123")
+                .build();
+
+        mockMvc.perform(post("/auth/register")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(user)))
+                .andExpected(status().isCreated());
+
+        LoginRequestDTO login = LoginRequestDTO.builder()
+                .usernameOrEmail("sequence_user")
+                .password("password123")
+                .build();
+
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(login)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String token = objectMapper.readValue(
+                loginResult.getResponse().getContentAsString(),
+                JwtResponseDTO.class).getAccessToken();
+
+        // 2. Tentar EXIT sem ENTRY - deve falhar
+        ClockEntryRequest exitRequest = ClockEntryRequest.builder()
+                .tipo("EXIT")
+                .timestamp(LocalDateTime.now())
+                .latitude(-23.550520f)
+                .longitude(-46.633308f)
+                .precisao(10.5f)
+                .fonte("WEB")
+                .deviceId("sequence_device")
+                .build();
+
+        mockMvc.perform(post("/api/v1/clockentries")
+                        .with(csrf())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(exitRequest)))
+                .andExpect(status().isBadRequest());
+
+        // 3. Fazer ENTRY primeiro
+        ClockEntryRequest entryRequest = ClockEntryRequest.builder()
+                .tipo("ENTRY")
+                .timestamp(LocalDateTime.now())
+                .latitude(-23.550520f)
+                .longitude(-46.633308f)
+                .precisao(10.5f)
+                .fonte("WEB")
+                .deviceId("sequence_device")
+                .build();
+
+        mockMvc.perform(post("/api/v1/clockentries")
+                        .with(csrf())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(entryRequest)))
+                .andExpected(status().isCreated());
+
+        // 4. Agora EXIT deve funcionar
+        mockMvc.perform(post("/api/v1/clockentries")
+                        .with(csrf())
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(exitRequest)))
+                .andExpected(status().isCreated());
+    }
+}
