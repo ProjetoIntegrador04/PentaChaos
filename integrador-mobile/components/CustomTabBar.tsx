@@ -1,6 +1,5 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-// Garanta que todos os ícones que você usa estão importados
 import { FontAwesome5, Ionicons, Foundation, AntDesign } from '@expo/vector-icons';
 import { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 
@@ -9,12 +8,13 @@ interface TabConfigItem {
   label: string;
 }
 
+// Configuração com as 5 abas corretas (Frequência, Squads, Home, Usuários, Tarefas)
 const tabConfig: { [key: string]: TabConfigItem } = {
-  ranking: { icon: (color: string) => <Foundation name="graph-trend" size={24} color={color} />, label: 'Ranking' },
+  frequencia: { icon: (color: string) => <Ionicons name="calendar-outline" size={24} color={color} />, label: 'Frequência' },
   squads: { icon: (color: string) => <FontAwesome5 name="users" size={24} color={color} />, label: 'Squads' },
   home: { icon: (color: string) => <Ionicons name="home-outline" size={32} color={color} />, label: 'Home' },
-  uusuarios: { icon: (color: string) => <AntDesign name="user" size={24} color={color} />, label: 'Usuários' }, // Usando o nome 'uusuarios'
-  notificacoes: { icon: (color: string) => <Ionicons name="notifications-outline" size={24} color={color} />, label: 'Notificações' },
+  uusuarios: { icon: (color: string) => <AntDesign name="user" size={24} color={color} />, label: 'Usuários' },
+  tarefas: { icon: (color: string) => <Ionicons name="document-text-outline" size={24} color={color} />, label: 'Tarefas' },
 };
 
 export default function CustomTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -22,15 +22,13 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
     <View style={styles.tabBarContainer}>
       {state.routes.map((route, index) => {
         
-        // --- AQUI ESTAVA O ERRO ---
-        // A lógica que escondia o botão foi REMOVIDA daqui.
-        // if (route.name === 'uusuarios') { return null; } // <-- REMOVIDO
+        // --- A LÓGICA QUE ESCONDIA O BOTÃO FOI REMOVIDA DAQUI ---
+        // if (route.name === 'uusuarios') { ... } 
 
         const { options } = descriptors[route.key];
         const isFocused = state.index === index;
         const color = isFocused ? '#1E63B0' : '#b0b0b0';
         
-        // Verificamos se a rota existe no nosso config
         const tabInfo = tabConfig[route.name];
         
         // Se a rota não estiver no config (como _sitemap), não renderiza nada
@@ -86,7 +84,7 @@ export default function CustomTabBar({ state, descriptors, navigation }: BottomT
   );
 }
 
-// Estilos (Corrigido para ter espaçamento correto)
+// Estilos
 const styles = StyleSheet.create({
   tabBarContainer: {
     flexDirection: 'row',
@@ -104,15 +102,16 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 5,
     alignItems: 'center',
-    justifyContent: 'space-around', 
+    justifyContent: 'space-around', // Garante o espaçamento correto
   },
   tabButton: {
+    // flex: 1 removido para o space-around funcionar
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 10,
   },
   centerButtonContainer: {
-    // flex: 1 foi removido
+    // flex: 1 removido
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 10,

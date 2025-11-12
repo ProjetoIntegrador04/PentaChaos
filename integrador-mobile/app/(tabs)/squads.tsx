@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TextInput, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router'; 
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import { router, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const PROFILE_NOME_KEY = 'profile_nome';
 
@@ -11,18 +11,21 @@ type SquadType = {
   name: string;
   members: number;
 };
+
 const initialSquadData: SquadType[] = [
-  { id: '1', name: 'Squad LSD', members: 8 },
-  { id: '2', name: 'Squad INFRA', members: 5 },
-  { id: '3', name: 'Squad CASE', members: 12 },
-  { id: '4', name: 'Squad 404', members: 3 },
-  { id: '5', name: 'Squad Alpha', members: 7 },
+  { id: '1', name: 'Squad LSD', members: 2 },
+  { id: '2', name: 'Squad INFRA', members: 2 },
+  { id: '3', name: 'Squad CASE', members: 2 },
+  { id: '4', name: 'Squad 404', members: 2 },
+  { id: '5', name: 'Squad Alpha', members: 2 },
 ];
+
 type SquadItemProps = {
   item: SquadType;
   onEdit: (item: SquadType) => void;
   onViewMembers: (item: SquadType) => void;
 };
+
 const SquadItem = ({ item, onEdit, onViewMembers }: SquadItemProps) => (
   <TouchableOpacity onPress={() => router.push({
       pathname: "/squadDetail" as any, 
@@ -45,10 +48,8 @@ const SquadItem = ({ item, onEdit, onViewMembers }: SquadItemProps) => (
 export default function SquadsScreen() {
   const [searchText, setSearchText] = useState('');
   const [filteredSquads, setFilteredSquads] = useState(initialSquadData);
-  // 4. Criar estado para o nome do usuário
   const [userName, setUserName] = useState("Marcelo");
 
-  // Lógica de pesquisa (sem mudanças)
   useEffect(() => {
     if (searchText === '') {
       setFilteredSquads(initialSquadData);
@@ -60,18 +61,15 @@ export default function SquadsScreen() {
     }
   }, [searchText]);
 
-  // 5. Adicionar useFocusEffect para carregar o nome
   useFocusEffect(
     React.useCallback(() => {
       const loadUserName = async () => {
         try {
           const savedName = await AsyncStorage.getItem(PROFILE_NOME_KEY);
           if (savedName !== null) {
-            setUserName(savedName); // Atualiza o nome na tela
+            setUserName(savedName);
           }
-        } catch (e) {
-          console.error("Falha ao carregar o nome do usuário", e);
-        }
+        } catch (e) { console.error("Falha ao carregar o nome do usuário", e); }
       };
       loadUserName();
     }, [])
@@ -84,18 +82,28 @@ export default function SquadsScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        {/* Cabeçalho */}
+        
+        {/* --- CABEÇALHO ATUALIZADO --- */}
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            {/* 6. Conectar nome ao estado e clique ao router */}
-            <TouchableOpacity style={styles.headerProfile} onPress={() => router.push('/usuarios')}>
+            <TouchableOpacity style={styles.headerProfile} onPress={() => router.push({ pathname: '/perfil' as any })}>
               <FontAwesome5 name="user-circle" size={28} color="white" />
               <Text style={styles.headerName}>{userName}</Text>
             </TouchableOpacity>
-            <Ionicons name="menu" size={32} color="white" />
+            
+            <View style={styles.headerIconsContainer}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/notificacoes' as any })}>
+                <Ionicons name="notifications-outline" size={28} color="white" />
+                <View style={styles.notificationDot} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => {/* Lógica do Menu */}}>
+                <Ionicons name="menu" size={32} color="white" style={{ marginLeft: 15 }} />
+              </TouchableOpacity>
+            </View>
           </View>
           <Text style={styles.screenTitle}>Controle de Squads</Text>
         </View>
+        {/* --- FIM DO CABEÇALHO --- */}
 
         <View style={styles.searchSection}>
           <View style={styles.searchContainer}>
@@ -145,7 +153,7 @@ export default function SquadsScreen() {
   );
 }
 
-
+// Estilos
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F0F2F5', },
   container: { flex: 1, backgroundColor: '#F0F2F5', paddingBottom: 70, },
@@ -154,6 +162,23 @@ const styles = StyleSheet.create({
   headerProfile: { flexDirection: 'row', alignItems: 'center', },
   headerName: { color: 'white', fontSize: 18, marginLeft: 10, fontWeight: 'bold', },
   screenTitle: { fontSize: 28, fontWeight: 'bold', color: 'white', textAlign: 'center', marginTop: 20, },
+
+  headerIconsContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center',
+  },
+  notificationDot: { 
+    position: 'absolute', 
+    top: 0, 
+    right: 15, 
+    width: 10, 
+    height: 10, 
+    borderRadius: 5, 
+    backgroundColor: 'red', 
+    borderWidth: 1, 
+    borderColor: 'white',
+  },
+
   searchSection: { paddingHorizontal: 20, marginTop: -25, zIndex: 2, },
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 50, paddingHorizontal: 15, shadowColor: "#000", shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.1, shadowRadius: 4, elevation: 5, },
   searchIcon: { marginRight: 10, },

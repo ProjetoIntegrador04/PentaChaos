@@ -8,9 +8,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const screenWidth = Dimensions.get('window').width;
 
+// Chave para carregar o nome (deve ser a mesma da tela de Perfil)
 const PROFILE_NOME_KEY = 'profile_nome';
 
-
+// --- Dados de Exemplo ---
 const squadData = [
   { name: 'LSD Squad', interns: 5 },
   { name: '404 Squad', interns: 2 },
@@ -34,12 +35,10 @@ const chartConfig = {
     propsForDots: { r: "6", strokeWidth: "2", stroke: "#ff8c00" }
 };
 
-
 export default function DashboardScreen() {
-  // 5. Criar um estado para guardar o nome do usuário
-  const [userName, setUserName] = useState("Marcelo"); 
+  const [userName, setUserName] = useState("Marcelo"); // Nome padrão
 
-
+  // Hook para carregar o nome do usuário salvo
   useFocusEffect(
     React.useCallback(() => {
       const loadUserName = async () => {
@@ -52,7 +51,6 @@ export default function DashboardScreen() {
           console.error("Falha ao carregar o nome do usuário", e);
         }
       };
-
       loadUserName();
     }, [])
   );
@@ -60,20 +58,33 @@ export default function DashboardScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 100 }}>
-        {/* Cabeçalho */}
+        
+        {/* --- CABEÇALHO ATUALIZADO --- */}
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            {/* 7. Conectar o nome ao estado 'userName' */}
-            <TouchableOpacity style={styles.headerProfile} onPress={() => router.push('/usuarios')}>
+            {/* Link para o Perfil */}
+            <TouchableOpacity style={styles.headerProfile} onPress={() => router.push({ pathname: '/perfil' as any })}>
               <FontAwesome5 name="user-circle" size={28} color="white" />
               <Text style={styles.headerName}>{userName}</Text> 
             </TouchableOpacity>
-            <Ionicons name="menu" size={32} color="white" />
+            
+            {/* Ícones da Direita: Notificações e Menu */}
+            <View style={styles.headerIconsContainer}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/notificacoes' as any })}>
+                <Ionicons name="notifications-outline" size={28} color="white" />
+                <View style={styles.notificationDot} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => {/* Lógica para abrir o menu lateral */}}>
+                <Ionicons name="menu" size={32} color="white" style={{ marginLeft: 15 }} />
+              </TouchableOpacity>
+            </View>
           </View>
           <Text style={styles.sectionTitle}>Dashboard</Text>
         </View>
+        {/* --- FIM DO CABEÇALHO --- */}
 
         
+        {/* Seção Dashboard Cards */}
         <View style={styles.dashboardSection}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.squadCardsContainer}>
             {squadData.map((squad, index) => (
@@ -91,6 +102,7 @@ export default function DashboardScreen() {
           </ScrollView>
         </View>
 
+        {/* Card de Frequência */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Frequência</Text>
           <View style={styles.frequencyContent}>
@@ -116,11 +128,13 @@ export default function DashboardScreen() {
           </View>
         </View>
         
+        {/* Botão Integrantes */}
         <TouchableOpacity style={styles.integrantesButton}>
             <Text style={styles.integrantesText}>Integrantes</Text>
             <Ionicons name="chevron-down" size={20} color="white" />
         </TouchableOpacity>
 
+        {/* Card de Entregas */}
         <View style={styles.card}>
              <Text style={[styles.cardTitle, {textAlign: 'right', paddingRight: 20}]}>Entregas</Text>
              <LineChart
@@ -129,6 +143,7 @@ export default function DashboardScreen() {
              />
         </View>
         
+        {/* Botões de Filtro e Relatório */}
         <View style={styles.footerButtons}>
             <View style={styles.timeFilter}>
                 <TouchableOpacity style={styles.timeButton}><Text style={styles.timeButtonText}>1M</Text></TouchableOpacity>
@@ -148,12 +163,59 @@ export default function DashboardScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#0A4A8E', },
   container: { flex: 1, backgroundColor: '#F0F2F5', },
-  header: { backgroundColor: '#0A4A8E', paddingHorizontal: 20, paddingTop: 40, paddingBottom: 20, borderBottomLeftRadius: 30, borderBottomRightRadius: 30, },
-  headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', },
-  headerProfile: { flexDirection: 'row', alignItems: 'center', },
-  headerName: { color: 'white', fontSize: 18, marginLeft: 10, fontWeight: 'bold', },
-  dashboardSection: { paddingHorizontal: 20, marginTop: 20, },
-  sectionTitle: { fontSize: 22, fontWeight: 'bold', color: 'white', marginTop: 20, marginBottom: 5, },
+  // Estilo do Cabeçalho Atualizado
+  header: { 
+    backgroundColor: '#0A4A8E', 
+    paddingHorizontal: 20, 
+    paddingTop: 40, 
+    paddingBottom: 20, 
+    borderBottomLeftRadius: 30, 
+    borderBottomRightRadius: 30, 
+  },
+  headerTopRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    width: '100%', 
+  },
+  headerProfile: { 
+    flexDirection: 'row', 
+    alignItems: 'center', 
+  },
+  headerName: { 
+    color: 'white', 
+    fontSize: 18, 
+    marginLeft: 10, 
+    fontWeight: 'bold', 
+  },
+  // Novos estilos para os ícones da direita
+  headerIconsContainer: { 
+    flexDirection: 'row', 
+    alignItems: 'center',
+  },
+  notificationDot: { 
+    position: 'absolute', 
+    top: 0, 
+    right: 15, // Posição do ponto vermelho
+    width: 10, 
+    height: 10, 
+    borderRadius: 5, 
+    backgroundColor: 'red', 
+    borderWidth: 1, 
+    borderColor: 'white',
+  },
+  // Resto dos estilos
+  dashboardSection: { 
+    paddingHorizontal: 20, 
+    marginTop: 20, 
+  },
+  sectionTitle: { 
+    fontSize: 22, 
+    fontWeight: 'bold', 
+    color: 'white', // Corrigido para branco
+    marginTop: 20, 
+    marginBottom: 5, 
+  },
   squadCardsContainer: { paddingVertical: 10, },
   squadCard: { backgroundColor: '#1E63B0', borderRadius: 20, padding: 20, marginRight: 15, width: 140, height: 100, justifyContent: 'space-between', shadowColor: "#1E63B0", shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.5, shadowRadius: 5, elevation: 8, },
   arrowCard: { backgroundColor: '#1E63B0', borderRadius: 20, marginRight: 15, width: 60, height: 100, justifyContent: 'center', alignItems: 'center', elevation: 8, },
