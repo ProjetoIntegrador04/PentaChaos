@@ -6,9 +6,7 @@ import {
   FiDownload,
   FiX,
   FiCheck,
-  FiCalendar,
-  FiMessageSquare,
-  FiStar,
+  FiTrash,
 } from "react-icons/fi";
 import "../../styles/Coordinator/Users.css";
 import api from "../../api/https";
@@ -24,8 +22,8 @@ interface Usuario {
   squad: string;
   enabled: boolean;
   roles: string[];
-  senha?: string; // usado apenas no cadastro
-  nome?: string; // para manter compatibilidade com o modal
+  senha?: string; // usado apenas no cadastro/edição
+  nome?: string; // compatibilidade com modal
   emailPessoal?: string;
 }
 
@@ -42,6 +40,7 @@ interface UserModalProps {
   onClose: () => void;
   onSave: (user: Usuario) => void;
 }
+
 const UserModal: React.FC<UserModalProps> = ({
   userToEdit,
   onClose,
@@ -66,10 +65,12 @@ const UserModal: React.FC<UserModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     if (formData.senha !== formData.confirmarSenha) {
       alert("As senhas não coincidem!");
       return;
     }
+
     if (!formData.nome || !formData.email || !formData.ra || !formData.squad) {
       alert("Preencha os campos obrigatórios.");
       return;
@@ -83,9 +84,10 @@ const UserModal: React.FC<UserModalProps> = ({
       squad: formData.squad,
       enabled: userToEdit?.enabled ?? true,
       roles: userToEdit?.roles ?? ["ROLE_INTERN"],
-      senha: formData.senha,
+      senha: formData.senha, // se vazio, tratamos no front antes de mandar pro back
       emailPessoal: formData.emailPessoal,
     };
+
     onSave(userToSave);
   };
 
@@ -225,26 +227,53 @@ const Usuarios: React.FC = () => {
   }, []);
 
   // =========================================
-  // CADASTRAR NOVO USUÁRIO
+  // CRIAR / EDITAR USUÁRIO
   // =========================================
-  const handleSaveUser = async (savedUser: Usuario) => {
+  const handleSaveUser = async (savedUser: Usuario, isEdit: boolean) => {
     try {
-      const payload = {
-        username: savedUser.username,
-        email: savedUser.email,
-        password: savedUser.senha || "123456",
-        ra: savedUser.ra,
-        squad: savedUser.squad,
-      };
+      if (isEdit) {
+        // edição
+        const payload: any = {
+          username: savedUser.username,
+          email: savedUser.email,
+          ra: savedUser.ra,
+          squad: savedUser.squad,
+          emailPessoal: savedUser.emailPessoal,
+        };
 
-      const res = await api.post("/users/create-intern", payload);
-      setUsuarios((prev) => [res.data, ...prev]);
-      alert("Usuário criado com sucesso!");
+        // Só manda senha se o usuário informou uma nova
+        if (savedUser.senha && savedUser.senha.trim() !== "") {
+          payload.password = savedUser.senha;
+        }
+
+        const res = await api.put(`/users/${savedUser.id}`, payload);
+
+        setUsuarios((prev) =>
+          prev.map((u) => (u.id === savedUser.id ? { ...u, ...res.data } : u))
+        );
+
+        alert("Usuário atualizado com sucesso!");
+      } else {
+        // criação
+        const payload = {
+          username: savedUser.username,
+          email: savedUser.email,
+          password: savedUser.senha || "123456",
+          ra: savedUser.ra,
+          squad: savedUser.squad,
+          emailPessoal: savedUser.emailPessoal,
+        };
+
+        const res = await api.post("/users/create-intern", payload);
+        setUsuarios((prev) => [res.data, ...prev]);
+        alert("Usuário criado com sucesso!");
+      }
     } catch (err) {
-      console.error("Erro ao criar usuário:", err);
-      alert("Erro ao cadastrar o usuário.");
+      console.error("Erro ao salvar usuário:", err);
+      alert("Erro ao salvar o usuário.");
     } finally {
       setIsModalOpen(false);
+      setUserToEdit(null);
     }
   };
 
@@ -256,6 +285,46 @@ const Usuarios: React.FC = () => {
   const handleEditUser = (user: Usuario) => {
     setUserToEdit(user);
     setIsModalOpen(true);
+  };
+
+  // =========================================
+  // ALTERAR STATUS (ATIVO / INATIVO)
+  // =========================================
+  const handleToggleStatus = async (user: Usuario) => {
+    try {
+      const novoStatus = !user.enabled;
+      const res = await api.patch(`/users/${user.id}/status`, {
+        enabled: novoStatus,
+      });
+
+      setUsuarios((prev) =>
+        prev.map((u) =>
+          u.id === user.id ? { ...u, enabled: res.data.enabled } : u
+        )
+      );
+    } catch (err) {
+      console.error("Erro ao alterar status do usuário:", err);
+      alert("Erro ao alterar status do usuário.");
+    }
+  };
+
+  // =========================================
+  // EXCLUIR USUÁRIO
+  // =========================================
+  const handleDeleteUser = async (user: Usuario) => {
+    const confirmar = window.confirm(
+      `Tem certeza que deseja excluir o usuário "${user.username}"?`
+    );
+    if (!confirmar) return;
+
+    try {
+      await api.delete(`/users/${user.id}`);
+      setUsuarios((prev) => prev.filter((u) => u.id !== user.id));
+      alert("Usuário excluído com sucesso!");
+    } catch (err) {
+      console.error("Erro ao excluir usuário:", err);
+      alert("Erro ao excluir o usuário.");
+    }
   };
 
   const usuariosFiltrados = useMemo(() => {
@@ -323,6 +392,20 @@ const Usuarios: React.FC = () => {
                   >
                     <FiEdit />
                   </button>
+                  <button
+                    className="icon-btn status"
+                    onClick={() => handleToggleStatus(u)}
+                    title={u.enabled ? "Inativar" : "Ativar"}
+                  >
+                    <FiPower />
+                  </button>
+                  <button
+                    className="icon-btn delete"
+                    onClick={() => handleDeleteUser(u)}
+                    title="Excluir Usuário"
+                  >
+                    <FiTrash />
+                  </button>
                 </td>
               </tr>
             ))}
@@ -333,8 +416,11 @@ const Usuarios: React.FC = () => {
       {isModalOpen && (
         <UserModal
           userToEdit={userToEdit}
-          onClose={() => setIsModalOpen(false)}
-          onSave={handleSaveUser}
+          onClose={() => {
+            setIsModalOpen(false);
+            setUserToEdit(null);
+          }}
+          onSave={(user) => handleSaveUser(user, !!userToEdit)}
         />
       )}
     </div>

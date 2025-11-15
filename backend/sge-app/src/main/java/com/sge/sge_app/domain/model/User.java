@@ -31,6 +31,7 @@ public class User extends BaseEntity implements UserDetails {
     private boolean accountLocked = false; // Indica se a conta do usuário está bloqueada
     private boolean credentialsExpired = false; // Indica se as credenciais do usuário expiraram
     private boolean accountExpired = false; // Indica se a conta do usuário expirou
+    
 
     @ManyToMany(fetch = FetchType.EAGER) // Carrega os papéis junto com o usuário para facilitar as verificações de segurança
     @JoinTable(
@@ -90,4 +91,14 @@ public class User extends BaseEntity implements UserDetails {
     public int hashCode() {
         return id != null ? id.hashCode() : super.hashCode(); // Usar ID para hashCode
     }
+
+    @Column(nullable = true)
+    private String ra;
+
+    @Column(nullable = true)
+    private String squad;
+
+    @Column(nullable = true)
+    private String emailPessoal;
+
 }

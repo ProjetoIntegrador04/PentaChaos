@@ -39,20 +39,34 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
     }
 
+    // ============================================================
+    // REGISTER — CRIA QUALQUER TIPO DE USUÁRIO (ADMIN, COORD, INTERN)
+    // ============================================================
     @PostMapping(
-        value = "/register",
-        consumes = "application/json",
-        produces = "application/json"
+            value = "/register",
+            consumes = "application/json",
+            produces = "application/json"
     )
-    public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegisterRequestDTO registerRequest) {
-        UserResponseDTO newUser = userService.registerNewUser(registerRequest);
-        return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegisterRequestDTO registerRequest) {
+
+        try {
+            UserResponseDTO newUser = userService.registerNewUser(registerRequest);
+            return new ResponseEntity<>(newUser, HttpStatus.CREATED);
+
+        } catch (RuntimeException ex) {
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(ex.getMessage());
+        }
     }
 
+    // ============================================================
+    // LOGIN
+    // ============================================================
     @PostMapping(
-        value = "/login",
-        consumes = "application/json",
-        produces = "application/json"
+            value = "/login",
+            consumes = "application/json",
+            produces = "application/json"
     )
     public ResponseEntity<JwtResponseDTO> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
         Authentication authentication = authenticationManager.authenticate(
@@ -82,10 +96,13 @@ public class AuthController {
         );
     }
 
+    // ============================================================
+    // REFRESH TOKEN
+    // ============================================================
     @PostMapping(
-        value = "/refresh",
-        consumes = "application/json",
-        produces = "application/json"
+            value = "/refresh",
+            consumes = "application/json",
+            produces = "application/json"
     )
     public ResponseEntity<JwtResponseDTO> refreshAccessToken(@RequestBody JwtResponseDTO refreshRequest) {
         String refreshToken = refreshRequest.getRefreshToken();
@@ -96,7 +113,6 @@ public class AuthController {
 
         String username = tokenProvider.getUsernameFromToken(refreshToken);
 
-        // Carrega UserDetails (NÃO use sua entidade aqui)
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
@@ -123,6 +139,9 @@ public class AuthController {
         );
     }
 
+    // ============================================================
+    // USUÁRIO LOGADO
+    // ============================================================
     @GetMapping(value = "/me", produces = "application/json")
     public ResponseEntity<UserResponseDTO> me(@AuthenticationPrincipal UserDetails principal) {
         var user = userService.findByUsernameOrEmail(principal.getUsername());

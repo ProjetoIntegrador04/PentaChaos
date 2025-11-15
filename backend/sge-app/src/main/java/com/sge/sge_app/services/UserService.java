@@ -9,16 +9,29 @@ import java.util.Optional;
 
 public interface UserService {
 
+    // Cadastro genérico (método original do projeto)
     UserResponseDTO registerNewUser(UserRegisterRequestDTO request);
 
+    // Busca por username
     Optional<User> findByUsername(String username);
 
+    // Busca por email
     Optional<User> findByEmail(String email);
 
-    // >>> adicionado para suportar /auth/me e login com username/email
+    // Login pode ser username ou email
     User findByUsernameOrEmail(String usernameOrEmail);
 
+    // Busca um usuário pelo ID retornando DTO
     UserResponseDTO findUserResponseById(Long id);
 
+    // Retorna TODOS os usuários mas no formato UserResponseDTO (usado em auth/me)
     List<UserResponseDTO> findAllUsers();
+
+    // ===============================================================
+    // 🔵 NOVO
+    // Usado pelo /users do frontend → precisa retornar o User REAL,
+    // não um DTO simplificado, pois o frontend exige:
+    // ra, squad, emailPessoal, enabled, roles, etc.
+    // ===============================================================
+    List<User> findAllRaw();
 }
