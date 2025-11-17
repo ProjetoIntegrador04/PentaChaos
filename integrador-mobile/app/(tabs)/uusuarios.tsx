@@ -18,16 +18,16 @@ type UserType = {
 
 // --- DADOS DE EXEMPLO (MOCK) ---
 const usersData: UserType[] = [
-  { id: '1', name: 'David Francisco', status: 'ATIVO', email: 'david.franco@email.com', ra: '554033', squad: 'CASE' },
-  { id: '2', name: 'Ana Clara', status: 'ATIVO', email: 'ana.clara@email.com', ra: '778899', squad: 'CASE' },
-  { id: '3', name: 'Lucas Souza', status: 'ATIVO', email: 'lucas.souza@email.com', ra: '112233', squad: 'LSD' },
-  { id: '4', name: 'Mariana Costa', status: 'ATIVO', email: 'mariana.costa@email.com', ra: '778865', squad: 'LSD' },
-  { id: '5', name: 'Pedro Henrique', status: 'ATIVO', email: 'pedro.henrique@email.com', ra: '112267', squad: 'INFRA' },
-  { id: '6', name: 'Juliana Silva', status: 'ATIVO', email: 'juliana.silva@email.com', ra: '223344', squad: 'INFRA' },
-  { id: '7', name: 'Gabriel Alves', status: 'ATIVO', email: 'gabriel.alves@email.com', ra: '556677', squad: '404' },
-  { id: '8', name: 'Beatriz Lima', status: 'ATIVO', email: 'beatriz.lima@email.com', ra: '889900', squad: '404' },
-  { id: '9', name: 'Matheus Pereira', status: 'ATIVO', email: 'matheus.pereira@email.com', ra: '121212', squad: 'Alpha' },
-  { id: '10', name: 'Laura Mendes', status: 'ATIVO', email: 'laura.mendes@email.com', ra: '343434', squad: 'Alpha' },
+  { id: '1', name: 'David Franco', status: 'ATIVO', email: 'david.franco@email.com', ra: '554033', squad: 'CASE' },
+  { id: '2', name: 'Maria Souza', status: 'ATIVO', email: 'maria.souza@email.com', ra: '778899', squad: 'CASE' },
+  { id: '3', name: 'João Silva', status: 'INATIVO', email: 'joao.silva@email.com', ra: '112233', squad: 'LSD' },
+  { id: '4', name: 'Thóris Medeiros', status: 'ATIVO', email: 'thoris.merds@email.com', ra: '778865', squad: 'LSD' },
+  { id: '5', name: 'Carlos Eduardo', status: 'INATIVO', email: 'carlos.edu@email.com', ra: '112267', squad: 'INFRA' },
+  { id: '6', name: 'Ana Clara', status: 'ATIVO', email: 'ana.clara@email.com', ra: '111111', squad: 'CASE' },
+  { id: '7', name: 'Lucas Souza', status: 'ATIVO', email: 'lucas.souza@email.com', ra: '222222', squad: 'LSD' },
+  { id: '8', name: 'Mariana Costa', status: 'ATIVO', email: 'mariana.costa@email.com', ra: '333333', squad: 'LSD' },
+  { id: '9', name: 'Pedro Henrique', status: 'ATIVO', email: 'pedro.henrique@email.com', ra: '444444', squad: 'INFRA' },
+  { id: '10', name: 'Juliana Silva', status: 'ATIVO', email: 'juliana.silva@email.com', ra: '555555', squad: 'Alpha' },
 ];
 
 // --- COMPONENTE PARA RENDERIZAR CADA LINHA ---
@@ -109,21 +109,22 @@ export default function UserControlScreen() {
           </View>
         </View>
 
-        {/* --- CORPO DA TELA (LAYOUT CORRIGIDO) --- */}
+        {/* Corpo da Tela */}
         <View style={styles.contentHeader}>
-          {/* Título em cima */}
           <Text style={styles.screenTitle}>Controle de Usuários</Text>
-          
-          {/* Botões embaixo, lado a lado */}
           <View style={styles.buttonRow}>
             <TouchableOpacity style={styles.reportButton}>
               <Ionicons name="download-outline" size={18} color="#1E63B0" />
               <Text style={styles.reportButtonText}>Gerar relatório</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.createButton}>
+
+            {/* --- A CORREÇÃO ESTÁ AQUI --- */}
+            {/* O onPress agora navega para o novo modal */}
+            <TouchableOpacity style={styles.createButton} onPress={() => router.push('/cadastrarUsuarioModal')}>
               <Ionicons name="add" size={18} color="white" />
               <Text style={styles.createButtonText}>Cadastrar usuário</Text>
             </TouchableOpacity>
+
           </View>
         </View>
 
@@ -168,7 +169,7 @@ export default function UserControlScreen() {
   );
 }
 
-// --- ESTILOS ATUALIZADOS ---
+// --- ESTILOS ---
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#F0F2F5' },
   container: { flex: 1, backgroundColor: '#F0F2F5', paddingBottom: 70 },
@@ -179,7 +180,6 @@ const styles = StyleSheet.create({
   headerIconsContainer: { flexDirection: 'row', alignItems: 'center' },
   notificationDot: { position: 'absolute', top: 0, right: 15, width: 10, height: 10, borderRadius: 5, backgroundColor: 'red', borderWidth: 1, borderColor: 'white' },
   
-  // --- LAYOUT DO CABEÇALHO DE CONTEÚDO CORRIGIDO ---
   contentHeader: {
     padding: 20,
     paddingTop: 25,
@@ -188,38 +188,37 @@ const styles = StyleSheet.create({
     fontSize: 24, 
     fontWeight: 'bold', 
     color: '#0A4A8E',
-    marginBottom: 15, // Adiciona espaço abaixo do título
+    marginBottom: 15,
   },
   buttonRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between', // Espaça os botões
+    justifyContent: 'space-between',
   },
   reportButton: { 
-    flex: 1, // Faz o botão ocupar metade do espaço
+    flex: 1, 
     flexDirection: 'row', 
     alignItems: 'center', 
-    justifyContent: 'center', // Centraliza o conteúdo
+    justifyContent: 'center',
     backgroundColor: 'white', 
     borderWidth: 1, 
     borderColor: '#1E63B0', 
     borderRadius: 8, 
-    paddingVertical: 12, // Um pouco mais de altura
+    paddingVertical: 12,
     paddingHorizontal: 10, 
-    marginRight: 10, // Espaço entre os botões
+    marginRight: 10,
   },
-  reportButtonText: { color: '#1E63B0', fontWeight: 'bold', fontSize: 13, marginLeft: 8, }, // Fonte menor
+  reportButtonText: { color: '#1E63B0', fontWeight: 'bold', fontSize: 13, marginLeft: 8, },
   createButton: { 
-    flex: 1, // Faz o botão ocupar metade do espaço
+    flex: 1, 
     flexDirection: 'row', 
     alignItems: 'center', 
-    justifyContent: 'center', // Centraliza o conteúdo
+    justifyContent: 'center',
     backgroundColor: '#1E63B0', 
     borderRadius: 8, 
     paddingVertical: 12, 
     paddingHorizontal: 10, 
   },
-  createButtonText: { color: 'white', fontWeight: 'bold', fontSize: 13, marginLeft: 8, }, // Fonte menor
-  // --- FIM DA CORREÇÃO ---
+  createButtonText: { color: 'white', fontWeight: 'bold', fontSize: 13, marginLeft: 8, },
 
   searchContainer: { flexDirection: 'row', alignItems: 'center', backgroundColor: 'white', borderRadius: 10, paddingHorizontal: 15, marginHorizontal: 15, marginBottom: 15, elevation: 3, shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, },
   searchIcon: { marginRight: 10, },
@@ -231,7 +230,6 @@ const styles = StyleSheet.create({
   listItemContainer: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 10, paddingVertical: 15, },
   cellText: { fontSize: 14, color: '#333', },
   
-  // Colunas
   statusCell: { width: 80, fontWeight: 'bold', textTransform: 'uppercase', paddingLeft: 5, },
   statusActive: { color: 'green', },
   statusInactive: { color: 'red', },
