@@ -51,12 +51,17 @@ function Login() {
         navigate("/intern/home", { replace: true });
       }
 
-    } catch (err: any) {
-      console.error("Erro no login:", err);
-      setError(err?.response?.data?.message ?? "E-mail/usuário ou senha inválidos.");
-    } finally {
-      setLoading(false);
-    }
+      } catch (err: any) {
+        console.error("Erro no login:", err);
+
+        setError(
+          err?.response?.data?.error ??
+          err?.response?.data?.message ??
+          "E-mail/usuário ou senha inválidos."
+        );
+      } finally {
+        setLoading(false);
+      }
   };
 
   return (
