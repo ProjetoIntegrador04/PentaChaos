@@ -12,7 +12,7 @@ import { router } from 'expo-router';
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 interface AuthProviderProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export function AuthProvider({ children }: AuthProviderProps) {

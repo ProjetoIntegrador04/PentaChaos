@@ -17,7 +17,6 @@ import {
 } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import clockEntryService from '../services/clockentry.service';
 import { ClockEntryResponse, ClockEntryType } from '../types/clockentry.types';
 import { useAuth } from '../context/AuthContext';
@@ -191,29 +190,14 @@ export default function ClockEntryScreen() {
           </View>
         </View>
 
-        {/* Mapa (se houver localização) */}
+        {/* Localização capturada */}
         {location && (
-          <View style={styles.mapContainer}>
-            <MapView
-              provider={PROVIDER_GOOGLE}
-              style={styles.map}
-              initialRegion={{
-                latitude: location.latitude,
-                longitude: location.longitude,
-                latitudeDelta: 0.005,
-                longitudeDelta: 0.005,
-              }}
-            >
-              <Marker
-                coordinate={{
-                  latitude: location.latitude,
-                  longitude: location.longitude,
-                }}
-                title="Você está aqui"
-              />
-            </MapView>
+          <View style={styles.locationContainer}>
+            <Ionicons name="location" size={32} color="#0A4A8E" />
             <Text style={styles.locationText}>
-              📍 Lat: {location.latitude.toFixed(6)}, Lon: {location.longitude.toFixed(6)}
+              📍 Localização capturada:{'\n'}
+              Lat: {location.latitude.toFixed(6)}{'\n'}
+              Lon: {location.longitude.toFixed(6)}
             </Text>
           </View>
         )}
@@ -346,28 +330,6 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
-  mapContainer: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    borderRadius: 15,
-    overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  map: {
-    width: '100%',
-    height: 200,
-  },
-  locationText: {
-    backgroundColor: 'white',
-    padding: 10,
-    fontSize: 12,
-    color: '#666',
-    textAlign: 'center',
-  },
   actionButtonsContainer: {
     marginHorizontal: 20,
     marginTop: 30,
@@ -476,5 +438,26 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
     marginTop: 2,
+  },
+  // Estilos de localização
+  locationContainer: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 20,
+    marginHorizontal: 20,
+    marginTop: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  locationText: {
+    fontSize: 14,
+    color: '#333',
+    textAlign: 'center',
+    marginTop: 10,
+    lineHeight: 20,
   },
 });

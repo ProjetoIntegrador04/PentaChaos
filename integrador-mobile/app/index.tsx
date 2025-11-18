@@ -17,7 +17,7 @@ export default function LoginScreen() {
 
   const { login } = useAuth();
 
-  // --- LÓGICA DE LOGIN COM BACKEND ---
+  // Lógica de login com integração backend
   const handleLogin = async () => {
     Keyboard.dismiss();
 
@@ -71,73 +71,85 @@ export default function LoginScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : "height"}>
-      <ScrollView 
-        contentContainerStyle={styles.container} 
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-      >
-        {/* Cabeçalho */}
-        <LinearGradient colors={["#1d64b5", "#2a77d4"]} style={styles.header}>
-            <Text style={styles.ola}>Olá,</Text>
-            <Text style={styles.bemVindo}>Bem vindo a</Text>
-            <Image source={require("../assets/images/icon.png")} style={styles.logo} resizeMode="contain" />
-            <Text style={styles.desc}>
-              2RP net | Monitoramento, onde o gerenciamento, acompanhamento e organização são possíveis.
-            </Text>
-        </LinearGradient>
-
-        {/* Formulário */}
-        <Text style={styles.title}>Entre na sua conta agora!</Text>
-        <Text style={styles.label}>E-mail</Text>
-        <TextInput
-          style={styles.input} placeholder="Digite seu e-mail" placeholderTextColor="#9aa3af"
-          value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none"
-          returnKeyType="next" blurOnSubmit={false}
-        />
-        <Text style={styles.label}>Senha</Text>
-        <View style={styles.inputSenha}>
-          <TextInput
-            style={{ flex: 1, color: '#000' }} placeholder="Digite sua senha"
-            placeholderTextColor="#9aa3af" secureTextEntry={!mostrarSenha} value={senha}
-            onChangeText={setSenha} returnKeyType="go" onSubmitEditing={handleLogin}
-          />
-          <TouchableOpacity onPress={() => setMostrarSenha(!mostrarSenha)}>
-            <Ionicons name={mostrarSenha ? "eye-off-outline" : "eye-outline"} size={20} color="#9aa3af" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Opções */}
-        <View style={styles.row}>
-          <TouchableOpacity 
-            style={[styles.checkbox, lembrar ? styles.checkboxChecked : null]} 
-            onPress={() => setLembrar(!lembrar)}
-          >
-            {lembrar && <Ionicons name="checkmark" size={16} color="#fff" />} 
-          </TouchableOpacity>
-          <Text style={styles.checkboxText}>Lembrar-me</Text>
-          <TouchableOpacity style={{ marginLeft: "auto" }}>
-            <Text style={styles.link}>Esqueci minha senha</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Botão Entrar */}
-        <TouchableOpacity 
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleLogin}
-          disabled={loading}
+      <View style={styles.webContainer}>
+        <ScrollView 
+          contentContainerStyle={styles.container} 
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
         >
-          {loading ? (
-            <ActivityIndicator color="#fff" size="small" />
-          ) : (
-            <Text style={styles.buttonText}>Entrar</Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          <LinearGradient colors={["#1d64b5", "#2a77d4"]} style={styles.header}>
+              <Text style={styles.ola}>Olá,</Text>
+              <Text style={styles.bemVindo}>Bem vindo a</Text>
+              <Image source={require("../assets/images/icon.png")} style={styles.logo} resizeMode="contain" />
+              <Text style={styles.desc}>
+                2RP net | Monitoramento, onde o gerenciamento, acompanhamento e organização são possíveis.
+              </Text>
+          </LinearGradient>
+
+          <Text style={styles.title}>Entre na sua conta agora!</Text>
+          <Text style={styles.label}>E-mail</Text>
+          <TextInput
+            style={styles.input} placeholder="Digite seu e-mail" placeholderTextColor="#9aa3af"
+            value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none"
+            returnKeyType="next" blurOnSubmit={false}
+          />
+          <Text style={styles.label}>Senha</Text>
+          <View style={styles.inputSenha}>
+            <TextInput
+              style={{ flex: 1, color: '#000' }} placeholder="Digite sua senha"
+              placeholderTextColor="#9aa3af" secureTextEntry={!mostrarSenha} value={senha}
+              onChangeText={setSenha} returnKeyType="go" onSubmitEditing={handleLogin}
+            />
+            <TouchableOpacity onPress={() => setMostrarSenha(!mostrarSenha)}>
+              <Ionicons name={mostrarSenha ? "eye-off-outline" : "eye-outline"} size={20} color="#9aa3af" />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.row}>
+            <TouchableOpacity 
+              style={[styles.checkbox, lembrar ? styles.checkboxChecked : null]} 
+              onPress={() => setLembrar(!lembrar)}
+            >
+              {lembrar && <Ionicons name="checkmark" size={16} color="#fff" />} 
+            </TouchableOpacity>
+            <Text style={styles.checkboxText}>Lembrar-me</Text>
+            <TouchableOpacity style={{ marginLeft: "auto" }}>
+              <Text style={styles.link}>Esqueci minha senha</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <TouchableOpacity 
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Entrar</Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </View>
     </KeyboardAvoidingView>
   );
 }
 
+// Estilos
 const styles = StyleSheet.create({
+    webContainer: {
+      flex: 1,
+      ...Platform.select({
+        web: {
+          width: '100%',
+          maxWidth: 450, 
+          alignSelf: 'center', 
+          borderLeftWidth: 1,
+          borderRightWidth: 1,
+          borderColor: '#ccc' 
+        }
+      })
+    },
     container: { flexGrow: 1, backgroundColor: "#fff", paddingHorizontal: 20, paddingBottom: 40, },
     header: { alignItems: "center", paddingTop: 60, paddingBottom: 20, marginHorizontal: -20, borderBottomLeftRadius: 80, borderBottomRightRadius: 80, },
     ola: { color: "#fff", fontSize: 18, fontWeight: "400" },
