@@ -1,44 +1,76 @@
 /**
  * Helpers para armazenamento seguro (SecureStore e AsyncStorage)
+ * COM SUPORTE MULTIPLATAFORMA (Web + Mobile)
  */
 
+import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * Armazena dados sensíveis de forma segura (tokens, senhas)
+ * - Web: usa AsyncStorage (LocalStorage)
+ * - iOS/Android: usa SecureStore (armazenamento criptografado)
  */
 export const secureStorage = {
   async setItem(key: string, value: string): Promise<void> {
     try {
-      await SecureStore.setItemAsync(key, value);
+      if (Platform.OS === 'web') {
+        // Web: usa AsyncStorage
+        await AsyncStorage.setItem(key, value);
+        console.log(`✅ [Web] ${key} salvo no AsyncStorage`);
+      } else {
+        // Mobile: usa SecureStore
+        await SecureStore.setItemAsync(key, value);
+        console.log(`✅ [Mobile] ${key} salvo no SecureStore`);
+      }
     } catch (error) {
-      console.error(`Erro ao salvar ${key} no SecureStore:`, error);
+      console.error(`❌ Erro ao salvar ${key}:`, error);
       throw error;
     }
   },
 
   async getItem(key: string): Promise<string | null> {
     try {
-      return await SecureStore.getItemAsync(key);
+      if (Platform.OS === 'web') {
+        // Web: usa AsyncStorage
+        return await AsyncStorage.getItem(key);
+      } else {
+        // Mobile: usa SecureStore
+        return await SecureStore.getItemAsync(key);
+      }
     } catch (error) {
-      console.error(`Erro ao buscar ${key} do SecureStore:`, error);
+      console.error(`❌ Erro ao buscar ${key}:`, error);
       return null;
     }
   },
 
   async removeItem(key: string): Promise<void> {
     try {
-      await SecureStore.deleteItemAsync(key);
+      if (Platform.OS === 'web') {
+        // Web: usa AsyncStorage
+        await AsyncStorage.removeItem(key);
+        console.log(`✅ [Web] ${key} removido`);
+      } else {
+        // Mobile: usa SecureStore
+        await SecureStore.deleteItemAsync(key);
+        console.log(`✅ [Mobile] ${key} removido`);
+      }
     } catch (error) {
-      console.error(`Erro ao deletar ${key} do SecureStore:`, error);
+      console.error(`❌ Erro ao deletar ${key}:`, error);
       throw error;
     }
   },
 
   async clear(): Promise<void> {
-    // SecureStore não tem método clear, precisa deletar um por um
-    console.warn('SecureStore não suporta clear global');
+    if (Platform.OS === 'web') {
+      // Web: limpa tudo no AsyncStorage
+      await AsyncStorage.clear();
+      console.log('✅ [Web] AsyncStorage limpo');
+    } else {
+      // Mobile: SecureStore não tem clear, aviso apenas
+      console.warn('⚠️ SecureStore não suporta clear global. Use removeItem() para cada chave.');
+    }
   },
 };
 

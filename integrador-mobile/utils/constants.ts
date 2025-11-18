@@ -9,7 +9,7 @@
 // Procurar pelo IPv4 da rede Wi-Fi (ex: 192.168.1.100)
 
 export const API_BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://192.168.1.100:8080'  // ← ALTERAR ESTE IP!
+  ? 'http://localhost:8080'  // Localhost para testes web
   : 'https://sua-api-producao.com';
 
 // Endpoints da API
