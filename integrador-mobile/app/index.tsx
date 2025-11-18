@@ -1,24 +1,72 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import {
   View, Text, TextInput, TouchableOpacity, Image, StyleSheet,
-  Keyboard, KeyboardAvoidingView, Platform, ScrollView,
+  Keyboard, KeyboardAvoidingView, Platform, ScrollView, Alert, ActivityIndicator,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
+import { useAuth } from "../context/AuthContext";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [lembrar, setLembrar] = useState(false);
   const [mostrarSenha, setMostrarSenha] = useState(false);
-  const senhaInputRef = useRef<TextInput>(null);
+  const [loading, setLoading] = useState(false);
 
-  // Lógica de login simples (sem API)
-  const handleLogin = () => {
-    Keyboard.dismiss(); 
-    console.log("Navegando para /home...");
-    router.replace({ pathname: "/home" }); // Navega direto para a home
+  const { login } = useAuth();
+
+  // Lógica de login com integração backend
+  const handleLogin = async () => {
+    Keyboard.dismiss();
+
+    // Validações
+    if (!email.trim()) {
+      Alert.alert("Erro", "Por favor, digite seu e-mail ou usuário");
+      return;
+    }
+
+    if (!senha.trim()) {
+      Alert.alert("Erro", "Por favor, digite sua senha");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Faz login usando o contexto
+      await login({
+        usernameOrEmail: email.trim(),
+        password: senha,
+      });
+
+      console.log("✅ Login realizado com sucesso!");
+      
+      // Navega para a home
+      router.replace({ pathname: "/home" });
+    } catch (error: any) {
+      console.error("❌ Erro no login:", error);
+
+      // Mensagens de erro amigáveis
+      let errorMessage = "Erro ao fazer login. Verifique suas credenciais.";
+
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = "E-mail/usuário ou senha incorretos.";
+        } else if (error.response.status === 500) {
+          errorMessage = "Erro no servidor. Tente novamente mais tarde.";
+        } else if (error.response.data?.message) {
+          errorMessage = error.response.data.message;
+        }
+      } else if (error.request) {
+        errorMessage = "Não foi possível conectar ao servidor. Verifique sua conexão.";
+      }
+
+      Alert.alert("Erro no Login", errorMessage);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,12 +91,12 @@ export default function LoginScreen() {
           <TextInput
             style={styles.input} placeholder="Digite seu e-mail" placeholderTextColor="#9aa3af"
             value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none"
-            returnKeyType="next" onSubmitEditing={() => senhaInputRef.current?.focus()} blurOnSubmit={false}
+            returnKeyType="next" blurOnSubmit={false}
           />
           <Text style={styles.label}>Senha</Text>
           <View style={styles.inputSenha}>
             <TextInput
-              ref={senhaInputRef} style={{ flex: 1, color: '#000' }} placeholder="Digite sua senha"
+              style={{ flex: 1, color: '#000' }} placeholder="Digite sua senha"
               placeholderTextColor="#9aa3af" secureTextEntry={!mostrarSenha} value={senha}
               onChangeText={setSenha} returnKeyType="go" onSubmitEditing={handleLogin}
             />
@@ -71,10 +119,15 @@ export default function LoginScreen() {
           </View>
           
           <TouchableOpacity 
-            style={styles.button} 
-            onPress={handleLogin} 
+            style={[styles.button, loading && styles.buttonDisabled]}
+            onPress={handleLogin}
+            disabled={loading}
           >
-            <Text style={styles.buttonText}>Entrar</Text> 
+            {loading ? (
+              <ActivityIndicator color="#fff" size="small" />
+            ) : (
+              <Text style={styles.buttonText}>Entrar</Text>
+            )}
           </TouchableOpacity>
         </ScrollView>
       </View>
@@ -113,5 +166,6 @@ const styles = StyleSheet.create({
     checkboxText: { marginLeft: 8, color: "#333" },
     link: { color: "#2a77d4", fontSize: 12, textDecorationLine: "underline" },
     button: { backgroundColor: "#2a77d4", borderRadius: 25, paddingVertical: 12, alignItems: "center", marginTop: 30, shadowColor: "#000", shadowOpacity: 0.1, shadowRadius: 5, elevation: 3, minHeight: 45, justifyContent: 'center' }, 
+    buttonDisabled: { backgroundColor: "#999", opacity: 0.6 },
     buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold" },
 });

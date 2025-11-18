@@ -96,16 +96,15 @@ public class SecurityConfig {
   }
 
   // Configuração CORS (Cross-Origin Resource Sharing)
-  // Isso é crucial para que seu frontend React possa se comunicar com o backend
+  // Liberado para todas as origens (*) - útil para desenvolvimento mobile/web
   @Bean
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000")); // Permitir requisições do seu frontend React
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
+    configuration.setAllowedOriginPatterns(List.of("*")); // Permitir TODAS as origens
+    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+    configuration.setAllowedHeaders(Arrays.asList("*")); // Permitir todos os headers
     configuration.setAllowCredentials(true); // Permitir envio de credenciais (cookies, headers de autenticação)
-    configuration.setExposedHeaders(List.of("Authorization")); // Expor o cabeçalho Authorization para que o cliente
-                                                               // possa lê-lo
+    configuration.setExposedHeaders(List.of("Authorization")); // Expor o cabeçalho Authorization
     UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
     source.registerCorsConfiguration("/**", configuration); // Aplica a configuração a todas as rotas
     return source;
