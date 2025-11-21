@@ -3,15 +3,10 @@ import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Dimensions } from
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LineChart, PieChart } from 'react-native-chart-kit';
-import { router, useFocusEffect } from 'expo-router'; 
-import AsyncStorage from '@react-native-async-storage/async-storage'; 
+import { router } from 'expo-router'; 
+import { useAuth } from '../../context/AuthContext';
 
-const screenWidth = Dimensions.get('window').width;
-
-// Chave para carregar o nome (deve ser a mesma da tela de Perfil)
-const PROFILE_NOME_KEY = 'profile_nome';
-
-// --- Dados de Exemplo ---
+const screenWidth = Dimensions.get('window').width;// --- Dados de Exemplo ---
 const squadData = [
   { name: 'LSD Squad', interns: 5 },
   { name: '404 Squad', interns: 2 },
@@ -36,24 +31,15 @@ const chartConfig = {
 };
 
 export default function DashboardScreen() {
-  const [userName, setUserName] = useState("Marcelo"); // Nome padrão
+  const { user } = useAuth(); // Pega dados do usuário logado
+  const [userName, setUserName] = useState("Usuário");
 
-  // Hook para carregar o nome do usuário salvo
-  useFocusEffect(
-    React.useCallback(() => {
-      const loadUserName = async () => {
-        try {
-          const savedName = await AsyncStorage.getItem(PROFILE_NOME_KEY);
-          if (savedName !== null) {
-            setUserName(savedName); // Atualiza o nome na tela
-          }
-        } catch (e) {
-          console.error("Falha ao carregar o nome do usuário", e);
-        }
-      };
-      loadUserName();
-    }, [])
-  );
+  // Atualiza o nome quando o user mudar
+  useEffect(() => {
+    if (user?.username) {
+      setUserName(user.username);
+    }
+  }, [user]);
 
   return (
     <SafeAreaView style={styles.safeArea}>

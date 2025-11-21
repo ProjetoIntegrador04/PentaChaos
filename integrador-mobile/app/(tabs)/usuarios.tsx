@@ -7,6 +7,7 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useAuth } from '../../context/AuthContext';
 
 // --- CHAVES PARA O ASYNCSTORAGE ---
 const PROFILE_IMAGE_KEY = 'my-profile-image-uri';
@@ -37,28 +38,34 @@ const InfoField = ({
 );
 
 export default function UsuariosScreen() {
+  const { user } = useAuth(); // Pega dados do usuário logado
+  
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
-  const [nome, setNome] = useState("Marcelo ribeiro");
-  const [sobrenome, setSobrenome] = useState("Rodrigues");
-  const [email, setEmail] = useState("marcelindosmagos@gmail.com");
-  const [nascimento, setNascimento] = useState("01/01/2001");
-  const [cargo, setCargo] = useState("UI/UX Designer");
-  const [github, setGithub] = useState("Github.com/marcelindosmagos");
-  const [linkedin, setLinkedin] = useState("Linked.in/marcelindosmagos");
+  const [nome, setNome] = useState(user?.username || "Usuário");
+  const [sobrenome, setSobrenome] = useState("");
+  const [email, setEmail] = useState(user?.email || "");
+  const [nascimento, setNascimento] = useState("");
+  const [cargo, setCargo] = useState("");
+  const [github, setGithub] = useState("");
+  const [linkedin, setLinkedin] = useState("");
 
-  // Carregar dados
+  // Atualizar quando o user do AuthContext mudar
+  useEffect(() => {
+    if (user) {
+      setNome(user.username || "Usuário");
+      setEmail(user.email || "");
+    }
+  }, [user]);
+
+  // Carregar dados salvos localmente
   useEffect(() => {
     const loadProfileData = async () => {
       try {
         const savedImageUri = await AsyncStorage.getItem(PROFILE_IMAGE_KEY);
         if (savedImageUri) setProfileImage(savedImageUri);
-        const savedNome = await AsyncStorage.getItem(PROFILE_NOME_KEY);
-        if (savedNome) setNome(savedNome);
         const savedSobrenome = await AsyncStorage.getItem(PROFILE_SOBRENOME_KEY);
         if (savedSobrenome) setSobrenome(savedSobrenome);
-        const savedEmail = await AsyncStorage.getItem(PROFILE_EMAIL_KEY);
-        if (savedEmail) setEmail(savedEmail);
         const savedNascimento = await AsyncStorage.getItem(PROFILE_NASCIMENTO_KEY);
         if (savedNascimento) setNascimento(savedNascimento);
         const savedCargo = await AsyncStorage.getItem(PROFILE_CARGO_KEY);
