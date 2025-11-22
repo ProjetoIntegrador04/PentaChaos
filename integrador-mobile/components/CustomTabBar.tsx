@@ -8,11 +8,12 @@ interface TabConfigItem {
   label: string;
 }
 
-// Configuração com as 5 abas corretas (Frequência, Squads, Home, Usuários, Tarefas)
+// Configuração com as 6 abas (Frequência, Squads, Home, Perfil, Controle Usuários, Tarefas)
 const tabConfig: { [key: string]: TabConfigItem } = {
   frequencia: { icon: (color: string) => <Ionicons name="calendar-outline" size={24} color={color} />, label: 'Frequência' },
   squads: { icon: (color: string) => <FontAwesome5 name="users" size={24} color={color} />, label: 'Squads' },
   home: { icon: (color: string) => <Ionicons name="home-outline" size={32} color={color} />, label: 'Home' },
+  usuarios: { icon: (color: string) => <Ionicons name="person-circle-outline" size={24} color={color} />, label: 'Perfil' },
   uusuarios: { icon: (color: string) => <AntDesign name="user" size={24} color={color} />, label: 'Usuários' },
   tarefas: { icon: (color: string) => <Ionicons name="document-text-outline" size={24} color={color} />, label: 'Tarefas' },
 };

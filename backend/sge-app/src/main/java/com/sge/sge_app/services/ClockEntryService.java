@@ -15,9 +15,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ClockEntryService {
@@ -217,5 +219,101 @@ public class ClockEntryService {
         // if (!validarPerimetroEmpresa(latitude, longitude)) {
         //     throw new BusinessException("Localização fora do perímetro permitido");
         // }
+    }
+
+    public List<ClockEntryResponse> buscarPontosDoUsuarioHoje(Authentication authentication) {
+        User user = obterUsuarioAutenticado(authentication);
+        LocalDate hoje = LocalDate.now();
+        LocalDateTime startOfDay = hoje.atStartOfDay();
+        LocalDateTime endOfDay = hoje.plusDays(1).atStartOfDay();
+
+        List<ClockEntry> pontos = clockEntryRepository.findByUserIdAndTimestampBetween(
+                user.getId(), startOfDay, endOfDay);
+
+        return pontos.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    // Método simplificado - retorna últimos 90 dias
+    public List<ClockEntryResponse> buscarHistoricoSimples(Authentication authentication) {
+        User user = obterUsuarioAutenticado(authentication);
+        
+        LocalDateTime endDate = LocalDateTime.now();
+        LocalDateTime startDate = endDate.minusDays(90);
+
+        List<ClockEntry> pontos = clockEntryRepository.findByUserIdAndTimestampBetween(
+                user.getId(), startDate, endDate);
+
+        return pontos.stream()
+                .map(this::convertToResponse)
+                .sorted((a, b) -> b.getTimestamp().compareTo(a.getTimestamp())) // Mais recentes primeiro
+                .collect(Collectors.toList());
+    }
+
+    public List<ClockEntryResponse> buscarHistoricoPontos(
+            Authentication authentication, String startDateStr, String endDateStr) {
+        User user = obterUsuarioAutenticado(authentication);
+        
+        LocalDateTime startDate;
+        LocalDateTime endDate;
+        
+        if (startDateStr != null && endDateStr != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            startDate = LocalDate.parse(startDateStr, formatter).atStartOfDay();
+            endDate = LocalDate.parse(endDateStr, formatter).plusDays(1).atStartOfDay();
+        } else {
+            // Por padrão, últimos 30 dias
+            endDate = LocalDateTime.now();
+            startDate = endDate.minusDays(30);
+        }
+
+        List<ClockEntry> pontos = clockEntryRepository.findByUserIdAndTimestampBetween(
+                user.getId(), startDate, endDate);
+
+        return pontos.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    public List<ClockEntryResponse> buscarPontosUsuarioPorData(
+            Long userId, String startDateStr, String endDateStr) {
+        
+        LocalDateTime startDate;
+        LocalDateTime endDate;
+        
+        if (startDateStr != null && endDateStr != null) {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+            startDate = LocalDate.parse(startDateStr, formatter).atStartOfDay();
+            endDate = LocalDate.parse(endDateStr, formatter).plusDays(1).atStartOfDay();
+        } else {
+            // Se não fornecido, busca hoje
+            LocalDate hoje = LocalDate.now();
+            startDate = hoje.atStartOfDay();
+            endDate = hoje.plusDays(1).atStartOfDay();
+        }
+
+        List<ClockEntry> pontos = clockEntryRepository.findByUserIdAndTimestampBetween(
+                userId, startDate, endDate);
+
+        return pontos.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    private ClockEntryResponse convertToResponse(ClockEntry clockEntry) {
+        return ClockEntryResponse.builder()
+                .id(clockEntry.getId())
+                .userId(clockEntry.getUserId())
+                .tipo(clockEntry.getTipo())
+                .timestamp(clockEntry.getTimestamp())
+                .latitude(clockEntry.getLatitude())
+                .longitude(clockEntry.getLongitude())
+                .precisao(clockEntry.getPrecisao())
+                .fonte(clockEntry.getFonte())
+                .deviceId(clockEntry.getDeviceId())
+                .ip(clockEntry.getIp())
+                .createdAt(clockEntry.getCreatedAt())
+                .build();
     }
 }

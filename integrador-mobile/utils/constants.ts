@@ -22,6 +22,9 @@ export const API_ENDPOINTS = {
   CLOCKENTRY: {
     BASE: '/api/v1/clockentries',
     BY_ID: (id: number) => `/api/v1/clockentries/${id}`,
+    ME_TODAY: '/api/v1/clockentries/me/today',
+    ME_HISTORY: '/api/v1/clockentries/me/history',
+    USER_TODAY: (userId: number) => `/api/v1/clockentries/users/${userId}/today`,
   },
   TASKS: {
     BASE: '/api/v1/tasks',

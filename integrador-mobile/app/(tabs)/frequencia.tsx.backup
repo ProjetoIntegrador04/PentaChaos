@@ -1,18 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  TouchableOpacity, 
-  Alert, 
-  ScrollView, 
-  ActivityIndicator, 
-  Image, 
-  RefreshControl, 
-  Modal 
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Alert, ScrollView, ActivityIndicator, Image, RefreshControl, Modal } from 'react-native';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { usePerfilModal } from '../../context/PerfilModalContext';
 import { useProfileImage } from '../../context/ProfileImageContext';
@@ -23,7 +12,6 @@ export default function FrequenciaScreen() {
   const { user } = useAuth();
   const { openModal } = usePerfilModal();
   const { profileImage } = useProfileImage();
-  
   const [userName, setUserName] = useState("Usuário");
   const [isAdmin, setIsAdmin] = useState(false);
   const [pontosHoje, setPontosHoje] = useState<ClockEntryResponse[]>([]);
@@ -35,46 +23,47 @@ export default function FrequenciaScreen() {
   const [modalConfirmacao, setModalConfirmacao] = useState(false);
   const [pontoParaRegistrar, setPontoParaRegistrar] = useState<{ tipo: ClockEntryType; label: string } | null>(null);
   const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
-  const [mensagemErro, setMensagemErro] = useState<string | null>(null);
 
-  // Detecta se é admin
   useEffect(() => {
     if (user?.username) {
       setUserName(user.username);
     }
+    // Verifica se é admin
     if (user?.roles) {
       const hasAdminRole = user.roles.some(role => role.name === 'ROLE_ADMIN');
       setIsAdmin(hasAdminRole);
-      console.log('👤 Usuário é admin?', hasAdminRole);
     }
   }, [user]);
 
-  // Carrega pontos quando o componente monta
   useEffect(() => {
     if (user) {
       carregarPontosHoje();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAdmin, user]);
+  }, [isAdmin, user]); 
 
   const carregarPontosHoje = async () => {
     try {
       setLoading(true);
-      console.log('📋 Carregando histórico de pontos...');
-      
-      // Sempre buscar histórico (simplificado)
-      const historico = await clockEntryService.buscarHistorico();
-      console.log('📋 Histórico recebido:', historico.length, 'registros');
+      console.log('📋 Carregando pontos... isAdmin:', isAdmin);
       
       if (isAdmin) {
+        // Admin vê histórico de todos
+        console.log('📋 Buscando histórico completo (admin)');
+        const historico = await clockEntryService.buscarHistorico();
+        console.log('📋 Histórico recebido:', historico.length, 'registros');
         setTodosOsPontos(historico);
       } else {
-        setPontosHoje(historico);
+        // Usuário normal vê apenas seus pontos
+        console.log('📋 Buscando pontos de hoje (usuário normal)');
+        const pontos = await clockEntryService.buscarPontosHoje();
+        console.log('📋 Pontos recebidos:', pontos.length, 'registros');
+        setPontosHoje(pontos);
       }
     } catch (error: any) {
       console.error('❌ Erro ao carregar pontos:', error);
       console.error('❌ Detalhes do erro:', error.response?.data);
-      Alert.alert('Erro', 'Não foi possível carregar os pontos.');
+      Alert.alert('Erro', 'Não foi possível carregar os pontos de hoje.');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -93,47 +82,6 @@ export default function FrequenciaScreen() {
     }));
   };
 
-  const registrarPonto = async (tipo: ClockEntryType) => {
-    console.log('🔵 Botão clicado - Tipo:', tipo);
-    
-    try {
-      setRegistrandoPonto(true);
-      
-      // Verificar permissão de localização
-      console.log('🔵 Verificando permissão de localização...');
-      const hasPermission = await clockEntryService.verificarPermissaoLocalizacao();
-      console.log('🔵 Tem permissão?', hasPermission);
-      
-      if (!hasPermission) {
-        console.log('🔵 Solicitando permissão...');
-        const granted = await clockEntryService.solicitarPermissaoLocalizacao();
-        console.log('🔵 Permissão concedida?', granted);
-        
-        if (!granted) {
-          console.log('❌ Permissão negada');
-          Alert.alert(
-            'Permissão Necessária',
-            'A localização é necessária para registrar o ponto. Ative nas configurações do dispositivo.'
-          );
-          setRegistrandoPonto(false);
-          return;
-        }
-      }
-
-      const tipoPontoLabel = clockEntryService.formatarTipoPonto(tipo);
-      console.log('🔵 Label do tipo:', tipoPontoLabel);
-      
-      // Mostrar modal de confirmação
-      setPontoParaRegistrar({ tipo, label: tipoPontoLabel });
-      setModalConfirmacao(true);
-      setRegistrandoPonto(false);
-    } catch (error: any) {
-      console.error('❌ Erro no registrarPonto:', error);
-      Alert.alert('Erro', error.message || 'Ocorreu um erro ao tentar registrar o ponto');
-      setRegistrandoPonto(false);
-    }
-  };
-
   const confirmarRegistroPonto = async () => {
     if (!pontoParaRegistrar) return;
     
@@ -150,40 +98,15 @@ export default function FrequenciaScreen() {
       setTimeout(() => setMensagemSucesso(null), 3000);
       
       console.log('🔵 Recarregando pontos...');
+      console.log('🔵 isAdmin:', isAdmin);
       await carregarPontosHoje();
       console.log('🔵 Pontos recarregados!');
+      console.log('🔵 pontosHoje:', pontosHoje.length);
+      console.log('🔵 todosOsPontos:', todosOsPontos.length);
     } catch (error: any) {
       console.error('❌ Erro ao registrar ponto:', error);
-      console.error('❌ Resposta do servidor:', error.response);
-      
-      // Extrair mensagem de erro do backend
-      let mensagemTexto = 'Ocorreu um erro ao registrar o ponto';
-      let tituloErro = '❌ Erro ao Registrar Ponto';
-      
-      if (error.response?.data?.message) {
-        // Mensagem vinda do backend
-        mensagemTexto = error.response.data.message;
-        
-        // Personalizar título baseado no tipo de erro
-        if (mensagemTexto.includes('já existe') || mensagemTexto.includes('sem EXIT')) {
-          tituloErro = '⚠️ Ponto Inválido';
-        } else if (mensagemTexto.includes('localização') || mensagemTexto.includes('perímetro')) {
-          tituloErro = '📍 Erro de Localização';
-        } else if (mensagemTexto.includes('almoço')) {
-          tituloErro = '🍽️ Erro de Almoço';
-        }
-      } else if (error.message) {
-        mensagemTexto = error.message;
-      }
-      
-      // Mostrar mensagem de erro flutuante (visual)
-      setMensagemErro(`${tituloErro}: ${mensagemTexto}`);
-      setTimeout(() => setMensagemErro(null), 5000); // 5 segundos
-      
-      // Também mostrar Alert para garantir que o usuário veja
-      Alert.alert(tituloErro, mensagemTexto, [
-        { text: 'OK', style: 'default' }
-      ]);
+      const mensagem = error.response?.data?.message || error.message || 'Erro desconhecido';
+      Alert.alert('Erro ao Registrar Ponto', mensagem);
     } finally {
       setPontoParaRegistrar(null);
       setRegistrandoPonto(false);
@@ -197,27 +120,45 @@ export default function FrequenciaScreen() {
     setRegistrandoPonto(false);
   };
 
-  // Agrupa pontos por dia
-  const agruparPontosPorDia = (pontos: ClockEntryResponse[]) => {
-    const grupos: { [data: string]: ClockEntryResponse[] } = {};
-    
-    pontos.forEach(ponto => {
-      const data = clockEntryService.formatarData(ponto.timestamp);
-      if (!grupos[data]) {
-        grupos[data] = [];
+  const registrarPonto = async (tipo: ClockEntryType) => {
+    console.log('🔵 Botão clicado - Tipo:', tipo);
+    try {
+      setRegistrandoPonto(true);
+      console.log('🔵 Estado registrandoPonto definido como true');
+
+      // Verificar permissão de localização
+      console.log('🔵 Verificando permissão de localização...');
+      const hasPermission = await clockEntryService.verificarPermissaoLocalizacao();
+      console.log('🔵 Tem permissão?', hasPermission);
+      
+      if (!hasPermission) {
+        console.log('🔵 Solicitando permissão...');
+        const granted = await clockEntryService.solicitarPermissaoLocalizacao();
+        console.log('🔵 Permissão concedida?', granted);
+        
+        if (!granted) {
+          console.log('❌ Permissão negada');
+          Alert.alert(
+            'Permissão Necessária',
+            'A localização é necessária para registrar o ponto. Ative nas configurações do dispositivo.'
+          );
+          return;
+        }
       }
-      grupos[data].push(ponto);
-    });
 
-    return grupos;
-  };
-
-  // Calcula numeração sequencial por tipo
-  const obterNumeroSequencial = (pontosNoDia: ClockEntryResponse[], pontoAtual: ClockEntryResponse) => {
-    const tipo = pontoAtual.tipo;
-    const pontosMesmoTipo = pontosNoDia.filter(p => p.tipo === tipo);
-    const indice = pontosMesmoTipo.findIndex(p => p.id === pontoAtual.id);
-    return indice + 1;
+      const tipoPontoLabel = clockEntryService.formatarTipoPonto(tipo);
+      console.log('🔵 Label do tipo:', tipoPontoLabel);
+      
+      // Mostrar modal de confirmação
+      setPontoParaRegistrar({ tipo, label: tipoPontoLabel });
+      setModalConfirmacao(true);
+    } catch (error: any) {
+      console.error('❌ Erro no registrarPonto:', error);
+      Alert.alert('Erro', error.message || 'Ocorreu um erro ao tentar registrar o ponto');
+    } finally {
+      console.log('🔵 Finalizando, setando registrandoPonto como false');
+      setRegistrandoPonto(false);
+    }
   };
 
   const renderBotaoPonto = (
@@ -227,7 +168,6 @@ export default function FrequenciaScreen() {
     color: string
   ) => (
     <TouchableOpacity
-      key={tipo}
       style={[
         styles.botaoPonto,
         { backgroundColor: color },
@@ -245,6 +185,28 @@ export default function FrequenciaScreen() {
     </TouchableOpacity>
   );
 
+  // Agrupa pontos por dia e adiciona numeração sequencial
+  const agruparPontosPorDia = (pontos: ClockEntryResponse[]) => {
+    const grupos: { [data: string]: ClockEntryResponse[] } = {};
+    
+    pontos.forEach(ponto => {
+      const data = clockEntryService.formatarData(ponto.timestamp);
+      if (!grupos[data]) {
+        grupos[data] = [];
+      }
+      grupos[data].push(ponto);
+    });
+
+    return grupos;
+  };
+
+  const obterNumeroSequencial = (pontosNoDia: ClockEntryResponse[], pontoAtual: ClockEntryResponse) => {
+    const tipo = pontoAtual.tipo;
+    const pontosMesmoTipo = pontosNoDia.filter(p => p.tipo === tipo);
+    const indice = pontosMesmoTipo.findIndex(p => p.id === pontoAtual.id);
+    return indice + 1;
+  };
+
   const renderPontoItem = (ponto: ClockEntryResponse, pontosNoDia: ClockEntryResponse[], index: number) => {
     const hora = clockEntryService.formatarHora(ponto.timestamp);
     const tipo = clockEntryService.formatarTipoPonto(ponto.tipo as ClockEntryType);
@@ -252,6 +214,8 @@ export default function FrequenciaScreen() {
     const icone = clockEntryService.getIconePonto(ponto.tipo as ClockEntryType);
     const showLocation = mostrarLocalizacao[ponto.id];
     const numeroSequencial = obterNumeroSequencial(pontosNoDia, ponto);
+
+    // Formata o texto com numeração: "Entrada 1", "Saída 2", etc.
     const tipoComNumero = `${tipo} ${numeroSequencial}`;
 
     return (
@@ -305,45 +269,6 @@ export default function FrequenciaScreen() {
     );
   };
 
-  const renderHistoricoPontos = () => {
-    const pontos = isAdmin ? todosOsPontos : pontosHoje;
-    
-    if (loading) {
-      return (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#0A4A8E" />
-          <Text style={styles.loadingText}>Carregando...</Text>
-        </View>
-      );
-    }
-
-    if (pontos.length === 0) {
-      return (
-        <View style={styles.emptyContainer}>
-          <Ionicons name="time-outline" size={64} color="#CCCCCC" />
-          <Text style={styles.emptyText}>Nenhum ponto registrado</Text>
-          <Text style={styles.emptySubtext}>
-            {isAdmin ? 'Sem registros no histórico' : 'Registre sua entrada para começar'}
-          </Text>
-        </View>
-      );
-    }
-
-    const grupos = agruparPontosPorDia(pontos);
-    const datasOrdenadas = Object.keys(grupos).sort((a, b) => b.localeCompare(a));
-
-    return (
-      <View style={styles.pontosLista}>
-        {datasOrdenadas.map((data) => (
-          <View key={data} style={styles.grupoData}>
-            <Text style={styles.dataHeader}>📅 {data}</Text>
-            {grupos[data].map((ponto, index) => renderPontoItem(ponto, grupos[data], index))}
-          </View>
-        ))}
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView 
@@ -352,30 +277,40 @@ export default function FrequenciaScreen() {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        
         {/* Cabeçalho */}
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
             <TouchableOpacity style={styles.headerProfile} onPress={openModal}>
               {profileImage ? (
-                <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                <Image source={{ uri: profileImage }} style={styles.profileAvatar} />
               ) : (
-                <View style={styles.profileImagePlaceholder}>
-                  <Ionicons name="person" size={24} color="#FFFFFF" />
-                </View>
+                <FontAwesome5 name="user-circle" size={28} color="white" />
               )}
-              <View style={styles.headerTextContainer}>
-                <Text style={styles.greeting}>Olá,</Text>
-                <Text style={styles.username}>{userName}</Text>
-              </View>
+              <Text style={styles.headerName}>{userName}</Text>
             </TouchableOpacity>
-
-            <TouchableOpacity 
-              style={styles.headerIconButton}
-              onPress={() => console.log('Notificações')}
-            >
-              <Ionicons name="notifications-outline" size={28} color="#0A4A8E" />
-            </TouchableOpacity>
+            
+            <View style={styles.headerIconsContainer}>
+              <TouchableOpacity onPress={() => router.push({ pathname: '/notificacoes' as any })}>
+                <Ionicons name="notifications-outline" size={28} color="white" />
+                <View style={styles.notificationDot} />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => {/* Lógica do Menu */}}>
+                <Ionicons name="menu" size={32} color="white" style={{ marginLeft: 15 }} />
+              </TouchableOpacity>
+            </View>
           </View>
+          <Text style={styles.screenTitle}>
+            {isAdmin ? 'Controle de Ponto - Todos os Usuários' : 'Registro de Ponto'}
+          </Text>
+          <Text style={styles.screenSubtitle}>
+            {new Date().toLocaleDateString('pt-BR', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
+          </Text>
         </View>
 
         {/* Botões de Registro */}
@@ -401,7 +336,52 @@ export default function FrequenciaScreen() {
             </TouchableOpacity>
           </View>
 
-          {renderHistoricoPontos()}
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#0A4A8E" />
+              <Text style={styles.loadingText}>Carregando...</Text>
+            </View>
+          ) : isAdmin ? (
+            todosOsPontos.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="time-outline" size={64} color="#CCCCCC" />
+                <Text style={styles.emptyText}>Nenhum ponto registrado</Text>
+                <Text style={styles.emptySubtext}>Sem registros no histórico</Text>
+              </View>
+            ) : (
+              <View style={styles.pontosLista}>
+                {(() => {
+                  const grupos = agruparPontosPorDia(todosOsPontos);
+                  return Object.keys(grupos).sort((a, b) => b.localeCompare(a)).map((data) => (
+                    <View key={data} style={styles.grupoData}>
+                      <Text style={styles.dataHeader}>📅 {data}</Text>
+                      {grupos[data].map((ponto, index) => renderPontoItem(ponto, grupos[data], index))}
+                    </View>
+                  ));
+                })()}
+              </View>
+            )
+          ) : (
+            pontosHoje.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="time-outline" size={64} color="#CCCCCC" />
+                <Text style={styles.emptyText}>Nenhum ponto registrado hoje</Text>
+                <Text style={styles.emptySubtext}>Registre sua entrada para começar</Text>
+              </View>
+            ) : (
+              <View style={styles.pontosLista}>
+                {(() => {
+                  const grupos = agruparPontosPorDia(pontosHoje);
+                  return Object.keys(grupos).sort((a, b) => b.localeCompare(a)).map((data) => (
+                    <View key={data} style={styles.grupoData}>
+                      <Text style={styles.dataHeader}>📅 {data}</Text>
+                      {grupos[data].map((ponto, index) => renderPontoItem(ponto, grupos[data], index))}
+                    </View>
+                  ));
+                })()}
+              </View>
+            )
+          )}
         </View>
 
         {/* Informações Adicionais */}
@@ -411,6 +391,7 @@ export default function FrequenciaScreen() {
             Lembre-se de registrar todos os pontos durante o dia: entrada, saída e horários de almoço.
           </Text>
         </View>
+
       </ScrollView>
 
       {/* Mensagem de Sucesso Flutuante */}
@@ -419,16 +400,6 @@ export default function FrequenciaScreen() {
           <View style={styles.mensagemSucesso}>
             <Ionicons name="checkmark-circle" size={24} color="#4CAF50" />
             <Text style={styles.mensagemSucessoTexto}>{mensagemSucesso}</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Mensagem de Erro Flutuante */}
-      {mensagemErro && (
-        <View style={styles.mensagemErroContainer}>
-          <View style={styles.mensagemErro}>
-            <Ionicons name="close-circle" size={24} color="#F44336" />
-            <Text style={styles.mensagemErroTexto}>{mensagemErro}</Text>
           </View>
         </View>
       )}
@@ -474,88 +445,82 @@ export default function FrequenciaScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: '#F5F7FA',
-  },
-  container: {
-    flex: 1,
-  },
+  safeArea: { flex: 1, backgroundColor: '#0A4A8E' },
+  container: { flex: 1, backgroundColor: '#F0F2F5' },
   
   // Header
-  header: {
-    backgroundColor: '#FFFFFF',
-    padding: 20,
-    paddingTop: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+  header: { 
+    backgroundColor: '#0A4A8E', 
+    paddingHorizontal: 20, 
+    paddingTop: 40, 
+    paddingBottom: 30, 
+    borderBottomLeftRadius: 30, 
+    borderBottomRightRadius: 30,
   },
-  headerTopRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+  headerTopRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    alignItems: 'center', 
+    width: '100%',
   },
-  headerProfile: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+  headerProfile: { flexDirection: 'row', alignItems: 'center' },
+  profileAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: 'white',
   },
-  profileImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    marginRight: 12,
+  headerName: { color: 'white', fontSize: 18, marginLeft: 10, fontWeight: 'bold' },
+  screenTitle: { 
+    fontSize: 28, 
+    fontWeight: 'bold', 
+    color: 'white', 
+    textAlign: 'center', 
+    marginTop: 20,
   },
-  profileImagePlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#0A4A8E',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  headerTextContainer: {
-    flex: 1,
-  },
-  greeting: {
+  screenSubtitle: {
     fontSize: 14,
-    color: '#666',
+    color: 'rgba(255, 255, 255, 0.8)',
+    textAlign: 'center',
+    marginTop: 8,
+    textTransform: 'capitalize',
   },
-  username: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#0A4A8E',
-  },
-  headerIconButton: {
-    padding: 8,
+  headerIconsContainer: { flexDirection: 'row', alignItems: 'center' },
+  notificationDot: { 
+    position: 'absolute', 
+    top: 0, 
+    right: 15, 
+    width: 10, 
+    height: 10, 
+    borderRadius: 5, 
+    backgroundColor: 'red', 
+    borderWidth: 1, 
+    borderColor: 'white',
   },
 
   // Botões de Ponto
   botoesContainer: {
-    padding: 20,
-    gap: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 30,
   },
   botoesRow: {
     flexDirection: 'row',
-    gap: 12,
+    justifyContent: 'space-between',
+    marginBottom: 20,
   },
   botaoPonto: {
     flex: 1,
     height: 85,
-    borderRadius: 16,
+    marginHorizontal: 8,
+    borderRadius: 15,
     justifyContent: 'center',
     alignItems: 'center',
+    elevation: 5,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   botaoDesabilitado: {
     opacity: 0.6,
@@ -563,88 +528,68 @@ const styles = StyleSheet.create({
   botaoPontoTexto: {
     color: 'white',
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 'bold',
     marginTop: 8,
+    textAlign: 'center',
   },
 
   // Histórico
   historicoContainer: {
-    backgroundColor: '#FFFFFF',
     marginHorizontal: 20,
     marginBottom: 20,
-    padding: 16,
-    borderRadius: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 20,
     elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
   },
   historicoHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E0E0E0',
+    marginBottom: 20,
   },
   historicoTitulo: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0A4A8E',
+    color: '#333',
   },
   loadingContainer: {
-    padding: 40,
     alignItems: 'center',
+    paddingVertical: 40,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 14,
+    marginTop: 10,
+    fontSize: 16,
     color: '#666',
   },
   emptyContainer: {
-    padding: 40,
     alignItems: 'center',
+    paddingVertical: 40,
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: '#999',
-    marginTop: 12,
+    fontWeight: 'bold',
+    color: '#666',
+    marginTop: 16,
   },
   emptySubtext: {
     fontSize: 14,
-    color: '#CCC',
-    marginTop: 4,
+    color: '#999',
+    marginTop: 8,
   },
-
-  // Grupo de Data
-  grupoData: {
-    marginBottom: 20,
-  },
-  dataHeader: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0A4A8E',
-    marginBottom: 12,
-    marginLeft: 4,
-    paddingBottom: 8,
-    borderBottomWidth: 2,
-    borderBottomColor: '#E0E0E0',
-  },
-
-  // Lista de Pontos
   pontosLista: {
-    gap: 8,
+    gap: 12,
   },
   pontoItem: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    padding: 12,
-    backgroundColor: '#F9FAFB',
+    alignItems: 'center',
+    backgroundColor: '#F8F9FA',
     borderRadius: 12,
-    marginBottom: 8,
+    padding: 16,
   },
   pontoIcone: {
     width: 48,
@@ -655,23 +600,29 @@ const styles = StyleSheet.create({
   },
   pontoInfo: {
     flex: 1,
-    marginLeft: 12,
-  },
-  pontoUserId: {
-    fontSize: 11,
-    color: '#999',
-    marginBottom: 2,
-    fontStyle: 'italic',
+    marginLeft: 16,
   },
   pontoTipo: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 'bold',
     color: '#333',
-    marginBottom: 4,
   },
   pontoHora: {
     fontSize: 14,
     color: '#666',
+    marginTop: 4,
+  },
+  pontoUserId: {
+    fontSize: 12,
+    color: '#0A4A8E',
+    fontWeight: '600',
+    marginBottom: 6,
+    fontStyle: 'italic',
+  },
+  pontoData: {
+    fontSize: 12,
+    color: '#999',
+    marginTop: 2,
   },
   localizacaoContainer: {
     marginTop: 12,
@@ -694,6 +645,21 @@ const styles = StyleSheet.create({
   },
   pontoStatus: {
     marginLeft: 12,
+  },
+
+  // Grupo de Data
+  grupoData: {
+    marginBottom: 20,
+  },
+  dataHeader: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0A4A8E',
+    marginBottom: 12,
+    marginLeft: 4,
+    paddingBottom: 8,
+    borderBottomWidth: 2,
+    borderBottomColor: '#E0E0E0',
   },
 
   // Info Card
@@ -748,38 +714,6 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // Mensagem de Erro
-  mensagemErroContainer: {
-    position: 'absolute',
-    top: 100,
-    left: 20,
-    right: 20,
-    zIndex: 9999,
-    alignItems: 'center',
-  },
-  mensagemErro: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-    elevation: 5,
-    borderLeftWidth: 4,
-    borderLeftColor: '#F44336',
-  },
-  mensagemErroTexto: {
-    marginLeft: 12,
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    flex: 1,
-  },
-
   // Modal
   modalOverlay: {
     flex: 1,
@@ -807,7 +741,7 @@ const styles = StyleSheet.create({
   modalTitulo: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#0A4A8E',
+    color: '#333',
     marginTop: 12,
   },
   modalMensagem: {
@@ -815,6 +749,7 @@ const styles = StyleSheet.create({
     color: '#666',
     textAlign: 'center',
     marginBottom: 24,
+    lineHeight: 24,
   },
   modalBotoes: {
     flexDirection: 'row',
@@ -828,6 +763,8 @@ const styles = StyleSheet.create({
   },
   modalBotaoCancelar: {
     backgroundColor: '#F5F5F5',
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   modalBotaoConfirmar: {
     backgroundColor: '#0A4A8E',
@@ -840,6 +777,6 @@ const styles = StyleSheet.create({
   modalBotaoTextoConfirmar: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#FFFFFF',
+    color: 'white',
   },
 });

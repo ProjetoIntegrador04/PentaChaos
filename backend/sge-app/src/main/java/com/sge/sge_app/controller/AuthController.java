@@ -10,6 +10,7 @@ import com.sge.sge_app.services.UserService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -30,6 +31,12 @@ public class AuthController {
         this.userService = userService;
     }
 
+    /**
+     * Registra um novo usuário
+     * IMPORTANTE: Apenas ADMINs (coordenadores) podem criar novos usuários
+     * Endpoint: POST /auth/register
+     */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/register")
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegisterRequestDTO registerRequest) {
         UserResponseDTO newUser = userService.registerNewUser(registerRequest);

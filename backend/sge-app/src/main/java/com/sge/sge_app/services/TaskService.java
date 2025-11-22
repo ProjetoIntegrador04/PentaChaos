@@ -40,9 +40,13 @@ public class TaskService {
      */
     public List<Task> getAllTasks(Authentication authentication) {
         String username = authentication.getName();
-        boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
+        
+        // Verificação correta de admin usando stream.anyMatch
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
 
         if (isAdmin) {
+            // Admin vê todas as tarefas
             return repository.findAll();
         } else {
             // USER vê apenas suas tarefas
