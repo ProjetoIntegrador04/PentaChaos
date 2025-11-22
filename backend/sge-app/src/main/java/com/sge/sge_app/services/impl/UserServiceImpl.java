@@ -64,13 +64,28 @@ public class UserServiceImpl implements UserService {
     user.setEmail(request.getEmail());
     user.setPassword(passwordEncoder.encode(request.getPassword())); // Hashea a senha
     user.setEnabled(true); // Novo usuário por padrão está habilitado
+    
+    // Campos adicionais (opcionais)
+    user.setFullName(request.getFullName());
+    user.setRa(request.getRa());
+    user.setSquad(request.getSquad());
+    user.setPhoneNumber(request.getPhoneNumber());
 
     Set<Role> roles = new HashSet<>();
-    // Adiciona o papel padrão "ROLE_USER"
-    // Garante que o papel exista, criando-o se não existir
+    
+    // Adiciona o papel padrão "ROLE_USER" para todos
     Role userRole = roleService.findByName("ROLE_USER")
         .orElseGet(() -> roleService.createRole("ROLE_USER"));
     roles.add(userRole);
+    
+    // Se o campo isAdmin for true, adiciona ROLE_ADMIN
+    if (request.getIsAdmin() != null && request.getIsAdmin()) {
+        Role adminRole = roleService.findByName("ROLE_ADMIN")
+            .orElseGet(() -> roleService.createRole("ROLE_ADMIN"));
+        roles.add(adminRole);
+        System.out.println("User will be created with ADMIN role");
+    }
+    
     user.setRoles(roles);
 
     System.out.println("Saving user: " + user.getUsername() + ", " + user.getEmail());

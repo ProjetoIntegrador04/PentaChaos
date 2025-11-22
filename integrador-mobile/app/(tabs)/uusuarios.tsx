@@ -1,74 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Alert, ScrollView, TextInput } from 'react-native';
-import { Ionicons, FontAwesome5, AntDesign } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const PROFILE_NOME_KEY = 'profile_nome';
+import React, { useState, useEffect, useCallback } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, FlatList, TouchableOpacity, Alert, ScrollView, TextInput, ActivityIndicator, RefreshControl, Image } from 'react-native';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
+import { router } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
+import { usePerfilModal } from '../../context/PerfilModalContext';
+import { useProfileImage } from '../../context/ProfileImageContext';
+import userService from '../../services/user.service';
 
 // --- TIPO PARA UM ITEM DA LISTA ---
 type UserType = {
-  id: string;
-  name: string;
-  status: 'ATIVO' | 'INATIVO';
+  id: string | number;
+  username: string;
+  fullName?: string;
+  enabled: boolean;
   email: string;
-  ra: string;
-  squad: string;
+  ra?: string;
+  squad?: string;
 };
 
-// --- DADOS DE EXEMPLO (MOCK) ---
-const usersData: UserType[] = [
-  { id: '1', name: 'David Franco', status: 'ATIVO', email: 'david.franco@email.com', ra: '554033', squad: 'CASE' },
-  { id: '2', name: 'Maria Souza', status: 'ATIVO', email: 'maria.souza@email.com', ra: '778899', squad: 'CASE' },
-  { id: '3', name: 'João Silva', status: 'INATIVO', email: 'joao.silva@email.com', ra: '112233', squad: 'LSD' },
-  { id: '4', name: 'Thóris Medeiros', status: 'ATIVO', email: 'thoris.merds@email.com', ra: '778865', squad: 'LSD' },
-  { id: '5', name: 'Carlos Eduardo', status: 'INATIVO', email: 'carlos.edu@email.com', ra: '112267', squad: 'INFRA' },
-  { id: '6', name: 'Ana Clara', status: 'ATIVO', email: 'ana.clara@email.com', ra: '111111', squad: 'CASE' },
-  { id: '7', name: 'Lucas Souza', status: 'ATIVO', email: 'lucas.souza@email.com', ra: '222222', squad: 'LSD' },
-  { id: '8', name: 'Mariana Costa', status: 'ATIVO', email: 'mariana.costa@email.com', ra: '333333', squad: 'LSD' },
-  { id: '9', name: 'Pedro Henrique', status: 'ATIVO', email: 'pedro.henrique@email.com', ra: '444444', squad: 'INFRA' },
-  { id: '10', name: 'Juliana Silva', status: 'ATIVO', email: 'juliana.silva@email.com', ra: '555555', squad: 'Alpha' },
-];
-
 // --- COMPONENTE PARA RENDERIZAR CADA LINHA ---
-const UserItemRow = ({ item }: { item: UserType }) => (
-  <View style={styles.listItemContainer}>
-    <Text style={[styles.cellText, styles.statusCell, item.status === 'ATIVO' ? styles.statusActive : styles.statusInactive]}>
-      {item.status}
-    </Text>
-    <Text style={[styles.cellText, styles.nameCell]}>{item.name}</Text>
-    <Text style={[styles.cellText, styles.emailCell]}>{item.email}</Text>
-    <Text style={[styles.cellText, styles.raCell]}>{item.ra}</Text>
-    <Text style={[styles.cellText, styles.squadCell]}>{item.squad}</Text>
-    <View style={styles.actionCell}>
-      <TouchableOpacity onPress={() => router.push({ pathname: '/userDetail' as any, params: { userId: item.id } })} style={{ marginRight: 15 }}>
-        <FontAwesome5 name="pencil-alt" size={18} color="#1E63B0" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={() => Alert.alert('Ação', `Alterar status de ${item.name}`)}>
-        <Ionicons name="power" size={22} color={item.status === 'ATIVO' ? 'red' : 'gray'} />
-      </TouchableOpacity>
+const UserItemRow = ({ item, onToggleStatus, isAdmin }: { item: UserType; onToggleStatus: (id: string | number) => void; isAdmin: boolean }) => {
+  const displayName = item.fullName || item.username;
+  const statusText = item.enabled ? 'ATIVO' : 'INATIVO';
+  
+  return (
+    <View style={styles.listItemContainer}>
+      <Text style={[styles.cellText, styles.statusCell, item.enabled ? styles.statusActive : styles.statusInactive]}>
+        {statusText}
+      </Text>
+      <Text style={[styles.cellText, styles.nameCell]}>{displayName}</Text>
+      <Text style={[styles.cellText, styles.emailCell]}>{item.email}</Text>
+      <Text style={[styles.cellText, styles.raCell]}>{item.ra || '-'}</Text>
+      <Text style={[styles.cellText, styles.squadCell]}>{item.squad || '-'}</Text>
+      <View style={styles.actionCell}>
+        {isAdmin ? (
+          <>
+            <TouchableOpacity onPress={() => router.push({ pathname: '/userDetail' as any, params: { userId: item.id } })} style={{ marginRight: 15 }}>
+              <FontAwesome5 name="pencil-alt" size={18} color="#1E63B0" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => onToggleStatus(item.id)}>
+              <Ionicons name="power" size={22} color={item.enabled ? 'red' : 'gray'} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <Text style={styles.noActionText}>-</Text>
+        )}
+      </View>
     </View>
-  </View>
-);
+  );
+};
 
 // --- TELA PRINCIPAL ---
 export default function UserControlScreen() {
-  const [userName, setUserName] = useState("Marcelo");
+  const { user } = useAuth();
+  const { openModal } = usePerfilModal();
+  const { profileImage } = useProfileImage();
+  const [userName, setUserName] = useState("Usuário");
+  const [isAdmin, setIsAdmin] = useState(false);
   const [searchText, setSearchText] = useState('');
-  const [filteredData, setFilteredData] = useState(usersData);
+  const [usersData, setUsersData] = useState<UserType[]>([]);
+  const [filteredData, setFilteredData] = useState<UserType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Carrega o nome do gestor
-  useFocusEffect(
-    React.useCallback(() => {
-      const loadUserName = async () => {
-        try {
-          const savedName = await AsyncStorage.getItem(PROFILE_NOME_KEY);
-          if (savedName !== null) { setUserName(savedName); }
-        } catch (e) { console.error("Falha ao carregar o nome", e); }
-      };
-      loadUserName();
-    }, [])
-  );
+  useEffect(() => {
+    if (user?.username) {
+      setUserName(user.username);
+    }
+    // Verifica se o usuário tem role ADMIN
+    if (user?.roles) {
+      const hasAdminRole = user.roles.some(role => role.name === 'ROLE_ADMIN');
+      setIsAdmin(hasAdminRole);
+      
+      // Se não for admin, mostrar aviso e não carregar dados
+      if (!hasAdminRole) {
+        Alert.alert(
+          'Acesso Negado', 
+          'Apenas coordenadores podem acessar o controle de usuários.',
+          [{ text: 'OK', onPress: () => router.back() }]
+        );
+      }
+    }
+  }, [user]);
+
+  // Carregar dados do backend
+  const loadUsers = useCallback(async () => {
+    // Só carrega se for ADMIN
+    if (!isAdmin) {
+      setLoading(false);
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const users = await userService.getAllUsers();
+      setUsersData(users);
+      setFilteredData(users);
+    } catch (error: any) {
+      console.error('❌ Erro ao carregar usuários:', error);
+      
+      // Se for erro 403 (Forbidden), significa que não tem permissão
+      if (error.response?.status === 403) {
+        Alert.alert('Acesso Negado', 'Você não tem permissão para visualizar usuários.');
+        router.back();
+      } else {
+        Alert.alert('Erro', 'Não foi possível carregar a lista de usuários.');
+      }
+    } finally {
+      setLoading(false);
+    }
+  }, [isAdmin]);
+
+  // Recarregar dados (pull to refresh)
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await loadUsers();
+    setRefreshing(false);
+  };
+
+  // Toggle status do usuário
+  const handleToggleStatus = async (userId: string | number) => {
+    try {
+      const userToToggle = usersData.find(u => u.id === userId);
+      if (!userToToggle) return;
+
+      const newStatus = userToToggle.enabled ? 'desativado' : 'ativado';
+      Alert.alert(
+        'Confirmar',
+        `Deseja ${newStatus === 'desativado' ? 'desativar' : 'ativar'} o usuário ${userToToggle.fullName || userToToggle.username}?`,
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Confirmar',
+            onPress: async () => {
+              try {
+                await userService.toggleUserStatus(Number(userId));
+                Alert.alert('Sucesso', `Usuário ${newStatus} com sucesso!`);
+                await loadUsers(); // Recarregar lista
+              } catch (error) {
+                console.error('❌ Erro ao alterar status:', error);
+                Alert.alert('Erro', 'Não foi possível alterar o status do usuário.');
+              }
+            }
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('❌ Erro:', error);
+    }
+  };
+
+  // Carregar dados ao montar o componente (apenas se for ADMIN)
+  useEffect(() => {
+    loadUsers();
+  }, [loadUsers]);
 
   // Lógica de pesquisa
   useEffect(() => {
@@ -77,15 +162,18 @@ export default function UserControlScreen() {
     } else {
       const lowerCaseSearch = searchText.toLowerCase();
       setFilteredData(
-        usersData.filter(item =>
-          item.name.toLowerCase().includes(lowerCaseSearch) ||
-          item.email.toLowerCase().includes(lowerCaseSearch) ||
-          item.ra.toLowerCase().includes(lowerCaseSearch) ||
-          item.squad.toLowerCase().includes(lowerCaseSearch)
-        )
+        usersData.filter(item => {
+          const displayName = (item.fullName || item.username).toLowerCase();
+          return (
+            displayName.includes(lowerCaseSearch) ||
+            item.email.toLowerCase().includes(lowerCaseSearch) ||
+            (item.ra && item.ra.toLowerCase().includes(lowerCaseSearch)) ||
+            (item.squad && item.squad.toLowerCase().includes(lowerCaseSearch))
+          );
+        })
       );
     }
-  }, [searchText]);
+  }, [searchText, usersData]);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -93,8 +181,12 @@ export default function UserControlScreen() {
         {/* Cabeçalho */}
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            <TouchableOpacity style={styles.headerProfile} onPress={() => router.push({ pathname: '/perfil' as any })}>
-              <FontAwesome5 name="user-circle" size={28} color="white" />
+            <TouchableOpacity style={styles.headerProfile} onPress={openModal}>
+              {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.profileAvatar} />
+              ) : (
+                <FontAwesome5 name="user-circle" size={28} color="white" />
+              )}
               <Text style={styles.headerName}>{userName}</Text>
             </TouchableOpacity>
             <View style={styles.headerIconsContainer}>
@@ -112,20 +204,19 @@ export default function UserControlScreen() {
         {/* Corpo da Tela */}
         <View style={styles.contentHeader}>
           <Text style={styles.screenTitle}>Controle de Usuários</Text>
-          <View style={styles.buttonRow}>
-            <TouchableOpacity style={styles.reportButton}>
-              <Ionicons name="download-outline" size={18} color="#1E63B0" />
-              <Text style={styles.reportButtonText}>Gerar relatório</Text>
-            </TouchableOpacity>
+          {isAdmin && (
+            <View style={styles.buttonRow}>
+              <TouchableOpacity style={styles.reportButton}>
+                <Ionicons name="download-outline" size={18} color="#1E63B0" />
+                <Text style={styles.reportButtonText}>Gerar relatório</Text>
+              </TouchableOpacity>
 
-            {/* --- A CORREÇÃO ESTÁ AQUI --- */}
-            {/* O onPress agora navega para o novo modal */}
-            <TouchableOpacity style={styles.createButton} onPress={() => router.push('/cadastrarUsuarioModal')}>
-              <Ionicons name="add" size={18} color="white" />
-              <Text style={styles.createButtonText}>Cadastrar usuário</Text>
-            </TouchableOpacity>
-
-          </View>
+              <TouchableOpacity style={styles.createButton} onPress={() => router.push('/cadastrarUsuarioModal')}>
+                <Ionicons name="add" size={18} color="white" />
+                <Text style={styles.createButtonText}>Cadastrar usuário</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
         {/* Barra de Pesquisa */}
@@ -155,12 +246,33 @@ export default function UserControlScreen() {
               </View>
 
               {/* Lista */}
-              <FlatList
-                data={filteredData}
-                renderItem={({ item }) => <UserItemRow item={item} />}
-                keyExtractor={item => item.id}
-                ItemSeparatorComponent={() => <View style={styles.separator} />}
-              />
+              {loading ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <ActivityIndicator size="large" color="#1E63B0" />
+                  <Text style={{ marginTop: 10, color: '#666' }}>Carregando usuários...</Text>
+                </View>
+              ) : !isAdmin ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <Ionicons name="lock-closed" size={48} color="#999" />
+                  <Text style={{ marginTop: 15, color: '#666', fontSize: 16, textAlign: 'center' }}>
+                    Acesso restrito a coordenadores
+                  </Text>
+                </View>
+              ) : filteredData.length === 0 ? (
+                <View style={{ padding: 40, alignItems: 'center' }}>
+                  <Text style={{ color: '#666', fontSize: 16 }}>Nenhum usuário encontrado.</Text>
+                </View>
+              ) : (
+                <FlatList
+                  data={filteredData}
+                  renderItem={({ item }) => <UserItemRow item={item} onToggleStatus={handleToggleStatus} isAdmin={isAdmin} />}
+                  keyExtractor={item => String(item.id)}
+                  ItemSeparatorComponent={() => <View style={styles.separator} />}
+                  refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+                  }
+                />
+              )}
             </View>
           </ScrollView>
         </View>
@@ -176,6 +288,13 @@ const styles = StyleSheet.create({
   header: { backgroundColor: '#0A4A8E', paddingHorizontal: 20, paddingTop: 40, paddingBottom: 20 },
   headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%' },
   headerProfile: { flexDirection: 'row', alignItems: 'center' },
+  profileAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: 'white',
+  },
   headerName: { color: 'white', fontSize: 18, marginLeft: 10, fontWeight: 'bold' },
   headerIconsContainer: { flexDirection: 'row', alignItems: 'center' },
   notificationDot: { position: 'absolute', top: 0, right: 15, width: 10, height: 10, borderRadius: 5, backgroundColor: 'red', borderWidth: 1, borderColor: 'white' },
@@ -238,5 +357,6 @@ const styles = StyleSheet.create({
   raCell: { width: 100, },
   squadCell: { width: 80, },
   actionCell: { width: 80, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', },
+  noActionText: { color: '#ccc', fontSize: 14 },
   separator: { height: 1, backgroundColor: '#f0f0f0', },
 });

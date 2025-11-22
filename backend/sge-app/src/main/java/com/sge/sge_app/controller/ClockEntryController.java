@@ -11,7 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.security.core.Authentication;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/clockentries")
@@ -46,5 +47,26 @@ public class ClockEntryController {
     public ResponseEntity<ClockEntryResponse> getClockEntryById(@PathVariable Long id, Authentication authentication) {
         ClockEntryResponse response = clockEntryService.buscarPontoPorId(id);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me/today")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<List<ClockEntryResponse>> getMeusPontosHoje(Authentication authentication) {
+        List<ClockEntryResponse> pontos = clockEntryService.buscarPontosDoUsuarioHoje(authentication);
+        return ResponseEntity.ok(pontos);
+    }
+
+    @GetMapping("/me/history")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<List<ClockEntryResponse>> getMeuHistoricoPontos(Authentication authentication) {
+        List<ClockEntryResponse> pontos = clockEntryService.buscarHistoricoSimples(authentication);
+        return ResponseEntity.ok(pontos);
+    }
+
+    @GetMapping("/users/{userId}/today")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ClockEntryResponse>> getPontosUsuarioHoje(@PathVariable Long userId) {
+        List<ClockEntryResponse> pontos = clockEntryService.buscarPontosUsuarioPorData(userId, null, null);
+        return ResponseEntity.ok(pontos);
     }
 }

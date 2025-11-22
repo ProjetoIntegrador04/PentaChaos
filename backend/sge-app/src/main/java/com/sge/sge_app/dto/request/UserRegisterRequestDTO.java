@@ -22,4 +22,14 @@ public class UserRegisterRequestDTO {
   @NotBlank(message = "A senha não pode estar em branco.")
   @Size(min = 6, max = 100, message = "A senha deve ter pelo menos 6 caracteres.")
   private String password;
+
+  // Campos opcionais adicionais
+  private String fullName; // Nome completo
+  private String ra; // Registro Acadêmico
+  private String squad; // Squad/Equipe
+  private String phoneNumber; // Telefone
+  
+  // Flag para indicar se o usuário deve ser criado como ADMIN
+  // Apenas admins podem criar outros admins
+  private Boolean isAdmin; // Se true, adiciona ROLE_ADMIN
 }

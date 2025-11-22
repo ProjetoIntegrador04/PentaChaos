@@ -11,6 +11,11 @@ export interface RegisterRequest {
   username: string;
   email: string;
   password: string;
+  fullName?: string;
+  ra?: string;
+  squad?: string;
+  phoneNumber?: string;
+  isAdmin?: boolean; // Flag para criar usuário como ADMIN
 }
 
 export interface LoginResponse {
@@ -30,6 +35,10 @@ export interface User {
   email: string;
   enabled: boolean;
   roles: Role[];
+  fullName?: string;
+  ra?: string;
+  squad?: string;
+  phoneNumber?: string;
   createdAt?: string;
   updatedAt?: string;
 }

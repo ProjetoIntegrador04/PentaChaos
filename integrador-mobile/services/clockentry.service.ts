@@ -67,12 +67,33 @@ class ClockEntryService {
   }
 
   /**
-   * Busca histórico de pontos do usuário
+   * Busca pontos do usuário registrados hoje
    */
-  async buscarHistorico(): Promise<ClockEntryResponse[]> {
+  async buscarPontosHoje(): Promise<ClockEntryResponse[]> {
     try {
       const response = await api.get<ClockEntryResponse[]>(
-        API_ENDPOINTS.CLOCKENTRY.BASE
+        API_ENDPOINTS.CLOCKENTRY.ME_TODAY
+      );
+      console.log(`✅ Pontos de hoje carregados: ${response.data.length} registros`);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar pontos de hoje:', error.response?.data || error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Busca histórico de pontos do usuário com filtro de data
+   */
+  async buscarHistorico(startDate?: string, endDate?: string): Promise<ClockEntryResponse[]> {
+    try {
+      const params: any = {};
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+
+      const response = await api.get<ClockEntryResponse[]>(
+        API_ENDPOINTS.CLOCKENTRY.ME_HISTORY,
+        { params }
       );
       console.log(`✅ Histórico carregado: ${response.data.length} registros`);
       return response.data;
@@ -159,6 +180,53 @@ class ClockEntryService {
       LUNCH_END: 'Fim do Almoço',
     };
     return tipos[tipo] || tipo;
+  }
+
+  /**
+   * Formata timestamp para exibição (HH:mm)
+   */
+  formatarHora(timestamp: string): string {
+    const date = new Date(timestamp);
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${hours}:${minutes}`;
+  }
+
+  /**
+   * Formata data completa para exibição
+   */
+  formatarData(timestamp: string): string {
+    const date = new Date(timestamp);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+  }
+
+  /**
+   * Retorna ícone baseado no tipo de ponto
+   */
+  getIconePonto(tipo: ClockEntryType): string {
+    const icones: Record<ClockEntryType, string> = {
+      ENTRY: 'log-in',
+      EXIT: 'log-out',
+      LUNCH_START: 'restaurant',
+      LUNCH_END: 'restaurant-outline',
+    };
+    return icones[tipo] || 'time';
+  }
+
+  /**
+   * Retorna cor baseada no tipo de ponto
+   */
+  getCorPonto(tipo: ClockEntryType): string {
+    const cores: Record<ClockEntryType, string> = {
+      ENTRY: '#4CAF50', // Verde
+      EXIT: '#F44336', // Vermelho
+      LUNCH_START: '#FF9800', // Laranja
+      LUNCH_END: '#2196F3', // Azul
+    };
+    return cores[tipo] || '#757575';
   }
 }
 

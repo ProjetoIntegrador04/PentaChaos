@@ -66,6 +66,20 @@ class UserService {
   }
 
   /**
+   * Alterna o status de um usuário (ativo/inativo)
+   */
+  async toggleUserStatus(userId: number): Promise<User> {
+    try {
+      const response = await api.patch<User>(`/api/v1/users/${userId}/status`);
+      console.log(`✅ Status do usuário ${userId} alternado`);
+      return response.data;
+    } catch (error: any) {
+      console.error(`❌ Erro ao alterar status do usuário ${userId}:`, error.response?.data || error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Verifica se o usuário tem role ADMIN
    */
   isAdmin(user: User): boolean {

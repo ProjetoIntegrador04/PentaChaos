@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { Alert } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import { AuthProvider } from '../context/AuthContext';
+import { ProfileImageProvider } from '../context/ProfileImageContext';
 
 // Configuração do handler de notificações
 Notifications.setNotificationHandler({
@@ -30,14 +31,15 @@ export default function RootLayout() {
 
   return (  
     <AuthProvider>
-      <Stack initialRouteName="index">
-        <Stack.Screen name="index" options={{ headerShown: false }} />
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="squadDetail" options={{ headerShown: false }} /> 
-        <Stack.Screen name="perfil" options={{ headerShown: false }} />
-        <Stack.Screen name="userDetail" options={{ headerShown: false }} />
-        <Stack.Screen name="notificacoes" options={{ headerShown: false }} />
-        <Stack.Screen name="clockentry" options={{ headerShown: false }} />
+      <ProfileImageProvider>
+        <Stack initialRouteName="index">
+          <Stack.Screen name="index" options={{ headerShown: false }} />
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="squadDetail" options={{ headerShown: false }} /> 
+          <Stack.Screen name="perfil" options={{ headerShown: false }} />
+          <Stack.Screen name="userDetail" options={{ headerShown: false }} />
+          <Stack.Screen name="notificacoes" options={{ headerShown: false }} />
+          <Stack.Screen name="clockentry" options={{ headerShown: false }} />
         
         {/* Modal de Nova Tarefa */}
         <Stack.Screen 
@@ -58,7 +60,8 @@ export default function RootLayout() {
             title: 'Cadastrar Usuário'
           }} 
         />
-      </Stack>
+        </Stack>
+      </ProfileImageProvider>
     </AuthProvider>
   );
 }

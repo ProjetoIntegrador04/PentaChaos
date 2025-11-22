@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TextInput, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
-import { router, useFocusEffect } from 'expo-router';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const PROFILE_NOME_KEY = 'profile_nome';
+import { router } from 'expo-router';
+import { useAuth } from '../../context/AuthContext';
+import { usePerfilModal } from '../../context/PerfilModalContext';
+import { useProfileImage } from '../../context/ProfileImageContext';
 
 type SquadType = {
   id: string;
@@ -46,9 +46,18 @@ const SquadItem = ({ item, onEdit, onViewMembers }: SquadItemProps) => (
 );
 
 export default function SquadsScreen() {
+  const { user } = useAuth();
+  const { openModal } = usePerfilModal();
+  const { profileImage } = useProfileImage();
   const [searchText, setSearchText] = useState('');
   const [filteredSquads, setFilteredSquads] = useState(initialSquadData);
-  const [userName, setUserName] = useState("Marcelo");
+  const [userName, setUserName] = useState("Usuário");
+
+  useEffect(() => {
+    if (user?.username) {
+      setUserName(user.username);
+    }
+  }, [user]);
 
   useEffect(() => {
     if (searchText === '') {
@@ -61,20 +70,6 @@ export default function SquadsScreen() {
     }
   }, [searchText]);
 
-  useFocusEffect(
-    React.useCallback(() => {
-      const loadUserName = async () => {
-        try {
-          const savedName = await AsyncStorage.getItem(PROFILE_NOME_KEY);
-          if (savedName !== null) {
-            setUserName(savedName);
-          }
-        } catch (e) { console.error("Falha ao carregar o nome do usuário", e); }
-      };
-      loadUserName();
-    }, [])
-  );
-
   const handleAddSquad = () => Alert.alert("Adicionar", "A tela para adicionar um novo squad será aberta aqui.");
   const handleEditSquad = (squad: SquadType) => Alert.alert("Editar", `Editar o ${squad.name}`);
   const handleViewMembers = (squad: SquadType) => Alert.alert("Integrantes", `Visualizar os ${squad.members} integrantes do ${squad.name}`);
@@ -86,8 +81,12 @@ export default function SquadsScreen() {
         {/* --- CABEÇALHO ATUALIZADO --- */}
         <View style={styles.header}>
           <View style={styles.headerTopRow}>
-            <TouchableOpacity style={styles.headerProfile} onPress={() => router.push({ pathname: '/perfil' as any })}>
-              <FontAwesome5 name="user-circle" size={28} color="white" />
+            <TouchableOpacity style={styles.headerProfile} onPress={openModal}>
+              {profileImage ? (
+                <Image source={{ uri: profileImage }} style={styles.profileAvatar} />
+              ) : (
+                <FontAwesome5 name="user-circle" size={28} color="white" />
+              )}
               <Text style={styles.headerName}>{userName}</Text>
             </TouchableOpacity>
             
@@ -160,6 +159,13 @@ const styles = StyleSheet.create({
   header: { backgroundColor: '#0A4A8E', paddingHorizontal: 20, paddingTop: 40, paddingBottom: 40, borderBottomLeftRadius: 30, borderBottomRightRadius: 30, },
   headerTopRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', width: '100%', },
   headerProfile: { flexDirection: 'row', alignItems: 'center', },
+  profileAvatar: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: 'white',
+  },
   headerName: { color: 'white', fontSize: 18, marginLeft: 10, fontWeight: 'bold', },
   screenTitle: { fontSize: 28, fontWeight: 'bold', color: 'white', textAlign: 'center', marginTop: 20, },
 
