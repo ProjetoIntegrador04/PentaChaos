@@ -2,11 +2,9 @@ import React, { useState, useMemo, useEffect } from "react";
 import {
   FiPlus,
   FiEdit,
-  FiPower,
   FiDownload,
   FiX,
   FiCheck,
-  FiTrash,
 } from "react-icons/fi";
 import "../../styles/Coordinator/Users.css";
 import api from "../../api/https";
@@ -22,27 +20,24 @@ interface Usuario {
   squad: string;
   enabled: boolean;
   roles: string[];
-  senha?: string; // usado apenas no cadastro/edição
-  nome?: string; // compatibilidade com modal
+  senha?: string;
+  nome?: string;
   emailPessoal?: string;
 }
-
-// =========================================
-// CONSTANTES
-// =========================================
-const AVAILABLE_SQUADS = ["CASE", "LSD", "INFRA", "PENTA", "DEVOPS", "404"];
 
 // =========================================
 // COMPONENTE: Modal de Cadastro/Edição
 // =========================================
 interface UserModalProps {
   userToEdit?: Usuario | null;
+  availableSquads: string[];
   onClose: () => void;
   onSave: (user: Usuario) => void;
 }
 
 const UserModal: React.FC<UserModalProps> = ({
   userToEdit,
+  availableSquads,
   onClose,
   onSave,
 }) => {
@@ -66,13 +61,13 @@ const UserModal: React.FC<UserModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (formData.senha !== formData.confirmarSenha) {
+    if (!userToEdit && formData.senha !== formData.confirmarSenha) {
       alert("As senhas não coincidem!");
       return;
     }
 
-    if (!formData.nome || !formData.email || !formData.ra || !formData.squad) {
-      alert("Preencha os campos obrigatórios.");
+    if (!formData.nome || !formData.ra || !formData.email || !formData.squad) {
+      alert("Preencha todos os campos obrigatórios.");
       return;
     }
 
@@ -84,7 +79,7 @@ const UserModal: React.FC<UserModalProps> = ({
       squad: formData.squad,
       enabled: userToEdit?.enabled ?? true,
       roles: userToEdit?.roles ?? ["ROLE_INTERN"],
-      senha: formData.senha, // se vazio, tratamos no front antes de mandar pro back
+      senha: formData.senha,
       emailPessoal: formData.emailPessoal,
     };
 
@@ -96,11 +91,13 @@ const UserModal: React.FC<UserModalProps> = ({
       <div className="modal-container">
         <header className="modal-header">
           <h2>{userToEdit ? "Editar Usuário" : "Cadastrar Usuário"}</h2>
-          <button className="close-btn" onClick={onClose} type="button">
+          <button className="close-btn" onClick={onClose}>
             <FiX size={24} />
           </button>
         </header>
+
         <form onSubmit={handleSubmit} className="modal-form">
+
           <div className="form-row">
             <label>Nome Completo *</label>
             <input
@@ -110,9 +107,10 @@ const UserModal: React.FC<UserModalProps> = ({
               required
             />
           </div>
+
           <div className="form-grid">
             <div className="form-row">
-              <label>Matrícula (RA) *</label>
+              <label>RA *</label>
               <input
                 name="ra"
                 value={formData.ra}
@@ -120,6 +118,7 @@ const UserModal: React.FC<UserModalProps> = ({
                 required
               />
             </div>
+
             <div className="form-row">
               <label>Squad *</label>
               <select
@@ -128,27 +127,30 @@ const UserModal: React.FC<UserModalProps> = ({
                 onChange={handleChange}
                 required
               >
-                <option value="" disabled>
-                  Selecione...
-                </option>
-                {AVAILABLE_SQUADS.map((sq) => (
-                  <option key={sq} value={sq}>
-                    {sq}
-                  </option>
-                ))}
+                <option value="" disabled>Selecione...</option>
+
+                {availableSquads.length > 0 ? (
+                  availableSquads.map((sq) => (
+                    <option key={sq} value={sq}>{sq}</option>
+                  ))
+                ) : (
+                  <option disabled>Nenhuma squad cadastrada</option>
+                )}
               </select>
             </div>
           </div>
+
           <div className="form-row">
             <label>Email Corporativo *</label>
             <input
               type="email"
               name="email"
+              required
               value={formData.email}
               onChange={handleChange}
-              required
             />
           </div>
+
           <div className="form-row">
             <label>Email Pessoal</label>
             <input
@@ -158,6 +160,7 @@ const UserModal: React.FC<UserModalProps> = ({
               onChange={handleChange}
             />
           </div>
+
           <div className="form-grid">
             <div className="form-row">
               <label>Senha {!userToEdit && "*"}</label>
@@ -169,6 +172,7 @@ const UserModal: React.FC<UserModalProps> = ({
                 required={!userToEdit}
               />
             </div>
+
             <div className="form-row">
               <label>Confirmar Senha {!userToEdit && "*"}</label>
               <input
@@ -180,19 +184,17 @@ const UserModal: React.FC<UserModalProps> = ({
               />
             </div>
           </div>
+
           <footer className="modal-footer">
-            <button
-              type="button"
-              className="btn-secondary"
-              onClick={onClose}
-            >
-              Sair
+            <button type="button" className="btn-secondary" onClick={onClose}>
+              Cancelar
             </button>
             <button type="submit" className="add-btn">
-              <FiCheck size={16} /> Salvar
+              <FiCheck /> Salvar
             </button>
           </footer>
         </form>
+
       </div>
     </div>
   );
@@ -204,15 +206,13 @@ const UserModal: React.FC<UserModalProps> = ({
 const Usuarios: React.FC = () => {
   const [usuarios, setUsuarios] = useState<Usuario[]>([]);
   const [busca, setBusca] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [userToEdit, setUserToEdit] = useState<Usuario | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // =========================================
-  // BUSCAR USUÁRIOS DA API
-  // =========================================
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [userToEdit, setUserToEdit] = useState<Usuario | null>(null);
+
   useEffect(() => {
-    const fetchUsers = async () => {
+    const load = async () => {
       try {
         const res = await api.get("/users");
         setUsuarios(res.data);
@@ -223,132 +223,115 @@ const Usuarios: React.FC = () => {
         setLoading(false);
       }
     };
-    fetchUsers();
+    load();
   }, []);
 
-  // =========================================
-  // CRIAR / EDITAR USUÁRIO
-  // =========================================
-  const handleSaveUser = async (savedUser: Usuario, isEdit: boolean) => {
+  const availableSquads = useMemo(() => {
+    const set = new Set<string>();
+    usuarios.forEach((u) => {
+      if (u.squad && u.squad.trim() !== "") set.add(u.squad.trim());
+    });
+    return Array.from(set);
+  }, [usuarios]);
+
+  const usuariosFiltrados = useMemo(() => {
+    const search = busca.toLowerCase();
+    return usuarios.filter(
+      (u) =>
+        u.username.toLowerCase().includes(search) ||
+        u.email.toLowerCase().includes(search) ||
+        u.ra.toLowerCase().includes(search)
+    );
+  }, [usuarios, busca]);
+
+  const handleSaveUser = async (savedUser: Usuario) => {
     try {
-      if (isEdit) {
-        // edição
-        const payload: any = {
-          username: savedUser.username,
-          email: savedUser.email,
-          ra: savedUser.ra,
-          squad: savedUser.squad,
-          emailPessoal: savedUser.emailPessoal,
-        };
+      const payload = {
+        username: savedUser.username,
+        email: savedUser.email,
+        password: savedUser.senha || "123456",
+        ra: savedUser.ra,
+        squad: savedUser.squad,
+      };
 
-        // Só manda senha se o usuário informou uma nova
-        if (savedUser.senha && savedUser.senha.trim() !== "") {
-          payload.password = savedUser.senha;
-        }
-
-        const res = await api.put(`/users/${savedUser.id}`, payload);
-
+      if (userToEdit) {
+        await api.put(`/users/${savedUser.id}`, payload);
         setUsuarios((prev) =>
-          prev.map((u) => (u.id === savedUser.id ? { ...u, ...res.data } : u))
+          prev.map((u) => (u.id === savedUser.id ? { ...u, ...savedUser } : u))
         );
-
-        alert("Usuário atualizado com sucesso!");
       } else {
-        // criação
-        const payload = {
-          username: savedUser.username,
-          email: savedUser.email,
-          password: savedUser.senha || "123456",
-          ra: savedUser.ra,
-          squad: savedUser.squad,
-          emailPessoal: savedUser.emailPessoal,
-        };
-
         const res = await api.post("/users/create-intern", payload);
         setUsuarios((prev) => [res.data, ...prev]);
-        alert("Usuário criado com sucesso!");
       }
+
+      alert("Usuário salvo com sucesso!");
     } catch (err) {
       console.error("Erro ao salvar usuário:", err);
-      alert("Erro ao salvar o usuário.");
+      alert("Erro ao cadastrar/editar o usuário.");
     } finally {
       setIsModalOpen(false);
       setUserToEdit(null);
     }
   };
 
-  const handleCreateNew = () => {
-    setUserToEdit(null);
-    setIsModalOpen(true);
-  };
-
-  const handleEditUser = (user: Usuario) => {
-    setUserToEdit(user);
-    setIsModalOpen(true);
-  };
-
-  // =========================================
-  // ALTERAR STATUS (ATIVO / INATIVO)
-  // =========================================
-  const handleToggleStatus = async (user: Usuario) => {
-    try {
-      const novoStatus = !user.enabled;
-      const res = await api.patch(`/users/${user.id}/status`, {
-        enabled: novoStatus,
-      });
-
-      setUsuarios((prev) =>
-        prev.map((u) =>
-          u.id === user.id ? { ...u, enabled: res.data.enabled } : u
-        )
-      );
-    } catch (err) {
-      console.error("Erro ao alterar status do usuário:", err);
-      alert("Erro ao alterar status do usuário.");
+  // ========= GERAR RELATÓRIO (CSV) =========
+  const handleGenerateReport = () => {
+    if (usuariosFiltrados.length === 0) {
+      alert("Não há usuários para gerar relatório.");
+      return;
     }
+
+    const header = ["Nome", "Email", "RA", "Squad", "Status", "Roles"];
+    const rows: string[][] = usuariosFiltrados.map((u) => [
+      u.username,
+      u.email,
+      u.ra,
+      u.squad,
+      u.enabled ? "ATIVO" : "INATIVO",
+      u.roles.join(" | "),
+    ]);
+
+    const escape = (value: string) => {
+      const v = value ?? "";
+      if (v.includes(";") || v.includes('"') || v.includes("\n")) {
+        return `"${v.replace(/"/g, '""')}"`;
+      }
+      return v;
+    };
+
+    const csvContent =
+      [header, ...rows]
+        .map((row) => row.map(escape).join(";"))
+        .join("\n");
+
+    const blob = new Blob([csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    const date = new Date().toISOString().slice(0, 10);
+
+    link.href = url;
+    link.setAttribute("download", `relatorio_usuarios_${date}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
-
-  // =========================================
-  // EXCLUIR USUÁRIO
-  // =========================================
-  const handleDeleteUser = async (user: Usuario) => {
-    const confirmar = window.confirm(
-      `Tem certeza que deseja excluir o usuário "${user.username}"?`
-    );
-    if (!confirmar) return;
-
-    try {
-      await api.delete(`/users/${user.id}`);
-      setUsuarios((prev) => prev.filter((u) => u.id !== user.id));
-      alert("Usuário excluído com sucesso!");
-    } catch (err) {
-      console.error("Erro ao excluir usuário:", err);
-      alert("Erro ao excluir o usuário.");
-    }
-  };
-
-  const usuariosFiltrados = useMemo(() => {
-    const t = busca.toLowerCase();
-    return usuarios.filter(
-      (u) =>
-        u.username.toLowerCase().includes(t) ||
-        u.email.toLowerCase().includes(t) ||
-        u.ra.toLowerCase().includes(t)
-    );
-  }, [usuarios, busca]);
 
   if (loading) return <p>Carregando usuários...</p>;
 
   return (
     <div className="usuarios-page">
+
       <header className="usuarios-header">
         <h1>Controle de Usuários</h1>
         <div className="header-actions">
-          <button className="report-btn">
-            <FiDownload size={16} /> Gerar relatório
+          <button className="report-btn" onClick={handleGenerateReport}>
+            <FiDownload /> Relatório
           </button>
-          <button className="add-btn" onClick={handleCreateNew}>
-            <FiPlus size={16} /> Cadastrar usuário
+          <button className="add-btn" onClick={() => setIsModalOpen(true)}>
+            <FiPlus /> Cadastrar usuário
           </button>
         </div>
       </header>
@@ -374,6 +357,7 @@ const Usuarios: React.FC = () => {
               <th>Ações</th>
             </tr>
           </thead>
+
           <tbody>
             {usuariosFiltrados.map((u) => (
               <tr key={u.id}>
@@ -387,42 +371,33 @@ const Usuarios: React.FC = () => {
                 <td className="acoes">
                   <button
                     className="icon-btn edit"
-                    onClick={() => handleEditUser(u)}
-                    title="Editar Usuário"
+                    onClick={() => {
+                      setUserToEdit(u);
+                      setIsModalOpen(true);
+                    }}
                   >
                     <FiEdit />
-                  </button>
-                  <button
-                    className="icon-btn status"
-                    onClick={() => handleToggleStatus(u)}
-                    title={u.enabled ? "Inativar" : "Ativar"}
-                  >
-                    <FiPower />
-                  </button>
-                  <button
-                    className="icon-btn delete"
-                    onClick={() => handleDeleteUser(u)}
-                    title="Excluir Usuário"
-                  >
-                    <FiTrash />
                   </button>
                 </td>
               </tr>
             ))}
           </tbody>
+
         </table>
       </div>
 
       {isModalOpen && (
         <UserModal
           userToEdit={userToEdit}
+          availableSquads={availableSquads}
           onClose={() => {
             setIsModalOpen(false);
             setUserToEdit(null);
           }}
-          onSave={(user) => handleSaveUser(user, !!userToEdit)}
+          onSave={handleSaveUser}
         />
       )}
+
     </div>
   );
 };

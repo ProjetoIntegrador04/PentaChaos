@@ -17,46 +17,55 @@ import java.io.IOException;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
-  private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtAuthenticationFilter.class);
 
-  private final JwtTokenProvider tokenProvider;
-  private final CustomUserDetailsService customUserDetailsService;
+    private final JwtTokenProvider tokenProvider;
+    private final CustomUserDetailsService customUserDetailsService;
 
-  public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, CustomUserDetailsService customUserDetailsService) {
-    this.tokenProvider = tokenProvider;
-    this.customUserDetailsService = customUserDetailsService;
-  }
-
-  @Override
-  protected void doFilterInternal(HttpServletRequest request,
-                                  HttpServletResponse response,
-                                  FilterChain filterChain) throws ServletException, IOException {
-    try {
-      String jwt = getJwtFromRequest(request);
-
-      if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
-        String username = tokenProvider.getUsernameFromToken(jwt);
-
-        UserDetails userDetails = customUserDetailsService.loadUserByUsername(username);
-
-        UsernamePasswordAuthenticationToken authentication =
-            new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-      }
-    } catch (Exception ex) {
-      logger.error("Não foi possível definir a autenticação do usuário no contexto de segurança", ex);
+    public JwtAuthenticationFilter(JwtTokenProvider tokenProvider, CustomUserDetailsService customUserDetailsService) {
+        this.tokenProvider = tokenProvider;
+        this.customUserDetailsService = customUserDetailsService;
     }
 
-    filterChain.doFilter(request, response);
-  }
+    @Override
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+        try {
+            String jwt = getJwtFromRequest(request);
 
-  private String getJwtFromRequest(HttpServletRequest request) {
-    String bearerToken = request.getHeader("Authorization");
-    if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-      return bearerToken.substring(7);
+            if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
+
+                // Agora o subject é o ID do usuário
+                String userId = tokenProvider.getUsernameFromToken(jwt);
+
+                UserDetails userDetails = customUserDetailsService.loadUserById(Long.parseLong(userId));
+
+                UsernamePasswordAuthenticationToken authentication =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails,
+                                null,
+                                userDetails.getAuthorities()
+                        );
+
+                authentication.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request)
+                );
+
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+            }
+        } catch (Exception ex) {
+            logger.error("Falha ao definir autenticação no contexto", ex);
+        }
+
+        filterChain.doFilter(request, response);
     }
-    return null;
-  }
+
+    private String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
 }

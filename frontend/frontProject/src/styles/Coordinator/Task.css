@@ -202,3 +202,39 @@
   cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease;
 }
 .btn-secondary:hover { background: #f1f5f9; }
+
+/* SUGESTÕES DO AUTOCOMPLETE ------------------- */
+
+.suggestions-list {
+  position: absolute;
+  width: 100%;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 50;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.suggestion-item:hover {
+  background: #f8fafc;
+}
+
+.suggestion-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.suggestion-email {
+  font-size: 0.85rem;
+  color: #64748b;
+}

@@ -45,85 +45,64 @@ public class SecurityConfig {
         this.passwordEncoder = passwordEncoder;
     }
 
-    // Filtro JWT
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        // IMPORTANTE: agora o filtro usa loadUserById()
         return new JwtAuthenticationFilter(tokenProvider, customUserDetailsService);
     }
 
-    // Provider de autenticação (usa UserDetailsService + PasswordEncoder)
     @Bean
     @SuppressWarnings("deprecation")
     public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
         authProvider.setUserDetailsService(customUserDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder);
-
-        // ESSENCIAL: impede login se enabled = false, conta expirada, etc.
         authProvider.setPreAuthenticationChecks(new AccountStatusUserDetailsChecker());
-
         return authProvider;
     }
 
-    // AuthenticationManager exposto pro AuthController
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
             throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-    // Config principal de segurança HTTP
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http
-            // API REST → sem CSRF
-            .csrf(AbstractHttpConfigurer::disable)
-            // CORS liberado para o front
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            // Tratamento de erros de auth (401)
-            .exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(unauthorizedHandler))
-            // Sem sessão de servidor (stateless, só JWT)
-            .sessionManagement(session ->
-                    session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            // Regras de autorização
-            .authorizeHttpRequests(authorize -> authorize
-                    // auth livre (login, register, refresh)
-                    .requestMatchers("/auth/**").permitAll()
-                    // swagger livre (se você usar)
-                    .requestMatchers(
-                            "/v3/api-docs/**",
-                            "/swagger-ui/**",
-                            "/swagger-ui.html"
-                    ).permitAll()
-                    // qualquer outra rota precisa de JWT válido
-                    .anyRequest().authenticated()
-            );
 
-        // Filtro JWT antes do UsernamePasswordAuthenticationFilter
+        http.csrf(AbstractHttpConfigurer::disable);
+
+        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+
+        http.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(unauthorizedHandler));
+
+        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+
+        // 🔥 AQUI ESTÁ O QUE LIBERA O LOGIN / REGISTER / REFRESH
+        http.authorizeHttpRequests(auth -> auth
+                .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+                .anyRequest().authenticated()
+        );
+
         http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        // Usa o nosso DaoAuthenticationProvider (com check de enabled)
         http.authenticationProvider(authenticationProvider());
 
         return http.build();
     }
 
-    // CORS para permitir o front acessar a API
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of(
-                "http://localhost:5173",
-                "http://localhost:3000"
-        ));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
-        configuration.setAllowCredentials(true);
-        configuration.setExposedHeaders(List.of("Authorization"));
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
+        config.setAllowCredentials(true);
+        config.setExposedHeaders(List.of("Authorization"));
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", config);
         return source;
     }
 }

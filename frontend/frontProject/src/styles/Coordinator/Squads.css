@@ -257,3 +257,11 @@
   font-weight: 400;
   margin-left: 4px;
 }
+
+.delete-small {
+  color: #d9534f;
+}
+
+.delete-small:hover {
+  color: #ff6666;
+}
