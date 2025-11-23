@@ -3,9 +3,11 @@ import { Plus, Edit, Search } from "lucide-react";
 import "../../styles/Coordinator/Task.css";
 import api from "../../api/https";
 import { getStoredToken, parseJwt } from "../../auth";
+import { Trash } from 'lucide-react';
+
 
 // --- Tipos ---
-type TaskStatus = "PENDENTE" | "EM_ANDAMENTO" | "CONCLUIDA";
+type TaskStatus = "PENDENTE" | "EM_ANDAMENTO" | "CONCLUIDA";  
 type TaskPriority = "Alta" | "Media" | "Baixa";
 
 interface Task {
@@ -306,6 +308,22 @@ const Task: React.FC = () => {
     }
   };
 
+  // --- Excluir tarefa ---
+const handleDeleteTask = (taskId: number) => {
+  if (window.confirm("Você tem certeza que deseja excluir esta tarefa?")) {
+    api.delete(`/tasks/${taskId}`)
+      .then(() => {
+        setTasks((prev) => prev.filter((task) => task.id !== taskId));
+        alert("Tarefa excluída com sucesso!");
+      })
+      .catch((err) => {
+        console.error("Erro ao excluir tarefa:", err);
+        alert("Erro ao excluir tarefa.");
+      });
+  }
+};
+
+
   // --- FILTRO DE BUSCA ---
   const filteredTasks = useMemo(() => {
     const query = searchQuery.toLowerCase();
@@ -390,7 +408,14 @@ const Task: React.FC = () => {
                     >
                       <Edit size={16} />
                     </button>
-                  </td>
+                    <button
+                      className="icon-btn delete"
+                      onClick={() => handleDeleteTask(task.id)}
+                    >
+                      <Trash size={16} />
+                    </button>
+                </td>
+
                 </tr>
               );
             })}
