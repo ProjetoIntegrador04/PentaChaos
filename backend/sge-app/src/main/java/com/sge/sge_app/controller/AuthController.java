@@ -31,6 +31,12 @@ public class AuthController {
         this.userService = userService;
     }
 
+    @GetMapping("/")
+    public String getMethodName(@RequestParam(name = "param", required = false, defaultValue = "nenhum") String param) {
+        return "Received parameter: " + param;
+    }
+    
+
     /**
      * Registra um novo usuário
      * IMPORTANTE: Apenas ADMINs (coordenadores) podem criar novos usuários
