@@ -1,4 +1,4 @@
-package com.sge.sge_app.dto.response; // PACOTE CORRIGIDO!
+package com.sge.sge_app.dto.response; 
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

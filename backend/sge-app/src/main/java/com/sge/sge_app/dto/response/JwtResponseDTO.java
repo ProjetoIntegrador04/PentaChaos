@@ -9,5 +9,6 @@ public class JwtResponseDTO {
   private String accessToken;
   private String refreshToken;
   private String tokenType = "Bearer";
-  private Long expiresIn; // Tempo de expiração do access token em milissegundos
+  private Long expiresIn;
+  private java.util.List<String> roles;
 }

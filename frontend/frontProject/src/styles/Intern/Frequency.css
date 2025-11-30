@@ -1,0 +1,164 @@
+/* ================================== */
+/* CSS DA TELA DE FREQUÊNCIA (INTERN) */
+/* ================================== */
+
+/* ... (demais estilos sem alteração) ... */
+.frequency-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.25rem;
+}
+.frequency-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #3b5fbf;
+}
+.month-selector-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  max-width: 400px;
+  margin: 0 auto;
+  width: 100%;
+}
+.month-arrow-btn {
+  background: none; border: none; border-radius: 50%;
+  padding: 8px; display: flex; align-items: center;
+  justify-content: center; color: var(--text-light, #64748b);
+  cursor: pointer; transition: all 0.2s ease;
+}
+.month-arrow-btn:hover {
+  background-color: #f1f5f9;
+  color: var(--primary-color, #3b82f6);
+}
+.current-month {
+  font-family: var(--font-primary, 'Poppins', sans-serif);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-body, #334155);
+  text-transform: capitalize;
+}
+.records-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+.day-card {
+  padding: 1rem 1.25rem;
+}
+
+/* --- ALTERAÇÕES AQUI --- */
+
+.day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center; /* Alinha o botão com o texto */
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  gap: 1rem; /* Espaço entre o título e o botão */
+}
+
+.day-title-group {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem; /* Espaço entre data e dia da semana */
+}
+
+.day-date {
+  font-family: var(--font-primary, 'Poppins', sans-serif);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-title, #3b5fbf);
+}
+.day-weekday {
+  font-size: 0.9rem;
+  color: var(--text-light, #64748b);
+  text-transform: capitalize;
+}
+
+/* Novo botão de ajuste */
+.adjust-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9; /* Fundo secundário */
+  color: var(--text-body, #334155);
+  padding: 6px 10px;
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.adjust-btn:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+/* --- FIM DAS ALTERAÇÕES --- */
+
+.point-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+.point-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 8px;
+  border-bottom: 1px dashed #e2e8f0;
+}
+.point-item:last-child {
+  border-bottom: none;
+}
+.point-type {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+  color: var(--text-body, #334155);
+}
+.point-type svg {
+  color: var(--primary-color, #3b82f6);
+}
+.point-time {
+  font-family: var(--font-secondary, 'Lato', sans-serif);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--primary-darker, #1e3a8a);
+}
+
+/* Novo: Estilo para hora vazia */
+.point-time.empty {
+  color: var(--text-light, #64748b);
+  opacity: 0.7;
+  font-weight: 500;
+}
+
+/* Mensagens de Estado (Loading, Erro, Vazio) */
+.state-message {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 3rem; gap: 1rem;
+  color: var(--text-light, #64748b); font-weight: 500;
+  text-align: center;
+}
+.state-message.error {
+  color: #dc2626; background-color: #fee2e2;
+  border: 1px solid #fca5a5; border-radius: 12px;
+}
+
+/* Animação de Spin */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.spin {
+  animation: spin 1s linear infinite;
+}

@@ -16,141 +16,119 @@ import java.security.Key;
 import java.util.Date;
 import java.util.stream.Collectors;
 
-import com.sge.sge_app.domain.model.User; // Importe sua entidade User
-
-@Component // Marca a classe como um componente Spring
+@Component
 public class JwtTokenProvider {
 
-  private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
+    private static final Logger logger = LoggerFactory.getLogger(JwtTokenProvider.class);
 
-  // Injeta as propriedades do arquivo .env (via application.properties)
-  @Value("${jwt.secret-key}")
-  private String jwtSecret;
+    @Value("${jwt.secret-key}")
+    private String jwtSecret;
 
-  @Value("${jwt.expiration}")
-  private long jwtExpirationInMs; // Tempo de expiração do Access Token em milissegundos
+    @Value("${jwt.expiration}")
+    private long jwtExpirationInMs; // Access token expiration
 
-  @Value("${jwt.refresh-expiration}")
-  private long jwtRefreshExpirationInMs; // Tempo de expiração do Refresh Token em milissegundos
+    @Value("${jwt.refresh-expiration}")
+    private long jwtRefreshExpirationInMs; // Refresh token expiration
 
-  private Key key; // Chave secreta para assinar e verificar tokens
+    private Key key;
 
-  // Método que é executado após a injeção das dependências
-  @PostConstruct
-  public void init() {
-    // Tenta decodificar Base64; se falhar, usa bytes da string diretamente.
-    byte[] keyBytes;
-    try {
-      keyBytes = Decoders.BASE64.decode(jwtSecret);
-    } catch (IllegalArgumentException e) {
-      // Não é Base64, usar como UTF-8 literal
-      keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+    @PostConstruct
+    public void init() {
+        byte[] keyBytes;
+        try {
+            keyBytes = Decoders.BASE64.decode(jwtSecret);
+        } catch (IllegalArgumentException e) {
+            keyBytes = jwtSecret.getBytes(StandardCharsets.UTF_8);
+        }
+
+        if (keyBytes.length < 64) {
+            logger.warn(
+                "jwt.secret-key parece curto ({} bytes). Recomenda-se usar uma chave Base64 >= 64 bytes.",
+                keyBytes.length
+            );
+        }
+
+        this.key = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // HS512 exige chave >= 512 bits (64 bytes)
-    if (keyBytes.length < 64) {
-      logger.warn("jwt.secret-key is too small ({} bytes). Generating a secure ephemeral key for HS512. Set a Base64-encoded 512-bit key in properties to avoid this.", keyBytes.length);
-      this.key = Keys.secretKeyFor(SignatureAlgorithm.HS512);
-      return;
+    // -------------------------
+    //  ACCESS TOKEN COM ID NO SUB
+    // -------------------------
+    public String generateAccessToken(Authentication authentication) {
+
+        com.sge.sge_app.domain.model.User user =
+                (com.sge.sge_app.domain.model.User) authentication.getPrincipal();
+
+        String roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.joining(","));
+
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
+
+        return Jwts.builder()
+                .setSubject(String.valueOf(user.getId()))   // <<< AGORA O SUB É O ID
+                .claim("roles", roles)
+                .claim("username", user.getUsername())
+                .claim("email", user.getEmail())
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
     }
 
-    this.key = Keys.hmacShaKeyFor(keyBytes);
-  }
+    // -------------------------
+    //  REFRESH TOKEN COM ID NO SUB
+    // -------------------------
+    public String generateRefreshToken(Authentication authentication) {
 
-  /**
-   * Gera um Access Token para a autenticação bem-sucedida.
-   * 
-   * @param authentication Objeto Authentication contendo os detalhes do usuário
-   *                       autenticado.
-   * @return Access Token JWT.
-   */
-  public String generateAccessToken(Authentication authentication) {
-    User userPrincipal = (User) authentication.getPrincipal(); // Obtém a entidade User
+        com.sge.sge_app.domain.model.User user =
+                (com.sge.sge_app.domain.model.User) authentication.getPrincipal();
 
-    // Coleta os papéis do usuário
-    String roles = userPrincipal.getAuthorities().stream()
-        .map(GrantedAuthority::getAuthority)
-        .collect(Collectors.joining(","));
+        Date now = new Date();
+        Date expiryDate = new Date(now.getTime() + jwtRefreshExpirationInMs);
 
-    Date now = new Date();
-    Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
-
-    return Jwts.builder()
-        .setSubject(userPrincipal.getUsername()) // O "subject" do token é o username
-        .claim("roles", roles) // Adiciona os papéis como uma claim personalizada
-        .setIssuedAt(new Date()) // Data de emissão
-        .setExpiration(expiryDate) // Data de expiração
-        .signWith(key, SignatureAlgorithm.HS512) // Assina o token com a chave e algoritmo HS512
-        .compact(); // Constrói e compacta o token em uma string JWT
-  }
-
-  /**
-   * Gera um Refresh Token.
-   * 
-   * @param authentication Objeto Authentication contendo os detalhes do usuário
-   *                       autenticado.
-   * @return Refresh Token JWT.
-   */
-  public String generateRefreshToken(Authentication authentication) {
-    User userPrincipal = (User) authentication.getPrincipal();
-
-    Date now = new Date();
-    Date expiryDate = new Date(now.getTime() + jwtRefreshExpirationInMs);
-
-    return Jwts.builder()
-        .setSubject(userPrincipal.getUsername())
-        .setIssuedAt(new Date())
-        .setExpiration(expiryDate)
-        .signWith(key, SignatureAlgorithm.HS512)
-        .compact();
-  }
-
-  /**
-   * Obtém o username do token JWT.
-   * 
-   * @param token Token JWT.
-   * @return Username do usuário.
-   */
-  public String getUsernameFromToken(String token) {
-    Claims claims = Jwts.parserBuilder()
-        .setSigningKey(key)
-        .build()
-        .parseClaimsJws(token)
-        .getBody();
-
-    return claims.getSubject();
-  }
-
-  /**
-   * Valida um token JWT.
-   * 
-   * @param authToken Token JWT a ser validado.
-   * @return true se o token é válido, false caso contrário.
-   */
-  public boolean validateToken(String authToken) {
-    try {
-      Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
-      return true;
-    } catch (io.jsonwebtoken.security.SignatureException ex) {
-      logger.error("Assinatura JWT inválida: {}", ex.getMessage());
-    } catch (MalformedJwtException ex) {
-      logger.error("Token JWT inválido: {}", ex.getMessage());
-    } catch (ExpiredJwtException ex) {
-      logger.error("Token JWT expirado: {}", ex.getMessage());
-    } catch (UnsupportedJwtException ex) {
-      logger.error("Token JWT não suportado: {}", ex.getMessage());
-    } catch (IllegalArgumentException ex) {
-      logger.error("JWT claims string vazia: {}", ex.getMessage());
+        return Jwts.builder()
+                .setSubject(String.valueOf(user.getId()))   // <<< ID COMO SUB TAMBÉM NO REFRESH
+                .setIssuedAt(now)
+                .setExpiration(expiryDate)
+                .signWith(key, SignatureAlgorithm.HS256)
+                .compact();
     }
-    return false;
-  }
 
-  /**
-   * Obtém o tempo de expiração do Access Token.
-   * 
-   * @return Tempo de expiração em milissegundos.
-   */
-  public long getJwtExpirationInMs() {
-    return jwtExpirationInMs;
-  }
+    // Extrai subject (AGORA É O ID)
+    public String getUsernameFromToken(String token) {
+        Claims claims = Jwts.parserBuilder()
+                .setSigningKey(key)
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+
+        return claims.getSubject();
+    }
+
+    // Validação padrão
+    public boolean validateToken(String authToken) {
+        try {
+            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(authToken);
+            return true;
+
+        } catch (io.jsonwebtoken.security.SignatureException ex) {
+            logger.error("Assinatura JWT inválida: {}", ex.getMessage());
+        } catch (MalformedJwtException ex) {
+            logger.error("Token JWT malformado: {}", ex.getMessage());
+        } catch (ExpiredJwtException ex) {
+            logger.error("Token JWT expirado: {}", ex.getMessage());
+        } catch (UnsupportedJwtException ex) {
+            logger.error("Token JWT não suportado: {}", ex.getMessage());
+        } catch (IllegalArgumentException ex) {
+            logger.error("JWT claims vazias: {}", ex.getMessage());
+        }
+
+        return false;
+    }
+
+    public long getJwtExpirationInMs() {
+        return jwtExpirationInMs;
+    }
 }
