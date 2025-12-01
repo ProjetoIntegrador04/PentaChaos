@@ -89,6 +89,23 @@ services:
       - /app/node_modules
       - /app/.expo
 
+  # Frontend React + Vite
+  frontend:
+    build:
+      context: ./frontend/frontProject
+      dockerfile: Dockerfile
+    container_name: pentachaos-frontend
+    environment:
+      # Configuração da API
+      VITE_API_URL: http://localhost:8080
+    ports:
+      - "3000:80"  # Nginx serve na porta 80, mapeado para 3000 no host
+    depends_on:
+      - backend
+    networks:
+      - pentachaos-network
+    restart: unless-stopped
+
 networks:
   pentachaos-network:
     driver: bridge
