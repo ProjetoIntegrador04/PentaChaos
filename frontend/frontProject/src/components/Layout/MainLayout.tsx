@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../Sidebar/Sidebar'; // Sidebar do Coordenador
-import Topbar from '../Topbar/topbar';   // 1. Importe o Topbar
+import Topbar from '../Topbar/Topbar';   // 1. Importe o Topbar
 import './MainLayout.css'; 
 
 const MainLayout: React.FC = () => {

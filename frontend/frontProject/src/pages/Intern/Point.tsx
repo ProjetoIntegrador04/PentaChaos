@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useCallback } from "react";
+ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   FiClock,
@@ -11,7 +11,7 @@ import {
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import api from "../../api/https";
-import "../../styles/Intern/point.css";
+import "../../styles/Intern/Point.css";
 
 // ==============================
 // Tipos
