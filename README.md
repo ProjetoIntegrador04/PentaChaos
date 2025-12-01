@@ -35,7 +35,30 @@ docker compose up --build -d
 
 The application will be available at:
 - **Backend API**: http://localhost:8080
+- **Frontend Web**: http://localhost:3000
+- **Mobile App**: http://localhost:8081
 - **Database**: localhost:5432
+
+### Services
+
+The project consists of 4 Docker containers:
+
+1. **pentachaos-db**: PostgreSQL 15 database
+2. **pentachaos-backend**: Spring Boot API (Java 21)
+3. **pentachaos-frontend**: React + Vite web application (Nginx)
+4. **pentachaos-mobile**: React Native/Expo mobile application
+
+### Stopping the Application
+
+```bash
+docker compose down
+```
+
+To remove volumes (database data):
+
+```bash
+docker compose down -v
+```
 
 ## 🔐 Authentication System
 
