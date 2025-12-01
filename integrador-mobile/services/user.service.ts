@@ -80,6 +80,20 @@ class UserService {
   }
 
   /**
+   * Atualiza um usuário (apenas ADMIN)
+   */
+  async updateUser(userId: number, data: Partial<User>): Promise<User> {
+    try {
+      const response = await api.put<User>(`/api/v1/users/${userId}`, data);
+      console.log(`✅ Usuário ${userId} atualizado com sucesso`);
+      return response.data;
+    } catch (error: any) {
+      console.error(`❌ Erro ao atualizar usuário ${userId}:`, error.response?.data || error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Verifica se o usuário tem role ADMIN
    */
   isAdmin(user: User): boolean {
