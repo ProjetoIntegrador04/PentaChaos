@@ -19,7 +19,6 @@ public class UserRegisterRequestDTO {
     @Size(max = 100, message = "O e-mail não pode exceder 100 caracteres.")
     private String email;
 
-<<<<<<< HEAD
   @NotBlank(message = "A senha não pode estar em branco.")
   @Size(min = 6, max = 100, message = "A senha deve ter pelo menos 6 caracteres.")
   private String password;
@@ -34,17 +33,4 @@ public class UserRegisterRequestDTO {
   // Apenas admins podem criar outros admins
   private Boolean isAdmin; // Se true, adiciona ROLE_ADMIN
 }
-=======
-    @NotBlank(message = "A senha não pode estar em branco.")
-    @Size(min = 6, max = 100, message = "A senha deve ter pelo menos 6 caracteres.")
-    private String password;
 
-    // ex: "ROLE_INTERN" / "ROLE_COORDINATOR" / "ROLE_ADMIN"
-    private String role;
-
-    // --- OPCIONAIS (para compatibilizar com /users/create-intern) ---
-    private String ra;
-    private String squad;
-    private String emailPessoal;
-}
->>>>>>> feature/functions-integrations

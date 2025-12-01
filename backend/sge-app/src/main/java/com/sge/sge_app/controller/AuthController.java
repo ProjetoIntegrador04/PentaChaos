@@ -40,7 +40,6 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
     }
 
-<<<<<<< HEAD
     /**
      * Registra um novo usuário
      * IMPORTANTE: Apenas ADMINs (coordenadores) podem criar novos usuários
@@ -51,27 +50,6 @@ public class AuthController {
     public ResponseEntity<UserResponseDTO> registerUser(@Valid @RequestBody UserRegisterRequestDTO registerRequest) {
         UserResponseDTO newUser = userService.registerNewUser(registerRequest);
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
-=======
-    // ============================================================
-    // REGISTER — CRIA QUALQUER TIPO DE USUÁRIO (ADMIN, COORD, INTERN)
-    // ============================================================
-    @PostMapping(
-            value = "/register",
-            consumes = "application/json",
-            produces = "application/json"
-    )
-    public ResponseEntity<?> registerUser(@Valid @RequestBody UserRegisterRequestDTO registerRequest) {
-
-        try {
-            UserResponseDTO newUser = userService.registerNewUser(registerRequest);
-            return new ResponseEntity<>(newUser, HttpStatus.CREATED);
-
-        } catch (RuntimeException ex) {
-            return ResponseEntity
-                    .status(HttpStatus.BAD_REQUEST)
-                    .body(ex.getMessage());
-        }
->>>>>>> feature/functions-integrations
     }
 
     // ============================================================
@@ -162,3 +140,4 @@ public class AuthController {
         return ResponseEntity.ok(UserResponseDTO.from(user));
     }
 }
+

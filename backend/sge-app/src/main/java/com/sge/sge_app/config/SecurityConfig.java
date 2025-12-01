@@ -76,25 +76,6 @@ public class SecurityConfig {
 
         http.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(unauthorizedHandler));
 
-<<<<<<< HEAD
-  // Configuração CORS (Cross-Origin Resource Sharing)
-  // Liberado para todas as origens (*) - útil para desenvolvimento mobile/web
-  @Bean
-  public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration configuration = new CorsConfiguration();
-    configuration.setAllowedOriginPatterns(List.of("*")); // Permitir TODAS as origens
-    configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-    configuration.setAllowedHeaders(Arrays.asList("*")); // Permitir todos os headers
-    configuration.setAllowCredentials(true); // Permitir envio de credenciais (cookies, headers de autenticação)
-    configuration.setExposedHeaders(List.of("Authorization")); // Expor o cabeçalho Authorization
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", configuration); // Aplica a configuração a todas as rotas
-    return source;
-  }
-=======
-        http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
->>>>>>> feature/functions-integrations
-
         // 🔥 AQUI ESTÁ O QUE LIBERA O LOGIN / REGISTER / REFRESH
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
@@ -123,3 +104,4 @@ public class SecurityConfig {
         return source;
     }
 }
+

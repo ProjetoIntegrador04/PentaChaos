@@ -7,15 +7,11 @@ import com.sge.sge_app.models.Task;
 import com.sge.sge_app.domain.model.User;
 import com.sge.sge_app.repository.TaskRepository;
 import com.sge.sge_app.repository.UserRepository;
-<<<<<<< HEAD
 import com.sge.sge_app.exception.ResourceNotFoundException;
 import com.sge.sge_app.exception.BusinessException;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-=======
-import lombok.RequiredArgsConstructor;
->>>>>>> feature/functions-integrations
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -34,7 +30,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TaskService {
 
-<<<<<<< HEAD
     private final TaskRepository repository;
     private final UserRepository userRepository;
 
@@ -156,66 +151,6 @@ public class TaskService {
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não encontrada com ID: " + id));
         
         repository.deleteById(id);
-=======
-    private final TaskRepository taskRepository;
-    private final UserRepository userRepository;
-    private final TaskMapper taskMapper;
-
-    // -------------------------
-    //       CREATE
-    // -------------------------
-    public TaskResponseDTO createTask(TaskRequestDTO dto) {
-
-        User responsavel = userRepository.findById(dto.getResponsavelId())
-                .orElseThrow(() -> new RuntimeException("Responsável não encontrado"));
-
-        User criadoPor = userRepository.findById(dto.getCriadoPorId())
-                .orElseThrow(() -> new RuntimeException("Criador não encontrado"));
-
-        Task task = taskMapper.toEntity(dto, responsavel, criadoPor);
-        Task saved = taskRepository.save(task);
-
-        return taskMapper.toDTO(saved);
-    }
-
-    // -------------------------
-    //       UPDATE (PUT)
-    // -------------------------
-    public TaskResponseDTO updateTask(Long id, TaskRequestDTO dto) {
-
-        Task t = taskRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Tarefa não encontrada"));
-
-        // Atualizar campos
-        t.setTitulo(dto.getTitulo());
-        t.setDescricao(dto.getDescricao());
-        t.setStatus(dto.getStatus());
-        t.setPrioridade(dto.getPrioridade());
-        t.setDataCriacao(dto.getDataCriacao());
-        t.setDataConclusao(dto.getDataConclusao());
-
-        // Atualizar responsável (se vier no DTO)
-        if (dto.getResponsavelId() != null) {
-            User resp = userRepository.findById(dto.getResponsavelId())
-                    .orElseThrow(() -> new RuntimeException("Responsável não encontrado"));
-            t.setResponsavel(resp);
-        }
-
-        // Criador nunca muda (mas se vier, ignora)
-        
-        Task updated = taskRepository.save(t);
-        return taskMapper.toDTO(updated);
-    }
-
-    // -------------------------
-    //       LIST ALL
-    // -------------------------
-    public List<TaskResponseDTO> listAll() {
-        return taskRepository.findAll()
-                .stream()
-                .map(taskMapper::toDTO)
-                .toList();
->>>>>>> feature/functions-integrations
     }
 
     // -------------------------
@@ -248,3 +183,4 @@ public class TaskService {
         taskRepository.deleteById(id);
     }
 }
+

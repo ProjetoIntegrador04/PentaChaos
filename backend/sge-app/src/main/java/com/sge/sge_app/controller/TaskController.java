@@ -1,6 +1,5 @@
 package com.sge.sge_app.controller;
 
-<<<<<<< HEAD
 import com.sge.sge_app.models.Task;
 import com.sge.sge_app.services.TaskService;
 import jakarta.validation.Valid;
@@ -8,12 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-=======
-import com.sge.sge_app.dto.request.TaskRequestDTO;
-import com.sge.sge_app.dto.response.TaskResponseDTO;
-import com.sge.sge_app.services.TaskService;
-import lombok.RequiredArgsConstructor;
->>>>>>> feature/functions-integrations
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,18 +19,11 @@ import java.util.List;
  * - USER (Estagiário): Pode apenas visualizar as tarefas atribuídas a ele
  */
 @RestController
-<<<<<<< HEAD
 @RequestMapping("/api/v1/tasks")
-=======
-@RequestMapping("/tasks")
-@RequiredArgsConstructor
-@CrossOrigin(origins = "*")
->>>>>>> feature/functions-integrations
 public class TaskController {
 
     private final TaskService service;
 
-<<<<<<< HEAD
     public TaskController(TaskService service) {
         this.service = service;
     }
@@ -92,53 +78,6 @@ public class TaskController {
      * Deleta uma tarefa.
      * Apenas ADMIN (Gestor) pode deletar tarefas.
      */
-=======
-    // --------------------------
-    //        CREATE
-    // --------------------------
-    @PostMapping
-    public TaskResponseDTO createTask(@RequestBody TaskRequestDTO dto) {
-        return service.createTask(dto);
-    }
-
-    // --------------------------
-    //         UPDATE
-    // --------------------------
-    @PutMapping("/{id}")
-    public TaskResponseDTO updateTask(@PathVariable Long id, @RequestBody TaskRequestDTO dto) {
-        return service.updateTask(id, dto);
-    }
-
-    // --------------------------
-    //     LIST ALL (ADMIN)
-    // --------------------------
-    @GetMapping
-    public List<TaskResponseDTO> listAll() {
-        return service.listAll();
-    }
-
-    // --------------------------
-    //  LISTAR POR RESPONSÁVEL
-    //  (Estagiário)
-    // --------------------------
-    @GetMapping("/user/{id}")
-    public List<TaskResponseDTO> listByResponsavel(@PathVariable Long id) {
-        return service.listByResponsavel(id);
-    }
-
-    // --------------------------
-    //   LISTAR POR CRIADOR
-    //   (Coordenador)
-    // --------------------------
-    @GetMapping("/coordinator/{id}")
-    public List<TaskResponseDTO> listByCriadoPor(@PathVariable Long id) {
-        return service.listByCriadoPor(id);
-    }
-
-    // --------------------------
-    //         DELETE
-    // --------------------------
->>>>>>> feature/functions-integrations
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id, Authentication authentication) {
@@ -146,3 +85,4 @@ public class TaskController {
         return ResponseEntity.noContent().build();
     }
 }
+
