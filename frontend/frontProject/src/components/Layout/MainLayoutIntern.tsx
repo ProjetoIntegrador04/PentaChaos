@@ -2,7 +2,7 @@
 import React from "react";
 import { Outlet } from "react-router-dom";
 import SidebarIntern from "../Sidebar/SidebarInten"; // 1. Corrigido o nome do import
-import Topbar from '../Topbar/topbar';   // 2. Importe o Topbar
+import Topbar from '../Topbar/Topbar';   // 2. Importe o Topbar
 import './MainLayoutIntern.css'; 
 
 const MainLayoutIntern: React.FC = () => {

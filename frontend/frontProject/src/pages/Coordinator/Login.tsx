@@ -100,7 +100,7 @@ function Login() {
           <form onSubmit={handleSubmit} className="login-form" autoComplete="on">
             <div className="input-group">
               <input
-                type="email" 
+                type="text" 
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
