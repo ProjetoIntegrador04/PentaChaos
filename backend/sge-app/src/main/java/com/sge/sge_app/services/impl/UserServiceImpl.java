@@ -60,43 +60,6 @@ public class UserServiceImpl implements UserService {
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
-<<<<<<< HEAD
-    System.out.println("Email is available.");
-    User user = new User();
-    user.setUsername(request.getUsername());
-    user.setEmail(request.getEmail());
-    user.setPassword(passwordEncoder.encode(request.getPassword())); // Hashea a senha
-    user.setEnabled(true); // Novo usuário por padrão está habilitado
-    
-    // Campos adicionais (opcionais)
-    user.setFullName(request.getFullName());
-    user.setRa(request.getRa());
-    user.setSquad(request.getSquad());
-    user.setPhoneNumber(request.getPhoneNumber());
-
-    Set<Role> roles = new HashSet<>();
-    
-    // Adiciona o papel padrão "ROLE_USER" para todos
-    Role userRole = roleService.findByName("ROLE_USER")
-        .orElseGet(() -> roleService.createRole("ROLE_USER"));
-    roles.add(userRole);
-    
-    // Se o campo isAdmin for true, adiciona ROLE_ADMIN
-    if (request.getIsAdmin() != null && request.getIsAdmin()) {
-        Role adminRole = roleService.findByName("ROLE_ADMIN")
-            .orElseGet(() -> roleService.createRole("ROLE_ADMIN"));
-        roles.add(adminRole);
-        System.out.println("User will be created with ADMIN role");
-    }
-    
-    user.setRoles(roles);
-=======
-
-    @Override
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
-    }
->>>>>>> feature/functions-integrations
 
     @Override
     public User findByUsernameOrEmail(String usernameOrEmail) {
@@ -212,3 +175,4 @@ public class UserServiceImpl implements UserService {
         userRepository.deleteById(id);
     }
 }
+
