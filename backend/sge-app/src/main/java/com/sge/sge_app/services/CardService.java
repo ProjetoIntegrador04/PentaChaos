@@ -3,6 +3,7 @@ package com.sge.sge_app.services;
 import com.sge.sge_app.models.Card;
 import com.sge.sge_app.repository.CardRepository;
 
+import lombok.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -32,8 +33,10 @@ public class CardService {
      * Cria um novo card (apenas ADMIN).
      * A data de criação é definida automaticamente pelo modelo.
      */
-    public Card criar(Card card, Authentication authentication) {
-        return repository.save(card);
+    public Card criar(@NonNull Card card, Authentication authentication) {
+        @SuppressWarnings("null")
+        Card result = repository.save(card);
+        return result;
     }
 
     /**

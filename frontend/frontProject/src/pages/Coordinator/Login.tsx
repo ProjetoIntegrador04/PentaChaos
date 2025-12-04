@@ -1,10 +1,11 @@
 import React, { useState } from "react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import "../../styles/Coordinator/login.css";
 import logoImage from "../../assets/images/image.png";
 import api from "../../api/https";
-import { useAuth } from "../../context/AuthContext"; 
+import { useAuth } from "../../context/useAuth"; 
 import { saveRoles } from "../../auth"; 
 
 function Login() {
@@ -45,18 +46,20 @@ function Login() {
 
       console.log("Login OK:", { accessToken, expiresIn, roles });
 
-      if (roles.includes("ROLE_COORDINATOR")) {
+      // ROLE_ADMIN é o coordenador/administrador no backend
+      if (roles.includes("ROLE_ADMIN")) {
         navigate("/dashboard", { replace: true });
       } else {
         navigate("/intern/home", { replace: true });
       }
 
-      } catch (err: any) {
+      } catch (err) {
         console.error("Erro no login:", err);
 
+        const error = err as AxiosError<{ error?: string; message?: string }>;
         setError(
-          err?.response?.data?.error ??
-          err?.response?.data?.message ??
+          error?.response?.data?.error ??
+          error?.response?.data?.message ??
           "E-mail/usuário ou senha inválidos."
         );
       } finally {

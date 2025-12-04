@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
@@ -9,7 +9,7 @@ import {
   LogOut,
   ChevronDown,
 } from "lucide-react";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../context/useAuth";
 import logo from "../../assets/images/image.png";
 import "./Sidebar.css";
 
@@ -27,7 +27,7 @@ const SidebarIntern: React.FC = () => {
 
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
-  const menuItems: MenuItem[] = [
+  const menuItems: MenuItem[] = useMemo(() => [
     { icon: Home,          label: "Início",            path: "/intern/home" },
     // 🔹 CORREÇÃO AQUI: path atualizado para '/intern/task' (singular) para bater com o App.tsx
     { icon: ClipboardList, label: "Minhas atividades", path: "/intern/task" },
@@ -41,7 +41,7 @@ const SidebarIntern: React.FC = () => {
     },
     { icon: Settings, label: "Configurações",      path: "/intern/settings" },
     { icon: LogOut,   label: "Sair" }, 
-  ];
+  ], []);
 
   // ... (resto do componente igual)
   useEffect(() => {
@@ -49,7 +49,7 @@ const SidebarIntern: React.FC = () => {
       item.subItems?.some((sub) => sub.path === location.pathname)
     );
     if (parent) setOpenMenu(parent.label);
-  }, [location.pathname]);
+  }, [location.pathname, menuItems]);
 
   const handleMenuClick = (label: string) => {
     setOpenMenu((prev) => (prev === label ? null : label));

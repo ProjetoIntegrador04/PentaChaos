@@ -32,10 +32,15 @@ public class User extends BaseEntity implements UserDetails {
     private String ra; // Registro Acadêmico ou ID
     private String squad; // Squad/Equipe do usuário
     private String phoneNumber; // Telefone
+    private String emailPessoal; // Email pessoal
     
+    @Builder.Default
     private boolean enabled = true; // Indica se o usuário está ativo
+    @Builder.Default
     private boolean accountLocked = false; // Indica se a conta do usuário está bloqueada
+    @Builder.Default
     private boolean credentialsExpired = false; // Indica se as credenciais do usuário expiraram
+    @Builder.Default
     private boolean accountExpired = false; // Indica se a conta do usuário expirou
     
 
@@ -45,6 +50,7 @@ public class User extends BaseEntity implements UserDetails {
         joinColumns = @JoinColumn(name = "user_id"), // Coluna que referencia o ID do usuário
         inverseJoinColumns = @JoinColumn(name = "role_id") // Coluna que referencia o ID do papel
     )
+    @Builder.Default
     private Set<Role> roles = new HashSet<>(); // Conjunto de papéis do usuário
 
     // Métodos da interface UserDetails:
@@ -97,14 +103,4 @@ public class User extends BaseEntity implements UserDetails {
     public int hashCode() {
         return id != null ? id.hashCode() : super.hashCode(); // Usar ID para hashCode
     }
-
-    @Column(nullable = true)
-    private String ra;
-
-    @Column(nullable = true)
-    private String squad;
-
-    @Column(nullable = true)
-    private String emailPessoal;
-
 }

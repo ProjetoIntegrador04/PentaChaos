@@ -8,6 +8,7 @@ import com.sge.sge_app.dto.response.SquadResponse;
 import com.sge.sge_app.exception.ResourceNotFoundException;
 import com.sge.sge_app.repository.SquadRepository;
 import com.sge.sge_app.repository.UserRepository;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +42,7 @@ public class SquadService {
                 .description(request.getDescription())
                 .build();
 
+        @SuppressWarnings("null")
         Squad savedSquad = squadRepository.save(squad);
         return mapToResponse(savedSquad);
     }
@@ -57,7 +59,7 @@ public class SquadService {
     /**
      * Busca um squad por ID
      */
-    public SquadResponse getSquadById(Long id) {
+    public SquadResponse getSquadById(@NonNull Long id) {
         Squad squad = squadRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Squad não encontrado com ID: " + id));
         return mapToResponse(squad);
@@ -67,7 +69,7 @@ public class SquadService {
      * Atualiza um squad
      */
     @Transactional
-    public SquadResponse updateSquad(Long id, SquadRequest request) {
+    public SquadResponse updateSquad(@NonNull Long id, SquadRequest request) {
         Squad squad = squadRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Squad não encontrado com ID: " + id));
 
@@ -87,17 +89,19 @@ public class SquadService {
      * Deleta um squad
      */
     @Transactional
-    public void deleteSquad(Long id) {
+    public void deleteSquad(@NonNull Long id) {
         Squad squad = squadRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Squad não encontrado com ID: " + id));
-        squadRepository.delete(squad);
+        @SuppressWarnings("null")
+        Squad result = squad;
+        squadRepository.delete(result);
     }
 
     /**
      * Adiciona um membro ao squad
      */
     @Transactional
-    public SquadResponse addMember(Long squadId, AddMemberRequest request) {
+    public SquadResponse addMember(@NonNull Long squadId, AddMemberRequest request) {
         Squad squad = squadRepository.findById(squadId)
                 .orElseThrow(() -> new ResourceNotFoundException("Squad não encontrado com ID: " + squadId));
 
@@ -113,7 +117,7 @@ public class SquadService {
      * Remove um membro do squad
      */
     @Transactional
-    public SquadResponse removeMember(Long squadId, Long userId) {
+    public SquadResponse removeMember(@NonNull Long squadId, @NonNull Long userId) {
         Squad squad = squadRepository.findById(squadId)
                 .orElseThrow(() -> new ResourceNotFoundException("Squad não encontrado com ID: " + squadId));
 
