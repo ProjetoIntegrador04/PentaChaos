@@ -21,7 +21,7 @@ api.interceptors.request.use((config) => {
   const token = getStoredToken();
   if (token && isValidJwt(token)) {
     config.headers = config.headers ?? {};
-    (config.headers as any).Authorization = `Bearer ${token}`;
+    (config.headers as Record<string, string>).Authorization = `Bearer ${token}`;
   }
   return config;
 });

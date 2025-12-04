@@ -9,6 +9,7 @@ import com.sge.sge_app.repository.RoleRepository;
 import com.sge.sge_app.repository.UserRepository;
 import com.sge.sge_app.services.UserService;
 
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -36,8 +37,10 @@ public class UserServiceImpl implements UserService {
         userRepository.findByUsername(request.getUsername())
                 .ifPresent(u -> { throw new RuntimeException("Username já cadastrado."); });
 
-        Role role = roleRepository.findByName(request.getRole())
-                .orElseThrow(() -> new RuntimeException("Role inválida: " + request.getRole()));
+        // Determinar o role: ROLE_ADMIN se isAdmin=true, senão ROLE_USER
+        String roleName = Boolean.TRUE.equals(request.getIsAdmin()) ? "ROLE_ADMIN" : "ROLE_USER";
+        Role role = roleRepository.findByName(roleName)
+                .orElseThrow(() -> new RuntimeException("Role inválida: " + roleName));
 
         User user = new User();
         user.setUsername(request.getUsername());
@@ -45,9 +48,10 @@ public class UserServiceImpl implements UserService {
         user.setPassword(encoder.encode(request.getPassword()));
         user.setEnabled(true);
 
+        user.setFullName(request.getFullName());
         user.setRa(request.getRa());
         user.setSquad(request.getSquad());
-        user.setEmailPessoal(request.getEmailPessoal());
+        user.setPhoneNumber(request.getPhoneNumber());
         user.setRoles(Set.of(role));
 
         return UserResponseDTO.from(userRepository.save(user));
@@ -62,13 +66,19 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    @Override
     public User findByUsernameOrEmail(String usernameOrEmail) {
-        return userRepository.findByUsernameOrEmail(usernameOrEmail)
+        return userRepository.findByUsername(usernameOrEmail)
+                .or(() -> userRepository.findByEmail(usernameOrEmail))
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
     @Override
-    public UserResponseDTO findUserResponseById(Long id) {
+    public UserResponseDTO findUserResponseById(@NonNull Long id) {
         User u = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
         return UserResponseDTO.from(u);
@@ -110,7 +120,7 @@ public class UserServiceImpl implements UserService {
     // ============================================================
     // EDITAR USUÁRIO — /users/{id}
     // ============================================================
-    public User updateUser(Long id, Map<String, Object> payload) {
+    public User updateUser(@NonNull Long id, Map<String, Object> payload) {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -147,13 +157,15 @@ public class UserServiceImpl implements UserService {
             }
         }
 
-        return userRepository.save(user);
+        @SuppressWarnings("null")
+        User result = userRepository.save(user);
+        return result;
     }
 
     // ============================================================
     // ALTERAR STATUS — /users/{id}/status
     // ============================================================
-    public User updateStatus(Long id, boolean enabled) {
+    public User updateStatus(@NonNull Long id, boolean enabled) {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -166,7 +178,7 @@ public class UserServiceImpl implements UserService {
     // ============================================================
     // EXCLUIR — /users/{id}
     // ============================================================
-    public void deleteUser(Long id) {
+    public void deleteUser(@NonNull Long id) {
 
         if (!userRepository.existsById(id)) {
             throw new RuntimeException("Usuário não encontrado");

@@ -2,6 +2,7 @@ package com.sge.sge_app.security;
 
 import com.sge.sge_app.domain.model.User;
 import com.sge.sge_app.repository.UserRepository;
+import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -23,7 +24,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return user;
     }
 
-    public UserDetails loadUserById(Long id) {
+    public UserDetails loadUserById(@NonNull Long id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + id));
         return user;

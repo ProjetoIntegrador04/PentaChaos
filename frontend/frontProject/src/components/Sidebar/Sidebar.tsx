@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { Home, Users, Shield, LogOut, Settings, ChevronDown, BarChart2, List, ClipboardList } from 'lucide-react'; 
-import { useAuth } from '../../context/AuthContext'; // Verifique o caminho
+import { useAuth } from '../../context/useAuth'; // Verifique o caminho
 import './Sidebar.css';
 import logo from '../../assets/images/image.png';
 
@@ -12,7 +12,7 @@ const Sidebar: React.FC = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
-  const menuItems = [
+  const menuItems = useMemo(() => [
     { icon: Home, label: 'Menu', path: '/dashboard' },
     { 
       icon: Users, 
@@ -35,7 +35,7 @@ const Sidebar: React.FC = () => {
     
     { icon: Settings, label: 'Configuracoes', path: '/settings' },
     { icon: LogOut, label: 'Sair' }, // Sem path, usa o handleLogout
-  ];
+  ], []);
 
   // ... (o resto do seu componente useEffect, handleMenuClick, etc. está CORRETO) ...
   // ... (a lógica de renderização com handleLogout está CORRETA) ...
@@ -47,7 +47,7 @@ const Sidebar: React.FC = () => {
     if (parentMenu) {
       setOpenMenu(parentMenu.label);
     }
-  }, [location.pathname]); 
+  }, [location.pathname, menuItems]); 
 
   const handleMenuClick = (label: string) => {
     setOpenMenu(currentOpenMenu => (currentOpenMenu === label ? null : label));

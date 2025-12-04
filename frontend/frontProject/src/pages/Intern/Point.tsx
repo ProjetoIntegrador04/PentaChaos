@@ -1,5 +1,6 @@
  import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { AxiosError } from "axios";
 import {
   FiClock,
   FiMapPin,
@@ -45,7 +46,8 @@ function getOrCreateDeviceId(): string {
 }
 
 // Corrigir ícones do Leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+const DefaultIcon = L.Icon.Default.prototype as unknown as { _getIconUrl?: string };
+delete DefaultIcon._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl:
     "https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon-2x.png",
@@ -156,10 +158,11 @@ const Ponto: React.FC = () => {
       await api.post("/pontos", payload);
       alert("Ponto registrado com sucesso!");
       navigate("/app/frequencia");
-    } catch (error: any) {
+    } catch (error) {
       console.error("Erro ao registrar ponto:", error);
+      const err = error as AxiosError<{ message?: string }>;
       const msg =
-        error?.response?.data?.message ||
+        err?.response?.data?.message ||
         "Ocorreu um erro ao registrar o ponto.";
       alert(msg);
     } finally {
