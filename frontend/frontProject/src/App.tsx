@@ -32,7 +32,7 @@ import React from "react";
             <Route path="/" element={<Login />} />
 
             {/* coordenador */}
-            <Route element={<ProtectedRoute allowedRoles={["ROLE_COORDINATOR"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["ROLE_ADMIN"]} />}>
               <Route element={<MainLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/usuarios" element={<Users />} />
@@ -45,7 +45,7 @@ import React from "react";
             </Route>
 
             {/* estagiário (coord também pode ver) */}
-            <Route element={<ProtectedRoute allowedRoles={["ROLE_INTERN", "ROLE_COORDINATOR"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["ROLE_USER", "ROLE_ADMIN"]} />}>
               <Route element={<MainLayoutIntern />}>
                 <Route path="/intern/home" element={<InternHome />} />
                 <Route path="/intern/ponto" element={<Ponto />} />

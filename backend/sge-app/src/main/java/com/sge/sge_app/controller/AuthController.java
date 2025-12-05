@@ -103,9 +103,11 @@ public class AuthController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        String username = tokenProvider.getUsernameFromToken(refreshToken);
+        // O subject do token é o ID do usuário (não o username)
+        String userIdStr = tokenProvider.getUsernameFromToken(refreshToken);
+        Long userId = Long.parseLong(userIdStr);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UserDetails userDetails = userDetailsService.loadUserById(userId);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails,
