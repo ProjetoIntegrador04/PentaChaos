@@ -1,0 +1,243 @@
+/* ================================== */
+/* CSS DA TELA DE REGISTRO DE PONTO */
+/* ================================== */
+
+/* 1. Layout Geral da Página */
+.ponto-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem; /* Espaçamento entre seções */
+  padding: 1.25rem; /* Igual ao .dashboard */
+}
+
+/* 2. Cabeçalho */
+.ponto-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Quebra linha em telas menores */
+  gap: 1rem;
+}
+
+.ponto-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #3b5fbf;
+}
+
+.header-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Reutilização dos estilos de botão (pode estar em um CSS global) */
+.report-btn {
+  display: flex; align-items: center; gap: 6px; background: #ffffff;
+  color: var(--primary-color, #3b82f6); padding: 8px 14px; border: 1px solid var(--primary-color, #3b82f6);
+  border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+}
+.report-btn:hover { background: var(--primary-color, #3b82f6); color: white; }
+
+.add-btn {
+  display: flex; align-items: center; gap: 6px; background: var(--primary-color, #3b82f6);
+  color: white; padding: 8px 14px; border: none; border-radius: 8px; font-size: 14px;
+  font-weight: 600; cursor: pointer; box-shadow: 0 3px 8px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+}
+.add-btn:hover:not(:disabled) { filter: brightness(1.1); transform: translateY(-1px); }
+.add-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* 3. Barra de Ferramentas (Toolbar) */
+.ponto-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap; /* Quebra linha em telas menores */
+  gap: 1rem;
+  background: var(--background-panel, #fff);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+}
+
+.ponto-info {
+  display: flex;
+  gap: 2rem;
+}
+
+.p-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.p-label {
+  font-size: 0.8rem;
+  color: var(--text-light, #64748b);
+  margin-bottom: 2px;
+}
+
+.p-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-body, #334155);
+}
+
+.p-value.mono {
+  font-family: monospace;
+  font-size: 0.9rem;
+}
+
+.ponto-controls {
+  display: flex;
+  align-items: flex-end; /* Alinha o select e o botão pela base */
+  gap: 1rem;
+}
+
+.p-select {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.p-select span {
+  font-size: 0.8rem;
+  color: var(--text-light, #64748b);
+}
+.p-select select {
+  height: 38px; /* Altura igual ao botão */
+  border: 1px solid var(--border-color, #cbd5e1);
+  border-radius: 8px;
+  padding: 0 10px;
+  outline: none;
+  font-size: 14px;
+  min-width: 150px;
+}
+.p-select select:focus {
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* 4. Card de Localização */
+.ponto-card {
+  background: var(--background-panel, #fff);
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,.06);
+  border: 1px solid rgba(0,0,0,.04);
+}
+
+.p-card-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); /* Colunas responsivas */
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.p-col {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Reutiliza .p-label e .p-value */
+
+/* Badge de Status da Geolocalização */
+.p-col .badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 999px;
+  text-align: center;
+  align-self: flex-start; /* Para não esticar */
+}
+.p-col .badge.idle { background-color: #e2e8f0; color: #64748b; }
+.p-col .badge.loading { background-color: #dbeafe; color: #2563eb; }
+.p-col .badge.ok { background-color: #dcfce7; color: #16a34a; }
+.p-col .badge.error { background-color: #fee2e2; color: #dc2626; }
+
+.p-error {
+  color: #dc2626;
+  font-weight: 500;
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background-color: #fee2e2;
+  border-radius: 8px;
+  border-left: 4px solid #ef4444;
+}
+
+.p-hint {
+  font-size: 0.85rem;
+  color: var(--text-light, #64748b);
+  margin-top: 1rem;
+  border-top: 1px dashed var(--border-color, #cbd5e1);
+  padding-top: 1rem;
+}
+
+/* 5. Responsividade Adicional */
+@media (max-width: 640px) {
+  .ponto-toolbar {
+    flex-direction: column;
+    align-items: stretch; /* Itens ocupam largura total */
+  }
+  .ponto-info {
+    justify-content: space-between; /* Espaça mais em telas pequenas */
+  }
+  .ponto-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .p-select select {
+    min-width: none; /* Largura total */
+  }
+  .p-card-row {
+    grid-template-columns: 1fr; /* Uma coluna em telas muito pequenas */
+    gap: 1rem;
+  }
+}
+
+/* ================================== */
+/* ESTILOS PARA O MAPA */
+/* ================================== */
+
+/* Ajusta o card para conter o mapa */
+.ponto-map-card {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* Container para a linha de info acima do mapa */
+.p-map-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+/* Container do mapa */
+.map-container {
+  width: 100%;
+  height: 250px; /* Altura fixa para o mapa */
+  border-radius: 8px;
+  overflow: hidden; /* Garante que o mapa fique dentro das bordas */
+  background-color: #e2e8f0; /* Fundo enquanto carrega */
+}
+
+/* Placeholder quando o mapa não está visível */
+.map-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  color: var(--text-light, #64748b);
+  font-size: 0.9rem;
+  font-style: italic;
+  gap: 0.5rem;
+}
+
+/* Garante que o container do Leaflet ocupe todo o espaço */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+}

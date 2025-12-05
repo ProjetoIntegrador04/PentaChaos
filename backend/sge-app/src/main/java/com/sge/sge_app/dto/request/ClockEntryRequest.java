@@ -13,8 +13,8 @@ import java.time.LocalDateTime;
 @Builder // Gera o builder
 public class ClockEntryRequest {
 
-    @NotNull(message = "O ID do usuário é obrigatório.")
-    private Long userId;
+    // userId será obtido do token de autenticação, não do request
+    private Long userId; // Usado internamente, mas não será enviado no JSON
 
     @NotBlank(message = "O tipo de ponto é obrigatório.")
     @Pattern(regexp = "^(ENTRY|EXIT|LUNCH_START|LUNCH_END)$", message = "Tipo de ponto inválido.")

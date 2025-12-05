@@ -1,0 +1,115 @@
+# Docker Compose para todo o projeto PentaChaos
+# Backend (Spring Boot) + Mobile (React Native/Expo) + PostgreSQL
+
+services:
+  # Banco de dados PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: pentachaos-db
+    environment:
+      POSTGRES_DB: sge_app_db
+      POSTGRES_USER: admin_sge
+      POSTGRES_PASSWORD: admin123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - pentachaos-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin_sge -d sge_app_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend Spring Boot
+  backend:
+    build:
+      context: ./backend/sge-app
+      dockerfile: Dockerfile
+    container_name: pentachaos-backend
+    environment:
+      # Configurações do banco
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/sge_app_db
+      SPRING_DATASOURCE_USERNAME: admin_sge
+      SPRING_DATASOURCE_PASSWORD: admin123
+      
+      # Configurações do JPA/Hibernate
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "false"
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      SPRING_JPA_PROPERTIES_HIBERNATE_FORMAT_SQL: "true"
+      
+      # JWT Secret (use uma chave forte em produção)
+      JWT_SECRET: "minha-chave-secreta-super-segura-para-desenvolvimento-2024"
+      JWT_EXPIRATION: 86400000
+      
+      # Configurações de logging
+      LOGGING_LEVEL_COM_SGE: INFO
+      LOGGING_LEVEL_ORG_SPRINGFRAMEWORK: INFO
+    ports:
+      - "8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - pentachaos-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Mobile React Native (Expo)
+  mobile:
+    build:
+      context: ./integrador-mobile
+      dockerfile: Dockerfile
+    container_name: pentachaos-mobile
+    environment:
+      # Configuração da API (aponta para o backend no Docker)
+      EXPO_PUBLIC_API_URL: http://backend:8080
+      NODE_ENV: development
+    ports:
+      - "8081:8081"  # Metro bundler
+      - "19000:19000"  # Expo DevTools (opcional)
+      - "19001:19001"  # Expo Developer Tools (opcional)
+    depends_on:
+      - backend
+    networks:
+      - pentachaos-network
+    restart: unless-stopped
+    # Comando para iniciar o Expo
+    command: npx expo start --web
+    # Volumes para hot reload (desenvolvimento)
+    volumes:
+      - ./integrador-mobile:/app
+      - /app/node_modules
+      - /app/.expo
+
+  # Frontend React + Vite
+  frontend:
+    build:
+      context: ./frontend/frontProject
+      dockerfile: Dockerfile
+    container_name: pentachaos-frontend
+    environment:
+      # Configuração da API
+      VITE_API_URL: http://localhost:8080
+    ports:
+      - "3000:80"  # Nginx serve na porta 80, mapeado para 3000 no host
+    depends_on:
+      - backend
+    networks:
+      - pentachaos-network
+    restart: unless-stopped
+
+networks:
+  pentachaos-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local

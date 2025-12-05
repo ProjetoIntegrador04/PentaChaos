@@ -1,21 +1,21 @@
-version: '3.8'
-
 services:
   db:
     image: postgres:15-alpine
+    container_name: sge-app-db-1
     ports:
       - "5432:5432"
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    ports:
-      - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    networks:
+      - sge-net
 
   app:
-    build: .
+    image: sge-app:latest
+    container_name: sge-app-app-1
     ports:
       - "8080:8080"
     environment:
@@ -28,6 +28,13 @@ services:
     depends_on:
       - db
     restart: on-failure
+    networks:
+      - sge-net
 
 volumes:
   db_data:
+    name: sge_postgres_data
+
+networks:
+  sge-net:
+    driver: bridge

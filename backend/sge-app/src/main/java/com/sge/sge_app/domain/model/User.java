@@ -27,10 +27,22 @@ public class User extends BaseEntity implements UserDetails {
     @Column(nullable = false)
     private String password; // ATENÇÃO: Armazenar senhas HASHED, nunca em texto puro!
 
+    // Campos adicionais para o sistema
+    private String fullName; // Nome completo
+    private String ra; // Registro Acadêmico ou ID
+    private String squad; // Squad/Equipe do usuário
+    private String phoneNumber; // Telefone
+    private String emailPessoal; // Email pessoal
+    
+    @Builder.Default
     private boolean enabled = true; // Indica se o usuário está ativo
+    @Builder.Default
     private boolean accountLocked = false; // Indica se a conta do usuário está bloqueada
+    @Builder.Default
     private boolean credentialsExpired = false; // Indica se as credenciais do usuário expiraram
+    @Builder.Default
     private boolean accountExpired = false; // Indica se a conta do usuário expirou
+    
 
     @ManyToMany(fetch = FetchType.EAGER) // Carrega os papéis junto com o usuário para facilitar as verificações de segurança
     @JoinTable(
@@ -38,6 +50,7 @@ public class User extends BaseEntity implements UserDetails {
         joinColumns = @JoinColumn(name = "user_id"), // Coluna que referencia o ID do usuário
         inverseJoinColumns = @JoinColumn(name = "role_id") // Coluna que referencia o ID do papel
     )
+    @Builder.Default
     private Set<Role> roles = new HashSet<>(); // Conjunto de papéis do usuário
 
     // Métodos da interface UserDetails:
