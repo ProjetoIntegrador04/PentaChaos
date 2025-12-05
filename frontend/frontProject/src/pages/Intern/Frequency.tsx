@@ -1,41 +1,52 @@
-import React, { useState, useMemo } from "react";
-// 1. Importar o ícone de Edição
+import React, { useState, useMemo, useEffect } from "react";
 import { ChevronLeft, ChevronRight, LogIn, LogOut, Coffee, Edit } from "lucide-react";
+import api from "../../api/https";
 import "../../styles/Intern/Frequency.css"; 
 
-// --- Tipos e Mocks (sem alteração) ---
+// --- Tipos ---
 interface PontoRecord {
-  id: number | string;
+  id: number;
   timestamp: string; 
-  tipo: "ENTRY" | "EXIT" | "BREAK_START" | "BREAK_END";
+  tipo: "ENTRY" | "EXIT" | "LUNCH_START" | "LUNCH_END";
 }
 type PontoTipo = PontoRecord['tipo'];
 
-const mockPontos: PontoRecord[] = [
-  { id: 1, timestamp: "2025-11-03T09:01:15Z", tipo: "ENTRY" },
-  { id: 2, timestamp: "2025-11-03T12:30:10Z", tipo: "BREAK_START" },
-  { id: 3, timestamp: "2025-11-03T13:31:05Z", tipo: "BREAK_END" },
-  { id: 4, timestamp: "2025-11-03T16:05:20Z", tipo: "EXIT" },
-  { id: 5, timestamp: "2025-11-01T09:03:00Z", tipo: "ENTRY" },
-  { id: 6, timestamp: "2025-11-01T16:01:00Z", tipo: "EXIT" },
-  { id: 7, timestamp: "2025-10-31T09:00:00Z", tipo: "ENTRY" },
-  { id: 8, timestamp: "2025-10-31T16:00:00Z", tipo: "EXIT" },
-];
-
+// Mapeamento de tipos (note que o backend usa LUNCH_ ao invés de BREAK_)
 const pontoTipoMap = {
   ENTRY: { label: "Entrada", icon: LogIn },
-  BREAK_START: { label: "Início Pausa", icon: Coffee },
-  BREAK_END: { label: "Fim Pausa", icon: Coffee },
+  LUNCH_START: { label: "Início Pausa", icon: Coffee },
+  LUNCH_END: { label: "Fim Pausa", icon: Coffee },
   EXIT: { label: "Saída", icon: LogOut },
 };
 
-// 2. Ordem fixa que queremos exibir os slots
-const PONTOS_DO_DIA: PontoTipo[] = ["ENTRY", "BREAK_START", "BREAK_END", "EXIT"];
+// Ordem fixa de exibição dos slots
+const PONTOS_DO_DIA: PontoTipo[] = ["ENTRY", "LUNCH_START", "LUNCH_END", "EXIT"];
 
 // --- Componente ---
 const Frequency: React.FC = () => {
-  const [pontos] = useState<PontoRecord[]>(mockPontos);
+  const [pontos, setPontos] = useState<PontoRecord[]>([]);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [loading, setLoading] = useState(false);
+
+  // Carregar histórico de pontos ao montar o componente
+  useEffect(() => {
+    carregarHistorico();
+  }, []);
+
+  const carregarHistorico = async () => {
+    setLoading(true);
+    try {
+      // ✅ Endpoint correto - GET /api/v1/clockentries/me/history
+      const res = await api.get<PontoRecord[]>("/api/v1/clockentries/me/history");
+      console.log("📡 Histórico de pontos carregado:", res.data);
+      setPontos(res.data);
+    } catch (error) {
+      console.error("❌ Erro ao carregar histórico:", error);
+      alert("Erro ao carregar histórico de pontos. Verifique o console.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const formatMonthYear = (date: Date) => {
     return date.toLocaleDateString("pt-BR", {
@@ -44,11 +55,10 @@ const Frequency: React.FC = () => {
     });
   };
 
-  // 3. Helper para formatar apenas a hora
   const formatTime = (isoString: string) => {
-      return new Date(isoString).toLocaleTimeString("pt-BR", {
-        hour: '2-digit', minute: '2-digit'
-      });
+    return new Date(isoString).toLocaleTimeString("pt-BR", {
+      hour: '2-digit', minute: '2-digit'
+    });
   };
 
   const groupedPontos = useMemo(() => {
@@ -104,22 +114,24 @@ const Frequency: React.FC = () => {
 
       {/* Container dos Registros */}
       <div className="records-container">
-        {groupedPontos.size === 0 && (
+        {loading ? (
+          <div className="state-message">
+            <span>⏳ Carregando histórico...</span>
+          </div>
+        ) : groupedPontos.size === 0 ? (
           <div className="state-message">
             <span>Nenhum registro encontrado para este mês.</span>
           </div>
-        )}
+        ) : null}
 
-        {groupedPontos.size > 0 && (
+        {!loading && groupedPontos.size > 0 && (
           [...groupedPontos.entries()].map(([date, records]) => {
             const weekDay = new Date(records[0].timestamp).toLocaleDateString("pt-BR", { weekday: 'long' });
-            // 5. Reverte os registros para ordem cronológica (do dia)
             const recordsInOrder = [...records].reverse();
 
             return (
               <div key={date} className="panel day-card">
                 <div className="day-header">
-                  {/* 6. Agrupa o título e adiciona o botão de ajuste */}
                   <div className="day-title-group">
                     <span className="day-date">{date}</span>
                     <span className="day-weekday">{weekDay}</span>
@@ -130,9 +142,7 @@ const Frequency: React.FC = () => {
                   </button>
                 </div>
                 <ul className="point-list">
-                  {/* 7. Mapeia a ORDEM FIXA de pontos, não os registros */}
                   {PONTOS_DO_DIA.map((tipo) => {
-                    // 8. Encontra o primeiro registro daquele tipo
                     const record = recordsInOrder.find(p => p.tipo === tipo);
                     const { label, icon: PontoIcon } = pontoTipoMap[tipo];
                     
