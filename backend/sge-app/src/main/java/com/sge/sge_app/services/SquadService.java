@@ -50,6 +50,7 @@ public class SquadService {
     /**
      * Lista todos os squads
      */
+    @Transactional(readOnly = true)
     public List<SquadResponse> getAllSquads() {
         return squadRepository.findAll().stream()
                 .map(this::mapToResponse)
@@ -59,6 +60,7 @@ public class SquadService {
     /**
      * Busca um squad por ID
      */
+    @Transactional(readOnly = true)
     public SquadResponse getSquadById(@NonNull Long id) {
         Squad squad = squadRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Squad não encontrado com ID: " + id));
@@ -132,6 +134,7 @@ public class SquadService {
     /**
      * Busca squads de um usuário
      */
+    @Transactional(readOnly = true)
     public List<SquadResponse> getSquadsByUserId(Long userId) {
         return squadRepository.findSquadsByUserId(userId).stream()
                 .map(this::mapToResponse)
@@ -143,12 +146,23 @@ public class SquadService {
      */
     private SquadResponse mapToResponse(Squad squad) {
         Set<SquadResponse.UserBasicInfo> members = squad.getMembers().stream()
-                .map(user -> SquadResponse.UserBasicInfo.builder()
-                        .id(user.getId())
-                        .username(user.getUsername())
-                        .fullName(user.getFullName())
-                        .email(user.getEmail())
-                        .build())
+                .map(user -> {
+                    Set<SquadResponse.RoleInfo> roles = user.getRoles().stream()
+                            .map(role -> SquadResponse.RoleInfo.builder()
+                                    .id(role.getId())
+                                    .name(role.getName())
+                                    .build())
+                            .collect(Collectors.toSet());
+
+                    return SquadResponse.UserBasicInfo.builder()
+                            .id(user.getId())
+                            .username(user.getUsername())
+                            .fullName(user.getFullName())
+                            .email(user.getEmail())
+                            .ra(user.getRa())
+                            .roles(roles)
+                            .build();
+                })
                 .collect(Collectors.toSet());
 
         return SquadResponse.builder()

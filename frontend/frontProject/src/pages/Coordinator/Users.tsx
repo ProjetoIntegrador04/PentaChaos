@@ -63,16 +63,16 @@ const UserModal: React.FC<UserModalProps> = ({ userToEdit, availableSquads, onCl
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!userToEdit && formData.password !== formData.confirmPassword) {
-      alert("As senhas n�o coincidem!");
+    if (formData.password !== formData.confirmPassword) {
+      alert("As senhas não coincidem!");
       return;
     }
-    if (!formData.username || !formData.email) {
-      alert("Preencha os campos obrigat�rios (username e email).");
+    if (!formData.username.trim() || !formData.email.trim()) {
+      alert("Preencha os campos obrigatórios (username e email).");
       return;
     }
-    if (!userToEdit && !formData.password) {
-      alert("A senha � obrigat�ria para novos usu�rios.");
+    if (!userToEdit && !formData.password.trim()) {
+      alert("A senha é obrigatória para novos usuários.");
       return;
     }
     onSave(formData);
@@ -82,22 +82,22 @@ const UserModal: React.FC<UserModalProps> = ({ userToEdit, availableSquads, onCl
     <div className="modal-overlay">
       <div className="modal-container">
         <header className="modal-header">
-          <h2>{userToEdit ? "Editar Usu�rio" : "Cadastrar Usu�rio"}</h2>
+          <h2>{userToEdit ? "Editar Usuário" : "Cadastrar Usuário"}</h2>
           <button className="close-btn" onClick={onClose}><FiX size={24} /></button>
         </header>
         <form onSubmit={handleSubmit} className="modal-form">
           <div className="form-row">
             <label>Username *</label>
-            <input name="username" value={formData.username} onChange={handleChange} required placeholder="Nome de usu�rio para login" />
+            <input name="username" value={formData.username} onChange={handleChange} required placeholder="Nome de usuário para login" />
           </div>
           <div className="form-row">
             <label>Nome Completo</label>
-            <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nome completo do usu�rio" />
+            <input name="fullName" value={formData.fullName} onChange={handleChange} placeholder="Nome completo do usuário" />
           </div>
-          <div className="form-grid">
+          <div className="form-row-group">
             <div className="form-row">
               <label>RA</label>
-              <input name="ra" value={formData.ra} onChange={handleChange} placeholder="Registro Acad�mico" />
+              <input name="ra" value={formData.ra} onChange={handleChange} placeholder="Registro Acadêmico" />
             </div>
             <div className="form-row">
               <label>Squad</label>
@@ -118,7 +118,7 @@ const UserModal: React.FC<UserModalProps> = ({ userToEdit, availableSquads, onCl
           <div className="form-grid">
             <div className="form-row">
               <label>Senha {!userToEdit && "*"}</label>
-              <input type="password" name="password" value={formData.password} onChange={handleChange} required={!userToEdit} placeholder="M�nimo 6 caracteres" />
+              <input type="password" name="password" value={formData.password} onChange={handleChange} required={!userToEdit} placeholder="Mínimo 6 caracteres" />
             </div>
             <div className="form-row">
               <label>Confirmar Senha {!userToEdit && "*"}</label>
@@ -151,7 +151,7 @@ const Usuarios: React.FC = () => {
         setUsuarios(res.data);
       } catch (err) {
         console.error(" Error loading users:", err);
-        alert("Erro ao carregar lista de usu�rios.");
+        alert("Erro ao carregar lista de usuários.");
       } finally {
         setLoading(false);
       }
@@ -184,14 +184,14 @@ const Usuarios: React.FC = () => {
         const res = await api.put(`/api/v1/users/${userToEdit.id}`, payload);
         console.log(" User updated:", res.data);
         setUsuarios((prev) => prev.map((u) => (u.id === userToEdit.id ? res.data : u)));
-        alert("Usu�rio atualizado com sucesso!");
+        alert("Usuário atualizado com sucesso!");
       } else {
         const payload = {username: formData.username, fullName: formData.fullName, email: formData.email, password: formData.password, ra: formData.ra, squad: formData.squad, phoneNumber: formData.phoneNumber, isAdmin: false};
         console.log(" POST /auth/register", payload);
         const res = await api.post("/auth/register", payload);
         console.log(" User created:", res.data);
         setUsuarios((prev) => [res.data.user, ...prev]);
-        alert("Usu�rio cadastrado com sucesso!");
+        alert("Usuário cadastrado com sucesso!");
       }
     } catch (err) {
       console.error("❌ Error saving user:", err);
@@ -205,7 +205,7 @@ const Usuarios: React.FC = () => {
 
   const handleGenerateReport = () => {
     if (usuariosFiltrados.length === 0) {
-      alert("N�o h� usu�rios para gerar relat�rio.");
+      alert("Não há usuários para gerar relatório.");
       return;
     }
     const header = ["ID", "Username", "Nome Completo", "Email", "RA", "Squad", "Telefone", "Status", "Roles"];
@@ -225,16 +225,16 @@ const Usuarios: React.FC = () => {
   };
 
   if (loading) {
-    return (<div className="usuarios-page"><div style={{ padding: "2rem", textAlign: "center" }}><p>Carregando usu�rios...</p></div></div>);
+    return (<div className="usuarios-page"><div style={{ padding: "2rem", textAlign: "center" }}><p>Carregando usuários...</p></div></div>);
   }
 
   return (
     <div className="usuarios-page">
       <header className="usuarios-header">
-        <h1>Controle de Usu�rios</h1>
+        <h1>Controle de Usuários</h1>
         <div className="header-actions">
-          <button className="report-btn" onClick={handleGenerateReport}><FiDownload /> Relat�rio</button>
-          <button className="add-btn" onClick={() => setIsModalOpen(true)}><FiPlus /> Cadastrar usu�rio</button>
+          <button className="report-btn" onClick={handleGenerateReport}><FiDownload /> Relatório</button>
+          <button className="add-btn" onClick={() => setIsModalOpen(true)}><FiPlus /> Cadastrar usuário</button>
         </div>
       </header>
       <div className="search-box">
@@ -243,10 +243,10 @@ const Usuarios: React.FC = () => {
       <div className="usuarios-table">
         <table>
           <thead>
-            <tr><th>Status</th><th>Username</th><th>Nome Completo</th><th>Email</th><th>RA</th><th>Squad</th><th>A��es</th></tr>
+            <tr><th>Status</th><th>Username</th><th>Nome Completo</th><th>Email</th><th>RA</th><th>Squad</th><th>Ações</th></tr>
           </thead>
           <tbody>
-            {usuariosFiltrados.length === 0 ? (<tr><td colSpan={7} style={{ textAlign: "center", padding: "2rem" }}>Nenhum usu�rio encontrado.</td></tr>) : (usuariosFiltrados.map((u) => (<tr key={u.id}><td className={`status ${u.enabled ? "ativo" : "inativo"}`}>{u.enabled ? "ATIVO" : "INATIVO"}</td><td>{u.username}</td><td>{u.fullName || "-"}</td><td>{u.email}</td><td>{u.ra || "-"}</td><td>{u.squad || "-"}</td><td className="acoes"><button className="icon-btn edit" onClick={() => {setUserToEdit(u); setIsModalOpen(true);}} title="Editar usu�rio"><FiEdit /></button></td></tr>)))}
+            {usuariosFiltrados.length === 0 ? (<tr><td colSpan={7} style={{ textAlign: "center", padding: "2rem" }}>Nenhum usuário encontrado.</td></tr>) : (usuariosFiltrados.map((u) => (<tr key={u.id}><td className={`status ${u.enabled ? "ativo" : "inativo"}`}>{u.enabled ? "ATIVO" : "INATIVO"}</td><td>{u.username}</td><td>{u.fullName || "-"}</td><td>{u.email}</td><td>{u.ra || "-"}</td><td>{u.squad || "-"}</td><td className="acoes"><button className="icon-btn edit" onClick={() => {setUserToEdit(u); setIsModalOpen(true);}} title="Editar usuário"><FiEdit /></button></td></tr>)))}
           </tbody>
         </table>
       </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Home, Users, Shield, LogOut, Settings, ChevronDown, BarChart2, List, ClipboardList } from 'lucide-react'; 
-import { useAuth } from '../../context/useAuth'; // Verifique o caminho
+import { useAuth } from '../../context/useAuth';
 import './Sidebar.css';
 import logo from '../../assets/images/image.png';
 
@@ -96,14 +96,18 @@ const Sidebar: React.FC = () => {
                 </div>
                 <div className={`submenu ${openMenu === item.label ? 'open' : ''}`}>
                   {item.subItems.map((subItem, subIndex) => (
-                    <NavLink
+                    <a
                       key={subIndex}
-                      to={subItem.path}
-                      className={({ isActive }) => `submenu-item ${isActive ? 'active' : ''}`}
+                      href={subItem.path}
+                      className={`submenu-item ${location.pathname === subItem.path ? 'active' : ''}`}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = subItem.path;
+                      }}
                     >
                       {subItem.icon && <subItem.icon size={16} />}
                       <span>{subItem.label}</span>
-                    </NavLink>
+                    </a>
                   ))}
                 </div>
               </div>
@@ -111,14 +115,18 @@ const Sidebar: React.FC = () => {
           }
 
           return (
-            <NavLink
+            <a
               key={index}
-              to={item.path!}
-              className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+              href={item.path!}
+              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = item.path!;
+              }}
             >
               <item.icon size={20} />
               <span>{item.label}</span>
-            </NavLink>
+            </a>
           );
         })}
       </nav>

@@ -9,6 +9,7 @@ import { Trash } from 'lucide-react';
 // --- Tipos ---
 type TaskStatus = "PENDENTE" | "EM_ANDAMENTO" | "CONCLUIDA";  
 type TaskPriority = "Alta" | "Media" | "Baixa";
+type ViewMode = "table" | "cards"; // Novo: modo de visualização
 
 interface Task {
   id: number;
@@ -229,6 +230,7 @@ const Task: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [currentTask, setCurrentTask] = useState<Partial<Task> | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>("cards"); // Novo: modo de visualização
 
   const token = getStoredToken();
   const coordId = token ? Number(parseJwt(token).sub) : null;
@@ -285,6 +287,13 @@ const Task: React.FC = () => {
   // --- SALVAR (POST + PUT) ---
   const handleSaveTask = async (taskToSave: Partial<Task>) => {
     try {
+      // Encontrar o nome do responsável se houver ID
+      let responsavelNome: string | undefined = taskToSave.responsavelNome;
+      if (taskToSave.responsavelId && !responsavelNome) {
+        const responsavel = users.find((u) => u.id === taskToSave.responsavelId);
+        responsavelNome = responsavel?.username;
+      }
+
       const payload = {
         titulo: taskToSave.titulo,
         descricao: taskToSave.descricao ?? "",
@@ -301,15 +310,29 @@ const Task: React.FC = () => {
       if (taskToSave.id) {
         const res = await api.put(`/api/v1/tasks/${taskToSave.id}`, payload);
         console.log("✅ Tarefa atualizada:", res.data);
+        
+        // Merge com responsavelNome se não veio do backend
+        const updatedTask = {
+          ...res.data,
+          responsavelNome: res.data.responsavelNome || responsavelNome,
+        };
+        
         setTasks((prev) =>
-          prev.map((t) => (t.id === taskToSave.id ? res.data : t))
+          prev.map((t) => (t.id === taskToSave.id ? updatedTask : t))
         );
       }
       // CREATE - ✅ Endpoint correto
       else {
         const res = await api.post("/api/v1/tasks", payload);
         console.log("✅ Tarefa criada:", res.data);
-        setTasks((prev) => [res.data, ...prev]);
+        
+        // Merge com responsavelNome se não veio do backend
+        const newTask = {
+          ...res.data,
+          responsavelNome: res.data.responsavelNome || responsavelNome,
+        };
+        
+        setTasks((prev) => [newTask, ...prev]);
       }
 
       alert("Tarefa salva com sucesso!");
@@ -354,13 +377,138 @@ const Task: React.FC = () => {
       );
     });
   }, [tasks, searchQuery]);
+
+  // --- Componente: Card de Tarefa ---
+  const TaskCard: React.FC<{ task: Task }> = ({ task }) => {
+    const statusSafe = (task.status ?? "PENDENTE").toLowerCase();
+    const priSafe = (task.prioridade ?? "Media").toLowerCase();
+    
+    // Truncar descrição para exibir um resumo
+    const descriptionPreview = task.descricao 
+      ? task.descricao.length > 80 
+        ? task.descricao.substring(0, 80) + "..."
+        : task.descricao
+      : "Sem descrição";
+
+    return (
+      <div className={`task-card task-card-${statusSafe}`}>
+        {/* Header do Card */}
+        <div className="card-header">
+          <div className="card-title">{task.titulo}</div>
+          <div className="card-actions">
+            <button
+              className="icon-btn-small edit"
+              onClick={() => handleOpenModal(task)}
+              title="Editar"
+            >
+              <Edit size={14} />
+            </button>
+            <button
+              className="icon-btn-small delete"
+              onClick={() => handleDeleteTask(task.id)}
+              title="Deletar"
+            >
+              <Trash size={14} />
+            </button>
+          </div>
+        </div>
+
+        {/* Preview da Descrição */}
+        <div className="card-description">
+          {descriptionPreview}
+        </div>
+
+        {/* Footer do Card */}
+        <div className="card-footer">
+          <div className="card-badges">
+            <span className={`status-badge status-${statusSafe}`}>
+              {(task.status ?? "PENDENTE").replace("_", " ")}
+            </span>
+            <span className={`priority-badge priority-${priSafe}`}>
+              {task.prioridade ?? "Media"}
+            </span>
+          </div>
+        </div>
+
+        {/* Responsável e Data */}
+        <div className="card-meta">
+          <div className="meta-item">
+            <span className="label">Responsável:</span>
+            <span className="value">{task.responsavelNome ?? "Não atribuído"}</span>
+          </div>
+          <div className="meta-item">
+            <span className="label">Criação:</span>
+            <span className="value">{task.dataCriacao ?? "—"}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // --- Componente: Coluna Kanban ---
+  const KanbanColumn: React.FC<{ status: TaskStatus; tasks: Task[] }> = ({ status, tasks }) => {
+    const statusLabel = status.replace("_", " ");
+
+    return (
+      <div className="kanban-column">
+        <div className="column-header">
+          <h3>{statusLabel}</h3>
+          <span className="card-count">{tasks.length}</span>
+        </div>
+        <div className="column-tasks">
+          {tasks.length === 0 ? (
+            <div className="empty-column">Nenhuma tarefa</div>
+          ) : (
+            tasks.map((task) => (
+              <TaskCard key={task.id} task={task} />
+            ))
+          )}
+        </div>
+      </div>
+    );
+  };
+
+  // --- Agrupar tarefas por status para visualização Kanban ---
+  const groupedTasks = useMemo(() => {
+    const groups: Record<TaskStatus, Task[]> = {
+      PENDENTE: [],
+      EM_ANDAMENTO: [],
+      CONCLUIDA: [],
+    };
+
+    filteredTasks.forEach((task) => {
+      const status = (task.status ?? "PENDENTE") as TaskStatus;
+      groups[status].push(task);
+    });
+
+    return groups;
+  }, [filteredTasks]);
+
   return (
     <div className="tasks-page">
       <header className="tasks-header">
         <h1>Gerenciador de Tarefas</h1>
-        <button className="add-btn" onClick={() => handleOpenModal(null)}>
-          <Plus size={16} /> Criar Tarefa
-        </button>
+        <div className="header-controls">
+          <button className="add-btn" onClick={() => handleOpenModal(null)}>
+            <Plus size={16} /> Criar Tarefa
+          </button>
+          <div className="view-toggle">
+            <button
+              className={`view-btn ${viewMode === "cards" ? "active" : ""}`}
+              onClick={() => setViewMode("cards")}
+              title="Visualização em Cards"
+            >
+              ▢ Cards
+            </button>
+            <button
+              className={`view-btn ${viewMode === "table" ? "active" : ""}`}
+              onClick={() => setViewMode("table")}
+              title="Visualização em Tabela"
+            >
+              ≡ Tabela
+            </button>
+          </div>
+        </div>
       </header>
 
       {/* Barra de pesquisa */}
@@ -370,78 +518,100 @@ const Task: React.FC = () => {
         </span>
         <input
           type="text"
-          placeholder="Pesquisar..."
+          placeholder="Pesquisar por título, responsável ou status..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
       </div>
 
-      {/* TABELA */}
-      <div className="tasks-table">
-        <table>
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Título</th>
-              <th>Responsável</th>
-              <th>Prioridade</th>
-              <th>Criação</th>
-              <th>Ações</th>
-            </tr>
-          </thead>
+      {/* VISUALIZAÇÃO EM CARDS (KANBAN) */}
+      {viewMode === "cards" && (
+        <div className="kanban-board">
+          <KanbanColumn status="PENDENTE" tasks={groupedTasks.PENDENTE} />
+          <KanbanColumn status="EM_ANDAMENTO" tasks={groupedTasks.EM_ANDAMENTO} />
+          <KanbanColumn status="CONCLUIDA" tasks={groupedTasks.CONCLUIDA} />
+        </div>
+      )}
 
-          <tbody>
-            {filteredTasks.map((task) => {
-              const statusSafe = (task.status ?? "PENDENTE").toLowerCase();
-              const priSafe = (task.prioridade ?? "Media").toLowerCase();
+      {/* VISUALIZAÇÃO EM TABELA */}
+      {viewMode === "table" && (
+        <div className="tasks-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Título</th>
+                <th>Descrição</th>
+                <th>Responsável</th>
+                <th>Prioridade</th>
+                <th>Criação</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
 
-              return (
-                <tr key={task.id}>
-                  <td>
-                    <span className={`status-badge status-${statusSafe}`}>
-                      {(task.status ?? "PENDENTE").replace("_", " ")}
-                    </span>
-                  </td>
+            <tbody>
+              {filteredTasks.map((task) => {
+                const statusSafe = (task.status ?? "PENDENTE").toLowerCase();
+                const priSafe = (task.prioridade ?? "Media").toLowerCase();
 
-                  <td className="task-title">{task.titulo}</td>
+                return (
+                  <tr key={task.id}>
+                    <td>
+                      <span className={`status-badge status-${statusSafe}`}>
+                        {(task.status ?? "PENDENTE").replace("_", " ")}
+                      </span>
+                    </td>
 
-                  <td>{task.responsavelNome ?? "—"}</td>
+                    <td className="task-title">{task.titulo}</td>
 
-                  <td>
-                    <span className={`priority-badge priority-${priSafe}`}>
-                      {task.prioridade ?? "Media"}
-                    </span>
-                  </td>
+                    <td className="task-description">
+                      {task.descricao ? (
+                        task.descricao.length > 50
+                          ? task.descricao.substring(0, 50) + "..."
+                          : task.descricao
+                      ) : (
+                        "—"
+                      )}
+                    </td>
 
-                  <td>{task.dataCriacao ?? "—"}</td>
+                    <td>{task.responsavelNome ?? "—"}</td>
 
-                  <td className="acoes">
-                    <button
-                      className="icon-btn edit"
-                      onClick={() => handleOpenModal(task)}
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      className="icon-btn delete"
-                      onClick={() => handleDeleteTask(task.id)}
-                    >
-                      <Trash size={16} />
-                    </button>
-                </td>
+                    <td>
+                      <span className={`priority-badge priority-${priSafe}`}>
+                        {task.prioridade ?? "Media"}
+                      </span>
+                    </td>
 
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+                    <td>{task.dataCriacao ?? "—"}</td>
 
-        {filteredTasks.length === 0 && (
-          <div className="empty-state">
-            Nenhuma tarefa encontrada.
-          </div>
-        )}
-      </div>
+                    <td className="acoes">
+                      <button
+                        className="icon-btn edit"
+                        onClick={() => handleOpenModal(task)}
+                      >
+                        <Edit size={16} />
+                      </button>
+                      <button
+                        className="icon-btn delete"
+                        onClick={() => handleDeleteTask(task.id)}
+                      >
+                        <Trash size={16} />
+                      </button>
+                    </td>
+
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          {filteredTasks.length === 0 && (
+            <div className="empty-state">
+              Nenhuma tarefa encontrada.
+            </div>
+          )}
+        </div>
+      )}
 
       {isModalOpen && (
         <TaskModal

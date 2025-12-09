@@ -1,8 +1,17 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { createContext, useEffect, useMemo, useState } from "react";
 import { getStoredRoles, getStoredToken, isValidJwt, clearAuth } from "../auth";
-import { Ctx } from "./authContext";
-import type { AuthCtx } from "./authContext";
 
+// Tipos e Context
+export type AuthCtx = {
+  roles: string[];
+  isAuthenticated: boolean;
+  setRoles: (r: string[]) => void;
+  signOut: () => void;
+};
+
+export const Ctx = createContext<AuthCtx | null>(null);
+
+// Provider
 export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [roles, setRoles] = useState<string[]>(() => {
     const storedRoles = getStoredRoles();

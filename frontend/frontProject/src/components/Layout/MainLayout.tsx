@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from '../Sidebar/Sidebar'; // Sidebar do Coordenador
-import Topbar from '../Topbar/Topbar';   // 1. Importe o Topbar
+import Sidebar from '../Sidebar/Sidebar';
+import Topbar from '../Topbar/Topbar';
 import './MainLayout.css'; 
 
 const MainLayout: React.FC = () => {
@@ -9,8 +9,7 @@ const MainLayout: React.FC = () => {
     <div className="app-layout">
       <Sidebar />
       <div className="content-wrapper">
-        <Topbar /> {/* 2. Adicione o Topbar aqui */}
-        {/* Esta área de main-content é que terá o scroll */}
+        <Topbar />
         <main className="main-content">
           <Outlet />
         </main>
