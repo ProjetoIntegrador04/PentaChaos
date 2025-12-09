@@ -3,16 +3,19 @@ frontend:
   phases:
     preBuild:
       commands:
-        - echo "Iniciando install com lockfile"  # Log customizado para debug
-        - npm ci --cache .npm --prefer-offline  # Agora com lockfile, passa!
+        - echo "Navegando para frontend/FrontProject e iniciando install"
+        - cd frontend/FrontProject  # Entra na subpasta do frontend
+        - npm ci --cache .npm --prefer-offline  # Agora usa o lockfile local!
+        # Opcional: - npm run lint  # Para qualidade, se quiser
     build:
       commands:
-        - npm run build  # Ajuste se o script for diferente (ex.: "build:prod")
+        - echo "Rodando build no frontend"
+        - npm run build  # Builda na subpasta (gera /build lá)
   artifacts:
-    baseDirectory: /build  # Confirme: para React é /build; para outros, ajuste
+    baseDirectory: frontend/FrontProject/build  # Pasta de saída: aponta para o build gerado na subpasta
     files:
-      - '**/*'
+      - '**/*'  # Inclui todos os arquivos do build
   cache:
     paths:
-      - node_modules/**/*
-      - .npm/**/*
+      - frontend/FrontProject/node_modules/**/*  # Cache específico da subpasta (acelera!)
+      - .npm/**/*  # Cache npm global
