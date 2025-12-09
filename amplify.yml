@@ -3,14 +3,16 @@ frontend:
   phases:
     preBuild:
       commands:
-        - npm ci --cache .npm --prefer-offline
+        - echo "Iniciando install com lockfile"  # Log customizado para debug
+        - npm ci --cache .npm --prefer-offline  # Agora com lockfile, passa!
     build:
       commands:
-        - npm run build
+        - npm run build  # Ajuste se o script for diferente (ex.: "build:prod")
   artifacts:
-    baseDirectory: dist
+    baseDirectory: /build  # Confirme: para React é /build; para outros, ajuste
     files:
       - '**/*'
   cache:
     paths:
+      - node_modules/**/*
       - .npm/**/*
