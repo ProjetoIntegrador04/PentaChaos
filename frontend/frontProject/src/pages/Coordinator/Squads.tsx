@@ -47,31 +47,46 @@ const SquadModal: React.FC<SquadModalProps> = ({
     initialMembers
   );
 
-  const [internInput, setInternInput] = useState("");
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const internSuggestions = useMemo(() => {
-    const term = internInput.trim().toLowerCase();
-    if (!term) return [];
+  // Lista de todos os estagiários (ROLE_USER)
+  const allInterns = useMemo(() => {
+    const interns = allUsers.filter((u) => u.roles.includes("ROLE_USER"));
+    console.log("👥 Estagiários encontrados:", interns.length, interns.map(u => u.username));
+    return interns;
+  }, [allUsers]);
 
-    return allUsers.filter((u) => {
-      const isIntern = u.roles.includes("ROLE_INTERN");
-      const alreadyAdded = selectedMembers.some((m) => m.id === u.id);
-      const matches =
+  // Estagiários filtrados pela busca
+  const filteredInterns = useMemo(() => {
+    const term = searchTerm.trim().toLowerCase();
+    // Se estiver vazio, retorna TODOS os estagiários
+    if (!term) return allInterns;
+
+    return allInterns.filter((u) => {
+      return (
         u.username.toLowerCase().includes(term) ||
-        u.email.toLowerCase().includes(term);
-      return isIntern && !alreadyAdded && matches;
+        u.email.toLowerCase().includes(term) ||
+        (u.ra && u.ra.toLowerCase().includes(term))
+      );
     });
-  }, [internInput, allUsers, selectedMembers]);
+  }, [searchTerm, allInterns]);
 
-  const handleAddMember = (user: Usuario) => {
-    setSelectedMembers((prev) => [...prev, user]);
-    setInternInput("");
-    setShowSuggestions(false);
+  const handleToggleMember = (user: Usuario) => {
+    const isSelected = selectedMembers.some((m) => m.id === user.id);
+    
+    if (isSelected) {
+      setSelectedMembers((prev) => prev.filter((m) => m.id !== user.id));
+    } else {
+      setSelectedMembers((prev) => [...prev, user]);
+    }
   };
 
-  const handleRemoveMember = (id: number) => {
-    setSelectedMembers((prev) => prev.filter((m) => m.id !== id));
+  const handleSelectAll = () => {
+    setSelectedMembers([...filteredInterns]);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedMembers([]);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -107,59 +122,104 @@ const SquadModal: React.FC<SquadModalProps> = ({
             />
           </div>
 
-          {/* Seção Estagiários com autocomplete */}
+          {/* Seção Estagiários com checklist */}
           <div className="form-section">
-            <label>Estagiários</label>
-            <div className="input-with-action">
-              <input
-                type="text"
-                value={internInput}
-                onChange={(e) => {
-                  setInternInput(e.target.value);
-                  setShowSuggestions(true);
-                }}
-                placeholder="Digite o nome do estagiário..."
-                onBlur={() => {
-                  setTimeout(() => setShowSuggestions(false), 150);
-                }}
-                onFocus={() => {
-                  if (internInput.trim()) setShowSuggestions(true);
-                }}
-              />
-            </div>
-
-            {showSuggestions && internSuggestions.length > 0 && (
-              <ul className="suggestions-list">
-                {internSuggestions.map((u) => (
-                  <li
-                    key={u.id}
-                    className="suggestion-item"
-                    onMouseDown={(e) => e.preventDefault()}
-                    onClick={() => handleAddMember(u)}
-                  >
-                    <span className="suggestion-name">{u.username}</span>
-                    <span className="suggestion-email">{u.email}</span>
-                  </li>
-                ))}
-              </ul>
+            <label>Estagiários ({selectedMembers.length} selecionados)</label>
+            
+            {/* Campo de busca - OPCIONAL */}
+            {allInterns.length > 5 && (
+              <div className="input-with-action">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Buscar estagiário por nome, email ou RA..."
+                />
+              </div>
             )}
 
-            <ul className="member-chips-list">
-              {selectedMembers.map((m) => (
-                <li key={m.id} className="member-chip intern">
-                  <span>{m.username}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveMember(m.id)}
-                  >
-                    <FiX size={14} />
-                  </button>
-                </li>
-              ))}
-              {selectedMembers.length === 0 && (
-                <li className="empty-row">Nenhum estagiário selecionado.</li>
+            {/* Botões de seleção */}
+            <div style={{ display: 'flex', gap: '10px', marginTop: '10px', marginBottom: '10px' }}>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={handleSelectAll}
+                style={{ fontSize: '12px', padding: '5px 10px' }}
+              >
+                Selecionar Todos ({allInterns.length})
+              </button>
+              <button
+                type="button"
+                className="btn-secondary"
+                onClick={handleDeselectAll}
+                style={{ fontSize: '12px', padding: '5px 10px' }}
+              >
+                Limpar Seleção
+              </button>
+            </div>
+
+            {/* Lista com checkboxes */}
+            <div className="checkbox-list-container" style={{ 
+              maxHeight: '300px', 
+              overflowY: 'auto', 
+              border: '1px solid #ddd', 
+              borderRadius: '4px',
+              padding: '10px',
+              backgroundColor: '#f9f9f9'
+            }}>
+              {allInterns.length === 0 && (
+                <div style={{ textAlign: 'center', color: '#d32f2f', padding: '20px' }}>
+                  <p style={{ marginBottom: '10px', fontWeight: 'bold' }}>
+                    ⚠️ Nenhum estagiário carregado
+                  </p>
+                  <p style={{ fontSize: '12px', color: '#666' }}>
+                    Possíveis causas:
+                    <br />• Sessão expirada (faça login novamente)
+                    <br />• Nenhum usuário com ROLE_USER cadastrado
+                    <br />• Erro de conexão com o servidor
+                  </p>
+                </div>
               )}
-            </ul>
+              {allInterns.length > 0 && filteredInterns.length === 0 && (
+                <p style={{ textAlign: 'center', color: '#666', padding: '20px' }}>
+                  Nenhum estagiário encontrado com "{searchTerm}"
+                </p>
+              )}
+              {filteredInterns.map((intern) => {
+                const isSelected = selectedMembers.some((m) => m.id === intern.id);
+                return (
+                  <label
+                    key={intern.id}
+                    className="checkbox-item"
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '8px',
+                      marginBottom: '5px',
+                      backgroundColor: isSelected ? '#e3f2fd' : '#fff',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onChange={() => handleToggleMember(intern)}
+                      style={{ marginRight: '10px', cursor: 'pointer' }}
+                    />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontWeight: '500', color: '#333' }}>{intern.username}</div>
+                      <div style={{ fontSize: '12px', color: '#666' }}>
+                        {intern.email}
+                        {intern.ra && ` • RA: ${intern.ra}`}
+                      </div>
+                    </div>
+                  </label>
+                );
+              })}
+            </div>
           </div>
 
           <footer className="modal-footer">
@@ -196,10 +256,27 @@ const Squads: React.FC = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await api.get<Usuario[]>("/users");
-      setUsers(res.data);
+      // ✅ Endpoint correto
+      const res = await api.get<Usuario[]>("/api/v1/users");
+      console.log("📡 Usuários carregados para squads:", res.data);
+      
+      if (!res.data || res.data.length === 0) {
+        console.warn("⚠️ Nenhum usuário retornado pela API. Verifique se está autenticado.");
+      }
+      
+      setUsers(res.data || []);
     } catch (err) {
-      console.error("Erro ao buscar usuários para squads:", err);
+      console.error("❌ Erro ao buscar usuários para squads:", err);
+      
+      // Verificar se é erro de autenticação (401)
+      const axiosErr = err as { response?: { status?: number } };
+      if (axiosErr?.response?.status === 401) {
+        alert("Sessão expirada! Por favor, faça login novamente.");
+        // Redirecionar para login
+        window.location.href = "/login";
+        return;
+      }
+      
       alert("Erro ao carregar dados de squads.");
     } finally {
       setLoading(false);
@@ -224,6 +301,8 @@ const Squads: React.FC = () => {
       name,
       members,
     }));
+
+    console.log("📋 Squads calculadas:", list.map(s => ({ name: s.name, membros: s.members.length })));
 
     const term = busca.trim().toLowerCase();
     return term
@@ -259,14 +338,16 @@ const Squads: React.FC = () => {
     try {
       const members = users.filter((u) => u.squad === squadName);
 
+      // ✅ Endpoint correto
       await Promise.all(
         members.map((m) =>
-          api.put(`/users/${m.id}`, {
+          api.put(`/api/v1/users/${m.id}`, {
             squad: "",
           })
         )
       );
 
+      console.log("✅ Squad excluída:", squadName);
       await fetchUsers();
       alert("Squad excluída com sucesso!");
 
@@ -274,8 +355,8 @@ const Squads: React.FC = () => {
         setSelectedSquadName(null);
       }
     } catch (err) {
-      console.error("Erro ao excluir squad:", err);
-      alert("Erro ao excluir squad.");
+      console.error("❌ Erro ao excluir squad:", err);
+      alert("Erro ao excluir squad. Verifique o console.");
     }
   };
 
@@ -285,19 +366,29 @@ const Squads: React.FC = () => {
 
     const oldName = editingSquadName;
 
+    console.log("📡 Salvando squad:", { newName, memberIds: Array.from(memberIds), isEditing: !!oldName });
+
+    // Validar que há pelo menos 1 membro
+    if (memberIds.size === 0) {
+      alert("Selecione pelo menos 1 estagiário para a squad!");
+      return;
+    }
+
     try {
       const oldMembers =
         oldName != null
           ? users.filter((u) => u.squad === oldName)
           : [];
 
-      const requests: Promise<any>[] = [];
+      const requests: Promise<unknown>[] = [];
 
       if (oldName != null) {
         oldMembers.forEach((u) => {
           if (!memberIds.has(u.id)) {
+            console.log(`🔄 Removendo ${u.username} da squad ${oldName}`);
+            // ✅ Endpoint correto
             requests.push(
-              api.put(`/users/${u.id}`, {
+              api.put(`/api/v1/users/${u.id}`, {
                 squad: "",
               })
             );
@@ -310,24 +401,34 @@ const Squads: React.FC = () => {
         if (!user) return;
 
         if (user.squad !== newName) {
+          console.log(`➕ Adicionando ${user.username} à squad ${newName}`);
+          // ✅ Endpoint correto
           requests.push(
-            api.put(`/users/${user.id}`, {
+            api.put(`/api/v1/users/${user.id}`, {
               squad: newName,
             })
           );
         }
       });
 
+      console.log(`🚀 Executando ${requests.length} requisições...`);
       await Promise.all(requests);
+      console.log("✅ Squad salva com sucesso!");
+      
+      // Recarregar usuários para atualizar a lista de squads
       await fetchUsers();
-      alert("Squad salva com sucesso!");
-    } catch (err) {
-      console.error("Erro ao salvar squad:", err);
-      alert("Erro ao salvar squad.");
-    } finally {
+      
+      // Fechar modal
       setIsModalOpen(false);
       setEditingSquadName(undefined);
-      if (data.name) setSelectedSquadName(data.name);
+      
+      // Selecionar a squad criada/editada
+      setSelectedSquadName(newName);
+      
+      alert(`Squad "${newName}" salva com sucesso!`);
+    } catch (err) {
+      console.error("❌ Erro ao salvar squad:", err);
+      alert("Erro ao salvar squad. Verifique o console.");
     }
   };
 
@@ -343,7 +444,7 @@ const Squads: React.FC = () => {
 
     squads.forEach((s) => {
       s.members.forEach((m) => {
-        const isIntern = m.roles.includes("ROLE_INTERN");
+        const isIntern = m.roles.includes("ROLE_USER");
         const roleLabel = isIntern ? "Estagiário" : "Líder / PEO";
         const status = m.enabled ? "ATIVO" : "INATIVO";
 
@@ -465,7 +566,7 @@ const Squads: React.FC = () => {
             </thead>
             <tbody>
               {selectedSquad?.members.map((m) => {
-                const isIntern = m.roles.includes("ROLE_INTERN");
+                const isIntern = m.roles.includes("ROLE_USER");
                 const roleLabel = isIntern ? "Estagiário" : "Líder / PEO";
                 return (
                   <tr key={m.id}>

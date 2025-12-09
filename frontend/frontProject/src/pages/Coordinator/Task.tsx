@@ -33,7 +33,7 @@ interface User {
 interface TaskModalProps {
   task: Partial<Task> | null;
   onClose: () => void;
-  onSave: (task: any) => void;
+  onSave: (task: Partial<Task>) => void;
   users: User[];
 }
 
@@ -75,9 +75,10 @@ const TaskModal: React.FC<TaskModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    const finalTask = {
+    const finalTask: Partial<Task> = {
       ...task,
       ...formData,
+      responsavelId: formData.responsavelId ?? undefined,
       dataCriacao:
         task?.dataCriacao ??
         new Date().toISOString().substring(0, 10), // yyyy-MM-dd
@@ -236,9 +237,11 @@ const Task: React.FC = () => {
   useEffect(() => {
     if (!coordId) return;
 
+    // ✅ Endpoint correto - GET /api/v1/tasks (ADMIN vê todas)
     api
-      .get(`/tasks/coordinator/${coordId}`)
-      .then((res) =>
+      .get("/api/v1/tasks")
+      .then((res) => {
+        console.log("📡 Tarefas carregadas:", res.data);
         setTasks(
           res.data.map((t: Task) => ({
             ...t,
@@ -246,19 +249,27 @@ const Task: React.FC = () => {
             prioridade: t.prioridade ?? "Media",
             dataCriacao: t.dataCriacao ?? new Date().toISOString().substring(0, 10),
           }))
-        )
-      )
-      .catch((err) => console.error("Erro ao buscar tarefas:", err));
+        );
+      })
+      .catch((err) => {
+        console.error("❌ Erro ao buscar tarefas:", err);
+        alert("Erro ao carregar tarefas. Verifique o console.");
+      });
 
-    api.get("/users").then((res) =>
-      setUsers(
-        res.data.map((u: any) => ({
-          id: u.id,
-          username: u.username,
-          email: u.email,
-        }))
-      )
-    );
+    // ✅ Endpoint correto - GET /api/v1/users
+    api
+      .get<User[]>("/api/v1/users")
+      .then((res) => {
+        console.log("📡 Usuários carregados:", res.data);
+        setUsers(
+          res.data.map((u) => ({
+            id: u.id,
+            username: u.username,
+            email: u.email,
+          }))
+        );
+      })
+      .catch((err) => console.error("❌ Erro ao buscar usuários:", err));
   }, [coordId]);
 
   const handleOpenModal = (task: Partial<Task> | null) => {
@@ -272,7 +283,7 @@ const Task: React.FC = () => {
   };
 
   // --- SALVAR (POST + PUT) ---
-  const handleSaveTask = async (taskToSave: any) => {
+  const handleSaveTask = async (taskToSave: Partial<Task>) => {
     try {
       const payload = {
         titulo: taskToSave.titulo,
@@ -284,44 +295,47 @@ const Task: React.FC = () => {
           new Date().toISOString().substring(0, 10),
         dataConclusao: taskToSave.dataConclusao ?? null,
         responsavelId: taskToSave.responsavelId ?? null,
-        criadoPorId: coordId,
       };
 
-      // UPDATE
+      // UPDATE - ✅ Endpoint correto
       if (taskToSave.id) {
-        const res = await api.put(`/tasks/${taskToSave.id}`, payload);
+        const res = await api.put(`/api/v1/tasks/${taskToSave.id}`, payload);
+        console.log("✅ Tarefa atualizada:", res.data);
         setTasks((prev) =>
           prev.map((t) => (t.id === taskToSave.id ? res.data : t))
         );
       }
-      // CREATE
+      // CREATE - ✅ Endpoint correto
       else {
-        const res = await api.post("/tasks", payload);
+        const res = await api.post("/api/v1/tasks", payload);
+        console.log("✅ Tarefa criada:", res.data);
         setTasks((prev) => [res.data, ...prev]);
       }
 
       alert("Tarefa salva com sucesso!");
       handleCloseModal();
     } catch (err) {
-      console.error(err);
-      alert("Erro ao salvar tarefa.");
+      console.error("❌ Erro ao salvar tarefa:", err);
+      alert("Erro ao salvar tarefa. Verifique o console.");
     }
   };
 
   // --- Excluir tarefa ---
-const handleDeleteTask = (taskId: number) => {
-  if (window.confirm("Você tem certeza que deseja excluir esta tarefa?")) {
-    api.delete(`/tasks/${taskId}`)
-      .then(() => {
-        setTasks((prev) => prev.filter((task) => task.id !== taskId));
-        alert("Tarefa excluída com sucesso!");
-      })
-      .catch((err) => {
-        console.error("Erro ao excluir tarefa:", err);
-        alert("Erro ao excluir tarefa.");
-      });
-  }
-};
+  const handleDeleteTask = (taskId: number) => {
+    if (window.confirm("Você tem certeza que deseja excluir esta tarefa?")) {
+      // ✅ Endpoint correto
+      api.delete(`/api/v1/tasks/${taskId}`)
+        .then(() => {
+          console.log("✅ Tarefa excluída:", taskId);
+          setTasks((prev) => prev.filter((task) => task.id !== taskId));
+          alert("Tarefa excluída com sucesso!");
+        })
+        .catch((err) => {
+          console.error("❌ Erro ao excluir tarefa:", err);
+          alert("Erro ao excluir tarefa. Verifique o console.");
+        });
+    }
+  };
 
 
   // --- FILTRO DE BUSCA ---
