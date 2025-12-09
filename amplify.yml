@@ -4,7 +4,7 @@ frontend:
     preBuild:
       commands:
         - echo "Navegando para frontend/FrontProject e iniciando install"
-        - cd frontend/FrontProject  # Entra na subpasta do frontend
+        - cd frontend/frontProject  # Entra na subpasta do frontend
         - npm ci --cache .npm --prefer-offline  # Agora usa o lockfile local!
         # Opcional: - npm run lint  # Para qualidade, se quiser
     build:
@@ -12,10 +12,10 @@ frontend:
         - echo "Rodando build no frontend"
         - npm run build  # Builda na subpasta (gera /build lá)
   artifacts:
-    baseDirectory: frontend/FrontProject/build  # Pasta de saída: aponta para o build gerado na subpasta
+    baseDirectory: frontend/frontProject/build  # Pasta de saída: aponta para o build gerado na subpasta
     files:
       - '**/*'  # Inclui todos os arquivos do build
   cache:
     paths:
-      - frontend/FrontProject/node_modules/**/*  # Cache específico da subpasta (acelera!)
+      - frontend/frontProject/node_modules/**/*  # Cache específico da subpasta (acelera!)
       - .npm/**/*  # Cache npm global
