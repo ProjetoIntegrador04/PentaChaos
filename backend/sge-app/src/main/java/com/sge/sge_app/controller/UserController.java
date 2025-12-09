@@ -11,6 +11,7 @@ import com.sge.sge_app.domain.model.User;
 import com.sge.sge_app.dto.response.UserResponse;
 import com.sge.sge_app.repository.UserRepository;
 
+import lombok.NonNull;
 import org.modelmapper.ModelMapper;
 
 import java.util.List;
@@ -78,9 +79,10 @@ public class UserController {
             }
             // Adicione outros campos conforme necessário
 
-            userRepository.save(user);
+            @SuppressWarnings("null")
+            User savedUser = userRepository.save(user);
 
-            UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+            UserResponse userResponse = modelMapper.map(savedUser, UserResponse.class);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -118,7 +120,7 @@ public class UserController {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+    public ResponseEntity<?> getUserById(@PathVariable @NonNull Long id) {
         try {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -138,7 +140,7 @@ public class UserController {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id, @RequestBody UserResponse updateData) {
+    public ResponseEntity<?> updateUser(@PathVariable @NonNull Long id, @RequestBody UserResponse updateData) {
         try {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
@@ -150,6 +152,20 @@ public class UserController {
             if (updateData.getUsername() != null) {
                 user.setUsername(updateData.getUsername());
             }
+            if (updateData.getFullName() != null) {
+                user.setFullName(updateData.getFullName());
+            }
+            if (updateData.getRa() != null) {
+                user.setRa(updateData.getRa());
+            }
+            if (updateData.getPhoneNumber() != null) {
+                user.setPhoneNumber(updateData.getPhoneNumber());
+            }
+            if (updateData.getSquad() != null) {
+                user.setSquad(updateData.getSquad());
+            }
+            // Atualiza o campo enabled (ativo/inativo)
+            user.setEnabled(updateData.isEnabled());
 
             userRepository.save(user);
 
@@ -168,16 +184,17 @@ public class UserController {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PatchMapping("/{id}/status")
-    public ResponseEntity<?> toggleUserStatus(@PathVariable Long id) {
+    public ResponseEntity<?> toggleUserStatus(@PathVariable @NonNull Long id) {
         try {
             User user = userRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
             // Inverte o status
             user.setEnabled(!user.isEnabled());
-            userRepository.save(user);
+            @SuppressWarnings("null")
+            User savedUser = userRepository.save(user);
 
-            UserResponse userResponse = modelMapper.map(user, UserResponse.class);
+            UserResponse userResponse = modelMapper.map(savedUser, UserResponse.class);
             return ResponseEntity.ok(userResponse);
         } catch (Exception e) {
             return ResponseEntity.badRequest()
@@ -185,3 +202,4 @@ public class UserController {
         }
     }
 }
+

@@ -27,10 +27,6 @@ function TabsContent() {
         />
         <Tabs.Screen 
           name="usuarios" 
-          options={{ title: "Perfil" }}
-        />
-        <Tabs.Screen 
-          name="uusuarios" 
           options={{ title: "Usuários" }}
         />
         <Tabs.Screen 

@@ -1,0 +1,124 @@
+/* ================================== */
+/* CSS DA TELA DE INÍCIO (INTERN) */
+/* =Example: src/styles/Intern/Home.css
+/* ================================== */
+
+.app-home-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.25rem;
+  width: 100%;
+}
+
+/* 1. Cabeçalho */
+.app-home-header {
+  margin-bottom: 1rem;
+}
+
+.app-home-header h1 {
+  font-family: var(--font-primary, 'Poppins', sans-serif);
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-title, #3b5fbf);
+  margin: 0;
+}
+
+.app-home-header p {
+  font-size: 1rem;
+  color: var(--text-light, #64748b);
+  margin-top: 4px;
+}
+
+/* 2. Widget de Ponto */
+.ponto-widget-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.panel.ponto-widget {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 400px;
+  width: 100%;
+}
+
+.ponto-widget h2 {
+  font-family: var(--font-primary);
+  font-size: 1.2rem;
+  color: var(--text-title);
+  margin: 0;
+}
+
+.ponto-widget .live-clock {
+  font-family: var(--font-secondary, 'Lato', sans-serif);
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: var(--primary-darker, #1e3a8a);
+}
+
+.ponto-widget .btn-ponto {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  padding: 12px 24px;
+  background: var(--primary-color, #3b82f6);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+}
+
+.ponto-widget .btn-ponto:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(59, 130, 246, 0.4);
+}
+
+/* 3. Atalhos Rápidos */
+.quick-links-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.panel.quick-link-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.panel.quick-link-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 10px 22px rgba(0,0,0,.1);
+  border-color: var(--primary-color, #3b82f6);
+}
+
+.panel.quick-link-card svg {
+  color: var(--primary-color, #3b82f6);
+  margin-bottom: 1rem;
+}
+
+.panel.quick-link-card h3 {
+  font-family: var(--font-primary);
+  font-size: 1.1rem;
+  color: var(--text-body);
+  margin: 0 0 0.5rem 0;
+}
+
+.panel.quick-link-card p {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  line-height: 1.5;
+  margin: 0;
+}

@@ -1,18 +1,32 @@
-import { Navigate } from "react-router-dom";
-import type { ReactNode } from "react";
+import React from "react";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/useAuth";
+import { hasAnyRole } from "../../auth";
 
-type Props = {
-  children: ReactNode;
-};
+type Props = { allowedRoles?: string[]; redirectTo?: string; };
 
-export function ProtectedRoute({ children }: Props) {
-  const token =
-    localStorage.getItem("token") || sessionStorage.getItem("token");
+export const ProtectedRoute: React.FC<Props> = ({ allowedRoles = [], redirectTo = "/" }) => {
+  const { isAuthenticated, roles } = useAuth();
+  const location = useLocation();
 
-  if (!token) {
-    // 🔒 SEMPRE manda pro login se não tiver token
-    return <Navigate to="/" replace />;
+  console.log("🛡️ ProtectedRoute check:", { 
+    path: location.pathname, 
+    isAuthenticated, 
+    userRoles: roles, 
+    allowedRoles,
+    hasRole: hasAnyRole(roles, allowedRoles)
+  });
+
+  if (!isAuthenticated) {
+    console.log("❌ Not authenticated - redirecting to", redirectTo);
+    return <Navigate to={redirectTo} replace />;
   }
-
-  return <>{children}</>;
-}
+  
+  if (!hasAnyRole(roles, allowedRoles)) {
+    console.log("❌ Insufficient permissions - redirecting to", redirectTo);
+    return <Navigate to={redirectTo} replace />;
+  }
+  
+  console.log("✅ Access granted to", location.pathname);
+  return <Outlet />;
+};

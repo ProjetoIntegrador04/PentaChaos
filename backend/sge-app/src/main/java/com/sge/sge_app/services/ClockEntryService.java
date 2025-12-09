@@ -9,6 +9,7 @@ import com.sge.sge_app.repository.UserRepository;
 import com.sge.sge_app.exception.BusinessException;
 import com.sge.sge_app.exception.ResourceNotFoundException;
 
+import lombok.NonNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -64,6 +65,7 @@ public class ClockEntryService {
                 .ip(request.getIp())
                 .build();
 
+        @SuppressWarnings("null")
         ClockEntry savedClockEntry = clockEntryRepository.save(clockEntry);
 
         return ClockEntryResponse.builder()
@@ -81,7 +83,7 @@ public class ClockEntryService {
                 .build();
     }
 
-    public ClockEntryResponse buscarPontoPorId(Long id) {
+    public ClockEntryResponse buscarPontoPorId(@NonNull Long id) {
         ClockEntry clockEntry = clockEntryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ponto não encontrado com ID: " + id));
 

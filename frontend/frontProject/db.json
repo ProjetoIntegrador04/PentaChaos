@@ -1,0 +1,36 @@
+{
+  "squads": [
+    {
+      "id": "s1",
+      "name": "LSD",
+      "color": "#3b82f6",
+      "members": [
+        { "id": "m1", "name": "Ivan", "role": "PEO" },
+        { "id": "m2", "name": "Webber", "role": "Estagiário" },
+        { "id": "m3", "name": "Cléo", "role": "Estagiário" },
+        { "id": "m4", "name": "Rods", "role": "Estagiário" }
+      ],
+      "freq": { "present": 85, "absent": 15 }
+    },
+    {
+      "id": "s2",
+      "name": "CASE",
+      "color": "#1d4ed8",
+      "members": [
+        { "id": "m5", "name": "Júlio", "role": "Tech Lead" }
+      ],
+      "freq": { "present": 92, "absent": 8 }
+    },
+    {
+      "id": "s3",
+      "name": "INFRA",
+      "color": "#2563eb",
+      "members": [
+        { "id": "m8", "name": "Carlos", "role": "DevOps" }
+      ],
+      "freq": { "present": 78, "absent": 22 }
+    }
+  ],
+  "users": [],
+  "tasks": []
+}

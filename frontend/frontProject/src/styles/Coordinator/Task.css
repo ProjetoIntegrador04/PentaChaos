@@ -1,0 +1,240 @@
+/* ================================== */
+/* CSS DA PÁGINA DE TAREFAS (LISTA) */
+/* ================================== */
+
+.tasks-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  padding: 1.25rem;
+}
+
+/* Cabeçalho */
+.tasks-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.tasks-header h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #3b5fbf;
+}
+.add-btn {
+  display: flex; align-items: center; gap: 6px; background: var(--primary-color, #3b82f6);
+  color: white; padding: 8px 14px; border: none; border-radius: 8px; font-size: 14px;
+  font-weight: 600; cursor: pointer; box-shadow: 0 3px 8px rgba(59, 130, 246, 0.3);
+  transition: all 0.2s ease;
+}
+.add-btn:hover { filter: brightness(1.1); }
+
+/* --- NOVO: Barra de Busca --- */
+.search-box {
+  display: flex;
+  position: relative;
+  align-items: center;
+}
+.search-box .search-icon {
+  position: absolute;
+  left: 12px;
+  color: var(--text-light, #64748b);
+}
+.search-box input {
+  flex: 1;
+  padding: 10px 14px 10px 40px; /* Espaço para o ícone */
+  border: 1px solid var(--border-color, #d1d5db);
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+.search-box input:focus {
+  border-color: var(--primary-color, #3b82f6);
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+/* --- NOVO: Tabela de Tarefas --- */
+.tasks-table {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+}
+.tasks-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.tasks-table th, 
+.tasks-table td {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 14px;
+  color: var(--text-body, #374151);
+  white-space: nowrap;
+}
+.tasks-table thead {
+  background: #f1f5f9;
+}
+.tasks-table tbody tr {
+  border-top: 1px solid #e5e7eb;
+}
+.tasks-table tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+.task-title {
+  font-weight: 600;
+}
+
+/* Badges de Status e Prioridade */
+.status-badge, .priority-badge {
+  font-weight: 700;
+  text-transform: capitalize;
+  font-size: 0.8rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background-color: #e2e8f0;
+  color: #334155;
+}
+
+.status-badge.status-pendente { background-color: #fee2e2; color: #dc2626; }
+.status-badge.status-em_andamento { background-color: #fef3c7; color: #d97706; }
+.status-badge.status-concluida { background-color: #dcfce7; color: #16a34a; }
+
+.priority-badge.priority-baixa { background-color: #dbeafe; color: #2563eb; }
+.priority-badge.priority-media { background-color: #fef3c7; color: #d97706; }
+.priority-badge.priority-alta { background-color: #fee2e2; color: #dc2626; }
+
+/* Ações da Tabela */
+.acoes {
+  display: flex;
+  gap: 8px;
+}
+.icon-btn {
+  background: none; border: none; cursor: pointer;
+  font-size: 16px; color: #64748b; transition: color 0.2s ease;
+}
+.icon-btn.edit:hover {
+  color: #2563eb;
+}
+
+
+/* ================================== */
+/* MODAL DE TAREFA (Estilos mantidos) */
+/* ================================== */
+
+.modal-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+.modal-content {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 500px;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+}
+.modal-header h2 {
+  font-family: var(--font-primary, 'Poppins', sans-serif);
+  font-size: 1.25rem;
+  color: var(--text-title, #3b5fbf);
+  margin: 0;
+}
+.close-btn {
+  background: none; border: none; font-size: 1.5rem;
+  color: var(--text-light); cursor: pointer; transition: color 0.2s;
+}
+.close-btn:hover { color: #dc2626; }
+
+.modal-body {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row { display: grid; gap: 6px; }
+.form-row label { font-weight: 600; color: #374151; font-size: 0.9rem; }
+.form-row input, .form-row select, .form-row textarea {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  outline: none;
+}
+.form-row textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 1rem 1.5rem;
+  background-color: #f9fafb;
+  border-top: 1px solid #e2e8f0;
+}
+.btn-secondary {
+  height: 38px; padding: 0 14px; border: 1px solid var(--border-color, #cbd5e1);
+  background: #fff; color: var(--text-body, #334155); border-radius: 8px;
+  cursor: pointer; font-weight: 600; font-size: 14px; transition: all 0.2s ease;
+}
+.btn-secondary:hover { background: #f1f5f9; }
+
+/* SUGESTÕES DO AUTOCOMPLETE ------------------- */
+
+.suggestions-list {
+  position: absolute;
+  width: 100%;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  margin-top: 4px;
+  max-height: 180px;
+  overflow-y: auto;
+  z-index: 50;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestion-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f1f1f1;
+}
+
+.suggestion-item:hover {
+  background: #f8fafc;
+}
+
+.suggestion-name {
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.suggestion-email {
+  font-size: 0.85rem;
+  color: #64748b;
+}

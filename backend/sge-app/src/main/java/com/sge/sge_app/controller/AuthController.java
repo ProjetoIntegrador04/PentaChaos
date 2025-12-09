@@ -4,6 +4,7 @@ import com.sge.sge_app.dto.request.LoginRequestDTO;
 import com.sge.sge_app.dto.request.UserRegisterRequestDTO;
 import com.sge.sge_app.dto.response.JwtResponseDTO;
 import com.sge.sge_app.dto.response.UserResponseDTO;
+import com.sge.sge_app.security.CustomUserDetailsService;
 import com.sge.sge_app.security.JwtTokenProvider;
 import com.sge.sge_app.services.UserService;
 
@@ -14,7 +15,10 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,12 +27,17 @@ public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
-    private final UserService userService; // Usado para registro e carregamento de UserDetails
+    private final UserService userService;
+    private final CustomUserDetailsService userDetailsService;
 
-    public AuthController(AuthenticationManager authenticationManager, JwtTokenProvider tokenProvider, UserService userService) {
+    public AuthController(AuthenticationManager authenticationManager,
+                          JwtTokenProvider tokenProvider,
+                          UserService userService,
+                          CustomUserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userService = userService;
+        this.userDetailsService = userDetailsService;
     }
 
     @GetMapping("/")
@@ -49,61 +58,94 @@ public class AuthController {
         return new ResponseEntity<>(newUser, HttpStatus.CREATED);
     }
 
-    @PostMapping("/login")
+    // ============================================================
+    // LOGIN
+    // ============================================================
+    @PostMapping(
+            value = "/login",
+            consumes = "application/json",
+            produces = "application/json"
+    )
     public ResponseEntity<JwtResponseDTO> authenticateUser(@Valid @RequestBody LoginRequestDTO loginRequest) {
-        // Autentica o usuário usando o AuthenticationManager
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsernameOrEmail(), // Usaremos este campo para username/email no UserDetailsService
+                        loginRequest.getUsernameOrEmail(),
                         loginRequest.getPassword()
                 )
         );
 
-        // Define a autenticação no contexto de segurança do Spring
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
-        // Gera os tokens JWT
         String accessToken = tokenProvider.generateAccessToken(authentication);
         String refreshToken = tokenProvider.generateRefreshToken(authentication);
         long expiresIn = tokenProvider.getJwtExpirationInMs();
+
+        var roles = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
 
         return ResponseEntity.ok(
                 JwtResponseDTO.builder()
                         .accessToken(accessToken)
                         .refreshToken(refreshToken)
                         .expiresIn(expiresIn)
+                        .roles(roles)
                         .build()
         );
     }
 
-    @PostMapping("/refresh")
+    // ============================================================
+    // REFRESH TOKEN
+    // ============================================================
+    @PostMapping(
+            value = "/refresh",
+            consumes = "application/json",
+            produces = "application/json"
+    )
     public ResponseEntity<JwtResponseDTO> refreshAccessToken(@RequestBody JwtResponseDTO refreshRequest) {
         String refreshToken = refreshRequest.getRefreshToken();
 
-        if (tokenProvider.validateToken(refreshToken)) {
-            String username = tokenProvider.getUsernameFromToken(refreshToken);
-            // Para gerar um novo Access Token, precisamos reautenticar o usuário
-            // Carregamos os detalhes do usuário, criamos uma autenticação 'dummy' para gerar o token
-            Authentication authentication = new UsernamePasswordAuthenticationToken(
-                    userService.findByUsername(username).orElseThrow(() -> new RuntimeException("Usuário não encontrado para refresh token")),
-                    null, // Senha não é necessária para refresh token
-                    userService.findByUsername(username).get().getAuthorities() // Carrega as autoridades do usuário
-            );
-
-            String newAccessToken = tokenProvider.generateAccessToken(authentication);
-            // Opcional: Gerar um novo refresh token também, ou manter o mesmo até expirar
-            String newRefreshToken = tokenProvider.generateRefreshToken(authentication); // Gerando um novo refresh token
-            long expiresIn = tokenProvider.getJwtExpirationInMs();
-
-            return ResponseEntity.ok(
-                    JwtResponseDTO.builder()
-                            .accessToken(newAccessToken)
-                            .refreshToken(newRefreshToken) // Retorna o novo refresh token
-                            .expiresIn(expiresIn)
-                            .build()
-            );
-        } else {
-            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED); // Refresh token inválido ou expirado
+        if (!tokenProvider.validateToken(refreshToken)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
+
+        // O subject do token é o ID do usuário (não o username)
+        String userIdStr = tokenProvider.getUsernameFromToken(refreshToken);
+        Long userId = Long.parseLong(userIdStr);
+
+        UserDetails userDetails = userDetailsService.loadUserById(userId);
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails,
+                null,
+                userDetails.getAuthorities()
+        );
+
+        String newAccessToken = tokenProvider.generateAccessToken(authentication);
+        String newRefreshToken = tokenProvider.generateRefreshToken(authentication);
+        long expiresIn = tokenProvider.getJwtExpirationInMs();
+
+        var roles = userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+
+        return ResponseEntity.ok(
+                JwtResponseDTO.builder()
+                        .accessToken(newAccessToken)
+                        .refreshToken(newRefreshToken)
+                        .expiresIn(expiresIn)
+                        .roles(roles)
+                        .build()
+        );
+    }
+
+    // ============================================================
+    // USUÁRIO LOGADO
+    // ============================================================
+    @GetMapping(value = "/me", produces = "application/json")
+    public ResponseEntity<UserResponseDTO> me(@AuthenticationPrincipal UserDetails principal) {
+        var user = userService.findByUsernameOrEmail(principal.getUsername());
+        return ResponseEntity.ok(UserResponseDTO.from(user));
     }
 }
+

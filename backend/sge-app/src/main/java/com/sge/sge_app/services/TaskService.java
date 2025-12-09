@@ -3,6 +3,10 @@ package com.sge.sge_app.services;
 import com.sge.sge_app.models.Task;
 import com.sge.sge_app.repository.TaskRepository;
 import com.sge.sge_app.repository.UserRepository;
+
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+
 import com.sge.sge_app.exception.ResourceNotFoundException;
 import com.sge.sge_app.exception.BusinessException;
 
@@ -23,15 +27,11 @@ import java.util.stream.Collectors;
  * - USER pode ver apenas tarefas atribuídas a ele (por username)
  */
 @Service
+@RequiredArgsConstructor
 public class TaskService {
 
     private final TaskRepository repository;
     private final UserRepository userRepository;
-
-    public TaskService(TaskRepository repository, UserRepository userRepository) {
-        this.repository = repository;
-        this.userRepository = userRepository;
-    }
 
     /**
      * Lista tarefas baseado no perfil do usuário.
@@ -61,7 +61,7 @@ public class TaskService {
      * ADMIN: pode ver qualquer tarefa
      * USER: pode ver apenas suas tarefas
      */
-    public Task getTaskById(Long id, Authentication authentication) {
+    public Task getTaskById(@NonNull Long id, Authentication authentication) {
         Task task = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não encontrada com ID: " + id));
 
@@ -69,7 +69,7 @@ public class TaskService {
         boolean isAdmin = authentication.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
 
         // Se não é admin e não é o responsável, não pode ver
-        if (!isAdmin && !username.equals(task.getResponsavel())) {
+        if (!isAdmin && (task.getResponsavel() == null || !username.equals(task.getResponsavel().getUsername()))) {
             throw new BusinessException("Você não tem permissão para visualizar esta tarefa");
         }
 
@@ -82,10 +82,10 @@ public class TaskService {
      */
     public Task createTask(Task task, Authentication authentication) {
         // Valida se o responsável existe
-        if (task.getResponsavel() != null && !task.getResponsavel().isEmpty()) {
-            userRepository.findByUsername(task.getResponsavel())
+        if (task.getResponsavel() != null && task.getResponsavel().getId() != null) {
+            userRepository.findById((Long) task.getResponsavel().getId())
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Usuário responsável não encontrado: " + task.getResponsavel()));
+                            "Usuário responsável não encontrado com ID: " + task.getResponsavel().getId()));
         }
 
         // Define data de criação se não foi definida
@@ -98,21 +98,25 @@ public class TaskService {
             task.setStatus("PENDENTE");
         }
 
-        return repository.save(task);
+        @SuppressWarnings("null")
+        Task result = repository.save(task);
+        return result;
     }
 
     /**
      * Atualiza uma tarefa existente (apenas ADMIN).
      */
-    public Task updateTask(Long id, Task taskDetails, Authentication authentication) {
+    public Task updateTask(@NonNull Long id, Task taskDetails, Authentication authentication) {
         Task task = repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não encontrada com ID: " + id));
 
         // Valida se o novo responsável existe
-        if (taskDetails.getResponsavel() != null && !taskDetails.getResponsavel().isEmpty()) {
-            userRepository.findByUsername(taskDetails.getResponsavel())
+        if (taskDetails.getResponsavel() != null && taskDetails.getResponsavel().getId() != null) {
+            @SuppressWarnings("null")
+            Long userId = taskDetails.getResponsavel().getId();
+            userRepository.findById(userId)
                     .orElseThrow(() -> new ResourceNotFoundException(
-                            "Usuário responsável não encontrado: " + taskDetails.getResponsavel()));
+                            "Usuário responsável não encontrado com ID: " + userId));
         }
 
         // Atualiza os campos
@@ -141,10 +145,11 @@ public class TaskService {
     /**
      * Deleta uma tarefa (apenas ADMIN).
      */
-    public void deleteTask(Long id, Authentication authentication) {
-        Task task = repository.findById(id)
+    public void deleteTask(@NonNull Long id, Authentication authentication) {
+        repository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Tarefa não encontrada com ID: " + id));
         
         repository.deleteById(id);
     }
 }
+

@@ -1,22 +1,17 @@
-.dashboard {
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
+.dashv2 { display: flex; flex-direction: column; gap: 1rem; padding: 1.25rem; }
+.dashv2-header { display: flex; align-items: center; justify-content: space-between; }
+.dashv2-header h1 { font-size: 1.6rem; font-weight: 700; color: #3b5fbf; }
 
-.dashboard h1 {
-  font-size: 1.6rem;
-  font-weight: 700;
-  color: #3b5fbf;
-}
+.range-switch { display: flex; gap: 8px; }
+.chip { background: #fff; border: 1px solid #cbd5e1; color: #334155; border-radius: 999px; padding: 6px 12px; cursor: pointer; font-weight: 600; }
+.chip.active { background: #3b82f6; border-color: #3b82f6; color: #fff; }
 
+.panel { background: #fff; border-radius: 18px; padding: 1rem; box-shadow: 0 6px 16px rgba(0,0,0,.08); border: 1px solid rgba(0,0,0,.05); }
+.panel h2 { font-size: 1.1rem; color: #3b5fbf; margin-bottom: 0.5rem; }
+.panel-footer { margin-top: .75rem; display:flex; gap:.5rem; }
+.btn.primary { background:#3b82f6; color:#fff; border:none; padding:8px 14px; border-radius:8px; cursor:pointer; font-weight:700; }
+.btn.primary:hover { filter: brightness(1.05); }
 
-.panel {
-  margin-top: 1rem;
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 1rem;
-  box-shadow: 0 6px 16px rgba(0,0,0,.08);
-  border: 1px solid rgba(0,0,0,.05);
-}
+/* grid com DUAS colunas (removemos o bloco de entregas) */
+.dashv2-grid.dashv2-grid--two { display: grid; grid-template-columns: 1.2fr 1fr; gap: 1rem; }
+@media (max-width: 1100px) { .dashv2-grid.dashv2-grid--two { grid-template-columns: 1fr; } }

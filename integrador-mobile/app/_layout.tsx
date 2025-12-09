@@ -60,6 +60,26 @@ export default function RootLayout() {
             title: 'Cadastrar Usuário'
           }} 
         />
+
+        {/* Modal de Editar Usuário */}
+        <Stack.Screen 
+          name="editarUsuarioModal" 
+          options={{ 
+            presentation: 'modal', 
+            headerShown: false, 
+            title: 'Editar Usuário'
+          }} 
+        />
+
+        {/* Modal de Cadastrar Squad */}
+        <Stack.Screen 
+          name="cadastrarSquadModal" 
+          options={{ 
+            presentation: 'modal', 
+            headerShown: false, 
+            title: 'Cadastrar Squad'
+          }} 
+        />
         </Stack>
       </ProfileImageProvider>
     </AuthProvider>
