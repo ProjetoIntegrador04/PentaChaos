@@ -39,7 +39,6 @@ import React from "react";
                 <Route path="/squads" element={<Squads />} />
                 <Route path="/settings" element={<CoordinatorSettings />} />
                 <Route path="/frequencia" element={<CoordinatorFrequency />} />
-                {/* 🔹 ROTA CORRIGIDA 🔹 */}
                 <Route path="/task" element={<Task />} /> 
               </Route>
             </Route>
@@ -51,8 +50,6 @@ import React from "react";
                 <Route path="/intern/ponto" element={<Ponto />} />
                 <Route path="/intern/frequencia" element={<InternFrequency />} />
                 <Route path="/intern/settings" element={<InternSettings />} />
-                
-                {/* Adicionando rotas que faltavam da SidebarIntern */}
                 <Route path="/intern/task" element={<InternTasks />} />
               </Route>
             </Route>

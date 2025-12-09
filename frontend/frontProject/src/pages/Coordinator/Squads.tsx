@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiEdit, FiUsers, FiDownload, FiX, FiTrash2 } from "react-icons/fi";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 import "../../styles/Coordinator/Users.css";
 import "../../styles/Coordinator/Squads.css";
@@ -8,6 +10,11 @@ import api from "../../api/https";
 // =============================
 // TIPOS
 // =============================
+interface Role {
+  id: number;
+  name: string;
+}
+
 interface Usuario {
   id: number;
   username: string;
@@ -15,7 +22,7 @@ interface Usuario {
   ra: string;
   squad: string;
   enabled: boolean;
-  roles: string[];
+  roles: Role[];
   emailPessoal?: string;
 }
 
@@ -42,6 +49,13 @@ const SquadModal: React.FC<SquadModalProps> = ({
   onClose,
   onSave,
 }) => {
+  console.log("🎯 MODAL ABERTO!");
+  console.log("📊 Dados recebidos:", { 
+    totalUsuarios: allUsers.length, 
+    initialName, 
+    initialMembers: initialMembers.length 
+  });
+  
   const [name, setName] = useState(initialName || "");
   const [selectedMembers, setSelectedMembers] = useState<Usuario[]>(
     initialMembers
@@ -51,8 +65,17 @@ const SquadModal: React.FC<SquadModalProps> = ({
 
   // Lista de todos os estagiários (ROLE_USER)
   const allInterns = useMemo(() => {
-    const interns = allUsers.filter((u) => u.roles.includes("ROLE_USER"));
-    console.log("👥 Estagiários encontrados:", interns.length, interns.map(u => u.username));
+    console.log("🔍 MODAL - allUsers recebidos:", allUsers.length, allUsers);
+    console.log("🔍 MODAL - Exemplo de roles:", allUsers[0]?.roles);
+    
+    const interns = allUsers.filter((u) => u.roles.some(r => r.name === "ROLE_USER"));
+    console.log("👥 MODAL - Estagiários filtrados:", interns.length, interns.map(u => ({ id: u.id, username: u.username, roles: u.roles })));
+    
+    if (interns.length === 0) {
+      console.warn("⚠️ MODAL - NENHUM ESTAGIÁRIO ENCONTRADO!");
+      console.warn("⚠️ MODAL - Verificar se usuários têm ROLE_USER");
+    }
+    
     return interns;
   }, [allUsers]);
 
@@ -253,26 +276,40 @@ const Squads: React.FC = () => {
     string | undefined
   >(undefined);
 
+  // Carregar usuários E squads do backend
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // ✅ Endpoint correto
-      const res = await api.get<Usuario[]>("/api/v1/users");
-      console.log("📡 Usuários carregados para squads:", res.data);
       
-      if (!res.data || res.data.length === 0) {
-        console.warn("⚠️ Nenhum usuário retornado pela API. Verifique se está autenticado.");
-      }
+      // Buscar usuários
+      const usersRes = await api.get<Usuario[]>("/api/v1/users");
+      console.log("📡 Usuários carregados:", usersRes.data);
       
-      setUsers(res.data || []);
+      // Buscar squads da API
+      const squadsRes = await api.get<Array<{id: number; name: string; members: Array<{id: number}>}>>("/api/v1/squads");
+      console.log("📡 Squads carregadas da API:", squadsRes.data);
+      
+      // Mesclar os dados: adicionar membros das squads aos usuários
+      const usersWithSquads = usersRes.data.map(user => {
+        // Encontrar a squad deste usuário
+        const userSquad = squadsRes.data.find(squad => 
+          squad.members.some((m) => m.id === user.id)
+        );
+        
+        return {
+          ...user,
+          squad: userSquad ? userSquad.name : ""
+        };
+      });
+      
+      console.log("✅ Usuários com squads mescladas:", usersWithSquads);
+      setUsers(usersWithSquads || []);
     } catch (err) {
-      console.error("❌ Erro ao buscar usuários para squads:", err);
+      console.error("❌ Erro ao buscar dados:", err);
       
-      // Verificar se é erro de autenticação (401)
       const axiosErr = err as { response?: { status?: number } };
       if (axiosErr?.response?.status === 401) {
         alert("Sessão expirada! Por favor, faça login novamente.");
-        // Redirecionar para login
         window.location.href = "/login";
         return;
       }
@@ -439,52 +476,149 @@ const Squads: React.FC = () => {
       return;
     }
 
-    const header = ["Squad", "Nome", "Email", "RA", "Função", "Status"];
-    const rows: string[][] = [];
+    const doc = new jsPDF({
+      orientation: "landscape",
+      unit: "mm",
+      format: "a4",
+    });
 
-    squads.forEach((s) => {
-      s.members.forEach((m) => {
-        const isIntern = m.roles.includes("ROLE_USER");
-        const roleLabel = isIntern ? "Estagiário" : "Líder / PEO";
-        const status = m.enabled ? "ATIVO" : "INATIVO";
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const date = new Date().toLocaleDateString("pt-BR");
+    const time = new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
-        rows.push([
-          s.name,
+    // Cabeçalho colorido
+    doc.setFillColor(139, 92, 246); // Roxo
+    doc.rect(0, 0, pageWidth, 35, "F");
+
+    // Título
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont("helvetica", "bold");
+    doc.text("Relatório de Squads e Integrantes", pageWidth / 2, 15, { align: "center" });
+
+    // Informações da data
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Data: ${date}`, pageWidth / 2, 23, { align: "center" });
+    doc.text(`Hora: ${time}`, pageWidth / 2, 28, { align: "center" });
+
+    // Resetar cor do texto
+    doc.setTextColor(0, 0, 0);
+
+    let startY = 40;
+
+    // Gerar tabela para cada squad
+    squads.forEach((squad, idx) => {
+      if (idx > 0) {
+        startY += 15; // Espaço entre squads
+      }
+
+      // Título da squad
+      doc.setFontSize(14);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(59, 130, 246);
+      doc.text(`Squad: ${squad.name}`, 14, startY);
+      doc.setTextColor(0, 0, 0);
+
+      startY += 5;
+
+      // Dados dos membros
+      const tableData = squad.members.map((m) => {
+        const isAdmin = m.roles.some(r => r.name === "ROLE_ADMIN");
+        const roleLabel = isAdmin ? "👑 Admin" : "👤 Estagiário";
+        const statusIcon = m.enabled ? "✓" : "✗";
+        
+        return [
           m.username,
           m.email,
-          m.ra,
+          m.ra || "-",
           roleLabel,
-          status,
-        ]);
+          statusIcon + " " + (m.enabled ? "ATIVO" : "INATIVO")
+        ];
       });
+
+      // Gerar tabela
+      autoTable(doc, {
+        startY: startY,
+        head: [["Nome", "Email", "RA", "Cargo", "Status"]],
+        body: tableData,
+        theme: "striped",
+        headStyles: {
+          fillColor: [139, 92, 246],
+          textColor: [255, 255, 255],
+          fontSize: 10,
+          fontStyle: "bold",
+        },
+        bodyStyles: {
+          fontSize: 9,
+          cellPadding: 3,
+        },
+        columnStyles: {
+          0: { cellWidth: 50 }, // Nome
+          1: { cellWidth: 70 }, // Email
+          2: { cellWidth: 30, halign: "center" }, // RA
+          3: { cellWidth: 35, halign: "center" }, // Cargo
+          4: { cellWidth: 30, halign: "center" }, // Status
+        },
+        didDrawCell: (data: any) => {
+          // Colorir célula de status
+          if (data.column.index === 4 && data.section === 'body') {
+            const status = data.cell.text[0];
+            if (status.includes("✓")) {
+              doc.setTextColor(16, 185, 129); // Verde
+            } else {
+              doc.setTextColor(239, 68, 68); // Vermelho
+            }
+            doc.text(status, data.cell.x + data.cell.width / 2, data.cell.y + data.cell.height / 2, {
+              align: "center",
+              baseline: "middle"
+            });
+            doc.setTextColor(0, 0, 0);
+          }
+        },
+      });
+
+      startY = (doc as any).lastAutoTable.finalY;
+
+      // Estatísticas da squad
+      const totalMembers = squad.members.length;
+      const activeMembers = squad.members.filter(m => m.enabled).length;
+      
+      doc.setFontSize(9);
+      doc.setTextColor(100, 100, 100);
+      doc.text(
+        `Total: ${totalMembers} integrantes | Ativos: ${activeMembers}`,
+        14,
+        startY + 5
+      );
+      doc.setTextColor(0, 0, 0);
+
+      startY += 10;
     });
 
-    const escape = (value: string) => {
-      const v = value ?? "";
-      if (v.includes(";") || v.includes('"') || v.includes("\n")) {
-        return `"${v.replace(/"/g, '""')}"`;
-      }
-      return v;
-    };
+    // Rodapé
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const totalMembers = squads.reduce((sum, s) => sum + s.members.length, 0);
+    
+    doc.setFontSize(9);
+    doc.setTextColor(128, 128, 128);
+    doc.text(
+      `Total geral: ${squads.length} squads | ${totalMembers} integrantes`,
+      pageWidth / 2,
+      pageHeight - 15,
+      { align: "center" }
+    );
+    
+    doc.text(
+      `Gerado automaticamente pelo Sistema PentaChaos - ${date} às ${time}`,
+      pageWidth / 2,
+      pageHeight - 10,
+      { align: "center" }
+    );
 
-    const csvContent =
-      [header, ...rows]
-        .map((row) => row.map(escape).join(";"))
-        .join("\n");
-
-    const blob = new Blob([csvContent], {
-      type: "text/csv;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    const date = new Date().toISOString().slice(0, 10);
-
-    link.href = url;
-    link.setAttribute("download", `relatorio_squads_${date}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    // Salvar PDF
+    const dateFile = new Date().toISOString().slice(0, 10);
+    doc.save(`relatorio_squads_${dateFile}.pdf`);
   };
 
   if (loading) return <p>Carregando squads...</p>;
@@ -566,7 +700,7 @@ const Squads: React.FC = () => {
             </thead>
             <tbody>
               {selectedSquad?.members.map((m) => {
-                const isIntern = m.roles.includes("ROLE_USER");
+                const isIntern = m.roles.some(r => r.name === "ROLE_USER");
                 const roleLabel = isIntern ? "Estagiário" : "Líder / PEO";
                 return (
                   <tr key={m.id}>

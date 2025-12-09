@@ -318,4 +318,50 @@ public class ClockEntryService {
                 .createdAt(clockEntry.getCreatedAt())
                 .build();
     }
+
+    /**
+     * Calcula a frequência de presença de um usuário em um período (em dias)
+     * @param userId ID do usuário
+     * @param days Número de dias para calcular (7, 30, 90)
+     * @return Percentual de frequência (0-100)
+     */
+    public double calcularFrequencia(Long userId, int days) {
+        LocalDateTime startDate = LocalDateTime.now().minusDays(days);
+        LocalDateTime endDate = LocalDateTime.now();
+        
+        // Buscar todos os ENTRYs do usuário no período
+        List<ClockEntry> entries = clockEntryRepository.findByUserIdAndTipoAndTimestampBetween(
+            userId, "ENTRY", startDate, endDate
+        );
+        
+        // Contar dias únicos com presença
+        long diasComPresenca = entries.stream()
+            .map(entry -> entry.getTimestamp().toLocalDate())
+            .distinct()
+            .count();
+        
+        // Calcular dias úteis no período (segunda a sexta)
+        long diasUteis = contarDiasUteis(startDate.toLocalDate(), endDate.toLocalDate());
+        
+        // Se não houver dias úteis, retornar 0
+        if (diasUteis == 0) {
+            return 0.0;
+        }
+        
+        // Calcular percentual
+        return (diasComPresenca * 100.0) / diasUteis;
+    }
+    
+    /**
+     * Conta dias úteis (segunda a sexta) entre duas datas
+     */
+    private long contarDiasUteis(LocalDate start, LocalDate end) {
+        return start.datesUntil(end.plusDays(1))
+            .filter(date -> {
+                var dayOfWeek = date.getDayOfWeek();
+                return dayOfWeek != java.time.DayOfWeek.SATURDAY && 
+                       dayOfWeek != java.time.DayOfWeek.SUNDAY;
+            })
+            .count();
+    }
 }

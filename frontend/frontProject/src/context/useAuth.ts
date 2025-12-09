@@ -1,6 +1,6 @@
 import { useContext } from "react";
-import { Ctx } from "./authContext";
-import type { AuthCtx } from "./authContext";
+import { Ctx } from "./AuthContext";
+import type { AuthCtx } from "./AuthContext";
 
 export function useAuth(): AuthCtx {
   const c = useContext(Ctx);
