@@ -1,5 +1,4 @@
  import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
 import { AxiosError } from "axios";
 import {
   FiClock,
@@ -62,11 +61,19 @@ const ChangeMapView = ({ coords }: { coords: [number, number] }) => {
   return null;
 };
 
+// Interface para pontos do dia
+interface ClockEntry {
+  id: number;
+  tipo: PontoTipo;
+  timestamp: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
 // ==============================
 // Componente principal
 // ==============================
 const Ponto: React.FC = () => {
-  const navigate = useNavigate();
   const deviceId = useMemo(getOrCreateDeviceId, []);
 
   const [horaAtual, setHoraAtual] = useState<string>(() =>
@@ -85,6 +92,10 @@ const Ponto: React.FC = () => {
   const [geoStatus, setGeoStatus] = useState<GeoStatus>("idle");
   const [geoError, setGeoError] = useState<string | null>(null);
 
+  // Pontos do dia
+  const [pontosHoje, setPontosHoje] = useState<ClockEntry[]>([]);
+  const [carregandoPontos, setCarregandoPontos] = useState(false);
+
   // Atualiza hora na tela
   useEffect(() => {
     const timerId = setInterval(() => {
@@ -98,6 +109,25 @@ const Ponto: React.FC = () => {
     }, 1000);
     return () => clearInterval(timerId);
   }, []);
+
+  // Carregar pontos do dia ao montar o componente
+  useEffect(() => {
+    carregarPontosHoje();
+  }, []);
+
+  // Função para carregar pontos do dia
+  const carregarPontosHoje = async () => {
+    setCarregandoPontos(true);
+    try {
+      const res = await api.get<ClockEntry[]>("/api/v1/clockentries/me/today");
+      console.log("📡 Pontos de hoje carregados:", res.data);
+      setPontosHoje(res.data);
+    } catch (error) {
+      console.error("❌ Erro ao carregar pontos de hoje:", error);
+    } finally {
+      setCarregandoPontos(false);
+    }
+  };
 
   // Captura localização do navegador
   const capturarLocalizacao = useCallback(() => {
@@ -155,11 +185,14 @@ const Ponto: React.FC = () => {
 
     setEnviando(true);
     try {
-      await api.post("/pontos", payload);
+      // ✅ Endpoint correto - POST /api/v1/clockentries
+      const res = await api.post("/api/v1/clockentries", payload);
+      console.log("✅ Ponto registrado:", res.data);
       alert("Ponto registrado com sucesso!");
-      navigate("/app/frequencia");
+      // Recarregar pontos do dia
+      carregarPontosHoje();
     } catch (error) {
-      console.error("Erro ao registrar ponto:", error);
+      console.error("❌ Erro ao registrar ponto:", error);
       const err = error as AxiosError<{ message?: string }>;
       const msg =
         err?.response?.data?.message ||
@@ -231,6 +264,44 @@ const Ponto: React.FC = () => {
             {enviando ? "Registrando..." : "Registrar Ponto"}
           </button>
         </div>
+      </div>
+
+      {/* Pontos do Dia */}
+      <div className="ponto-card">
+        <h2>Pontos Registrados Hoje</h2>
+        {carregandoPontos ? (
+          <div className="loading-pontos">
+            <FiLoader className="spin" size={20} /> Carregando pontos...
+          </div>
+        ) : pontosHoje.length > 0 ? (
+          <div className="pontos-list">
+            {pontosHoje.map((ponto) => {
+              const tipo = {
+                ENTRY: { label: "Entrada", icon: "🟢" },
+                EXIT: { label: "Saída", icon: "🔴" },
+                LUNCH_START: { label: "Início Pausa", icon: "🟡" },
+                LUNCH_END: { label: "Fim Pausa", icon: "🟡" },
+              }[ponto.tipo];
+
+              const hora = new Date(ponto.timestamp).toLocaleTimeString("pt-BR", {
+                hour: "2-digit",
+                minute: "2-digit",
+              });
+
+              return (
+                <div key={ponto.id} className="ponto-item">
+                  <span className="ponto-icon">{tipo.icon}</span>
+                  <span className="ponto-tipo">{tipo.label}</span>
+                  <span className="ponto-hora">{hora}</span>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="empty-pontos">
+            Nenhum ponto registrado hoje. Registre seu primeiro ponto!
+          </div>
+        )}
       </div>
 
       <div className="ponto-card ponto-map-card">

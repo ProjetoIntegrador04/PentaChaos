@@ -1,0 +1,20 @@
+version: 1
+frontend:
+  phases:
+    preBuild:
+      commands:
+        - echo "Navegando para frontend/frontProject e iniciando install"
+        - cd frontend/frontProject
+        - npm ci --cache .npm --prefer-offline
+    build:
+      commands:
+        - echo "Rodando build no frontend (Vite)"
+        - npm run build
+  artifacts:
+    baseDirectory: frontend/frontProject/dist  # Mudança chave: /dist em vez de /build
+    files:
+      - '**/*'  # Inclui tudo de /dist (assets, index.html)
+  cache:
+    paths:
+      - frontend/frontProject/node_modules/**/*
+      - .npm/**/*

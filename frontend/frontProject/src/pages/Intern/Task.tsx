@@ -77,7 +77,9 @@ const InternTasks: React.FC = () => {
 
     const fetchTasks = async () => {
       try {
-        const res = await api.get<Task[]>(`/tasks/user/${userId}`);
+        // ✅ Endpoint correto - GET /api/v1/tasks (USER vê apenas suas tarefas)
+        const res = await api.get<Task[]>("/api/v1/tasks");
+        console.log("📡 Minhas tarefas carregadas:", res.data);
         setTasks(
           res.data.map((t) => ({
             ...t,
@@ -86,7 +88,8 @@ const InternTasks: React.FC = () => {
           }))
         );
       } catch (err) {
-        console.error("Erro ao carregar tarefas:", err);
+        console.error("❌ Erro ao carregar tarefas:", err);
+        alert("Erro ao carregar tarefas. Verifique o console.");
       }
     };
 
@@ -99,16 +102,18 @@ const InternTasks: React.FC = () => {
 
   const updateTaskStatus = async (taskId: number, newStatus: TaskStatus) => {
     try {
-      await api.put(`/tasks/${taskId}`, {
+      // ✅ Endpoint correto - PUT /api/v1/tasks/{id}
+      const res = await api.put(`/api/v1/tasks/${taskId}`, {
         status: newStatus,
       });
+      console.log("✅ Status da tarefa atualizado:", res.data);
 
       setTasks((prev) =>
         prev.map((t) => (t.id === taskId ? { ...t, status: newStatus } : t))
       );
     } catch (err) {
-      console.error("Erro ao atualizar status:", err);
-      alert("Não foi possível atualizar o status.");
+      console.error("❌ Erro ao atualizar status:", err);
+      alert("Não foi possível atualizar o status. Verifique o console.");
     }
   };
 

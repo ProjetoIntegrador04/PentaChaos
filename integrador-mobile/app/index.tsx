@@ -17,11 +17,9 @@ export default function LoginScreen() {
 
   const { login } = useAuth();
 
-  // Lógica de login com integração backend
   const handleLogin = async () => {
     Keyboard.dismiss();
 
-    // Validações
     if (!email.trim()) {
       Alert.alert("Erro", "Por favor, digite seu e-mail ou usuário");
       return;

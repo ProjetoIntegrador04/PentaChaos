@@ -32,27 +32,24 @@ import React from "react";
             <Route path="/" element={<Login />} />
 
             {/* coordenador */}
-            <Route element={<ProtectedRoute allowedRoles={["ROLE_COORDINATOR"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["ROLE_ADMIN"]} />}>
               <Route element={<MainLayout />}>
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/usuarios" element={<Users />} />
                 <Route path="/squads" element={<Squads />} />
                 <Route path="/settings" element={<CoordinatorSettings />} />
                 <Route path="/frequencia" element={<CoordinatorFrequency />} />
-                {/* 🔹 ROTA CORRIGIDA 🔹 */}
                 <Route path="/task" element={<Task />} /> 
               </Route>
             </Route>
 
             {/* estagiário (coord também pode ver) */}
-            <Route element={<ProtectedRoute allowedRoles={["ROLE_INTERN", "ROLE_COORDINATOR"]} />}>
+            <Route element={<ProtectedRoute allowedRoles={["ROLE_USER", "ROLE_ADMIN"]} />}>
               <Route element={<MainLayoutIntern />}>
                 <Route path="/intern/home" element={<InternHome />} />
                 <Route path="/intern/ponto" element={<Ponto />} />
                 <Route path="/intern/frequencia" element={<InternFrequency />} />
                 <Route path="/intern/settings" element={<InternSettings />} />
-                
-                {/* Adicionando rotas que faltavam da SidebarIntern */}
                 <Route path="/intern/task" element={<InternTasks />} />
               </Route>
             </Route>

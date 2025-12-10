@@ -13,10 +13,16 @@ ehthumbs.db
 Desktop.ini
 *.swp                           # Vim swap files
 *.bak                           # Backup files
+*.backup                        # Backup files
+*_backup.*                      # Backup files with pattern
+*_temp.*                        # Temporary files with pattern
+*_new.*                         # New version files
+*_old.*                         # Old version files
 *.log                           # Log files (e.g., application logs, npm debug logs)
 logs/                           # Directory for application logs
 tmp/                            # Temporary directories/files
 temp/                           # Temporary directories/files
+apagar.txt                      # Files marked for deletion
 
 # ---------------------------------------------------
 # 2. Java / Spring Boot (Backend)

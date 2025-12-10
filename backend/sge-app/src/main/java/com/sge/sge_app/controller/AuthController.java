@@ -40,6 +40,12 @@ public class AuthController {
         this.userDetailsService = userDetailsService;
     }
 
+    @GetMapping("/")
+    public String getMethodName(@RequestParam(name = "param", required = false, defaultValue = "nenhum") String param) {
+        return "Received parameter: " + param;
+    }
+    
+
     /**
      * Registra um novo usuário
      * IMPORTANTE: Apenas ADMINs (coordenadores) podem criar novos usuários
@@ -103,9 +109,11 @@ public class AuthController {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
 
-        String username = tokenProvider.getUsernameFromToken(refreshToken);
+        // O subject do token é o ID do usuário (não o username)
+        String userIdStr = tokenProvider.getUsernameFromToken(refreshToken);
+        Long userId = Long.parseLong(userIdStr);
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        UserDetails userDetails = userDetailsService.loadUserById(userId);
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 userDetails,

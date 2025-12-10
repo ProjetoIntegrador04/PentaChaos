@@ -69,4 +69,13 @@ public class ClockEntryController {
         List<ClockEntryResponse> pontos = clockEntryService.buscarPontosUsuarioPorData(userId, null, null);
         return ResponseEntity.ok(pontos);
     }
+
+    @GetMapping("/users/{userId}/frequency")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Double> getFrequenciaUsuario(
+            @PathVariable Long userId,
+            @RequestParam(defaultValue = "30") int days) {
+        double frequencia = clockEntryService.calcularFrequencia(userId, days);
+        return ResponseEntity.ok(frequencia);
+    }
 }

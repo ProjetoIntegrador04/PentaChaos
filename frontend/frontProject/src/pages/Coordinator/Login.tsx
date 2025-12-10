@@ -9,7 +9,7 @@ import { useAuth } from "../../context/useAuth";
 import { saveRoles } from "../../auth"; 
 
 function Login() {
-  const [email, setEmail] = useState("");
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false); 
   const [showPassword, setShowPassword] = useState(false);
@@ -21,50 +21,92 @@ function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (loading) return; 
+    
+    console.log("🔐 Login attempt with:", { 
+      usernameOrEmail: usernameOrEmail.trim(), 
+      password: "***" 
+    });
+    
+    if (loading) {
+      console.log("⏳ Already loading, ignoring submit");
+      return;
+    }
+    
     setError("");
     setLoading(true);
 
     try {
+      console.log("📡 Calling backend API...");
+      
       const res = await api.post("/auth/login", {
-        usernameOrEmail: email.trim(), 
+        usernameOrEmail: usernameOrEmail.trim(),
         password: password,
       });
 
-      const { accessToken, refreshToken, expiresIn, roles = [] } = res.data || {};
+      console.log("✅ Backend response received");
 
+      const { accessToken, refreshToken, roles = [] } = res.data || {};
+
+      console.log("📦 Response data:", { 
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken,
+        roles 
+      });
+
+      if (!accessToken || !refreshToken) {
+        console.error("❌ Token missing in response!");
+        setError("Erro ao receber credenciais do servidor.");
+        setLoading(false);
+        return;
+      }
+
+      // Salvar tokens
       if (rememberMe) {
         localStorage.setItem("token", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
+        console.log("💾 Tokens saved to localStorage");
       } else {
         sessionStorage.setItem("token", accessToken);
         sessionStorage.setItem("refreshToken", refreshToken);
+        console.log("💾 Tokens saved to sessionStorage");
       }
 
+      // Salvar roles
       saveRoles(roles, rememberMe);
+      console.log("💾 Roles saved:", roles);
+      
+      // Atualizar context
       setRoles(roles);
+      console.log("🔄 Context updated with roles:", roles);
 
-      console.log("Login OK:", { accessToken, expiresIn, roles });
+      setLoading(false);
 
-      // ROLE_ADMIN é o coordenador/administrador no backend
+      // Redirecionar baseado na role
       if (roles.includes("ROLE_ADMIN")) {
+        console.log("🚀 Redirecting ADMIN to /dashboard");
         navigate("/dashboard", { replace: true });
-      } else {
+      } else if (roles.includes("ROLE_USER")) {
+        console.log("🚀 Redirecting USER to /intern/home");
         navigate("/intern/home", { replace: true });
+      } else {
+        console.warn("⚠️ No valid role found");
+        setError("Nenhuma permissão válida encontrada.");
       }
 
-      } catch (err) {
-        console.error("Erro no login:", err);
-
-        const error = err as AxiosError<{ error?: string; message?: string }>;
-        setError(
-          error?.response?.data?.error ??
-          error?.response?.data?.message ??
-          "E-mail/usuário ou senha inválidos."
-        );
-      } finally {
-        setLoading(false);
-      }
+    } catch (err) {
+      console.error("❌ Login error:", err);
+      
+      const error = err as AxiosError<{ error?: string; message?: string }>;
+      
+      const errorMessage = 
+        error?.response?.data?.error ??
+        error?.response?.data?.message ??
+        "E-mail/usuário ou senha inválidos.";
+      
+      console.error("💬 Error message:", errorMessage);
+      setError(errorMessage);
+      setLoading(false);
+    }
   };
 
   return (
@@ -104,9 +146,9 @@ function Login() {
             <div className="input-group">
               <input
                 type="text" 
-                id="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                id="usernameOrEmail"
+                value={usernameOrEmail}
+                onChange={(e) => setUsernameOrEmail(e.target.value)}
                 required
                 className="form-input"
                 placeholder="E-mail ou usuário"
