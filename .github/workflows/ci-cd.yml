@@ -1,17 +1,13 @@
-name: Backend Build Validation
+name: Validate Backend
 
 on:
   push:
-    branches:
-      - feature/ci-cd
+    branches: [ feature/ci-cd ]
   pull_request:
-    branches:
-      - feature/ci-cd
+    branches: [ feature/ci-cd ]
 
 jobs:
-  validate-backend:
-    permissions:
-      contents: read
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -23,10 +19,8 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Build backend with Maven
-        run: mvn -B package
-        working-directory: ./backend/sge-app
+      - name: Build
+        run: mvn package
 
-      - name: Run backend tests
+      - name: Test
         run: mvn test
-        working-directory: ./backend/sge-app
