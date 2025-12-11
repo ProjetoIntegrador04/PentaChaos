@@ -268,3 +268,5 @@ class ClockEntryRepositoryTest {
         assertTrue(ultimoEntry.isPresent());
         assertEquals(saved2.getId(), ultimoEntry.get().getId());
     
+    }
+}
