@@ -1,4 +1,4 @@
-name: Validate Data
+name: Backend CI
 
 on:
   push:
@@ -9,21 +9,24 @@ on:
       - feature/ci-cd
 
 jobs:
-  validate-data:
-    permissions:
-      contents: read
+  validate-backend:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: script/validate-data/package-lock.json
+          distribution: 'temurin'
+          java-version: '17'
+          cache: maven
 
-      - name: Validate workflows
-        run: |
-          npm ci
-          npx ts-node-script ./index.ts
-        working-directory: ./script/validate-data
+      - name: Build backend (compilation + syntax validation)
+        working-directory: ./backend/sge-app
+        run: mvn -B -e -X clean compile
+
+      - name: Run tests
+        working-directory: ./backend/sge-app
+        run: mvn test
