@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 name: CI Build Validation
+=======
+name: Backend CI
+>>>>>>> 630afc5dab22e3190b32773b085d2d116a5833a2
 
 on:
   push:
@@ -11,24 +15,37 @@ on:
 jobs:
 
   validate-backend:
+<<<<<<< HEAD
     name: Validate Backend
+=======
+>>>>>>> 630afc5dab22e3190b32773b085d2d116a5833a2
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
+          cache: maven
 
+<<<<<<< HEAD
       - name: Build backend with Maven
         run: mvn -B package
         working-directory: backend/sge-app
+=======
+      - name: Build backend (compilation + syntax validation)
+        working-directory: ./backend/sge-app
+        run: mvn -B -e -X clean compile
+>>>>>>> 630afc5dab22e3190b32773b085d2d116a5833a2
 
-      - name: Run backend tests
+      - name: Run tests
+        working-directory: ./backend/sge-app
         run: mvn test
+<<<<<<< HEAD
         working-directory: backend/sge-app
 
   validate-frontend:
@@ -55,3 +72,5 @@ jobs:
       - name: Lint frontend
         run: npm run lint
         working-directory: frontend/frontProject
+=======
+>>>>>>> 630afc5dab22e3190b32773b085d2d116a5833a2
