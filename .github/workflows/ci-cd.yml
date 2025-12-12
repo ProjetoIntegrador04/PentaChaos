@@ -1,4 +1,8 @@
+<<<<<<< HEAD
+name: CI Build Validation
+=======
 name: Backend CI
+>>>>>>> 630afc5dab22e3190b32773b085d2d116a5833a2
 
 on:
   push:
@@ -9,7 +13,12 @@ on:
       - feature/ci-cd
 
 jobs:
+
   validate-backend:
+<<<<<<< HEAD
+    name: Validate Backend
+=======
+>>>>>>> 630afc5dab22e3190b32773b085d2d116a5833a2
     runs-on: ubuntu-latest
 
     steps:
@@ -23,11 +32,49 @@ jobs:
           java-version: '21'
           cache: maven
 
+<<<<<<< HEAD
+      - name: Build backend with Maven
+        run: mvn -B package
+        working-directory: backend/sge-app
+=======
       - name: Build backend (compilation + syntax validation)
         working-directory: ./backend/sge-app
         run: mvn -B -e -X clean compile
+<<<<<<< HEAD
         # Docker compose Up
+=======
+>>>>>>> 630afc5dab22e3190b32773b085d2d116a5833a2
+>>>>>>> 56e31425d88d4fc0684f1fc332b39ef05a59c446
 
       - name: Run tests
         working-directory: ./backend/sge-app
         run: mvn test
+<<<<<<< HEAD
+        working-directory: backend/sge-app
+
+  validate-frontend:
+    name: Validate Frontend
+    runs-on: ubuntu-latest
+    needs: validate-backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: frontend/frontProject
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: frontend/frontProject
+
+      - name: Lint frontend
+        run: npm run lint
+        working-directory: frontend/frontProject
+=======
+>>>>>>> 630afc5dab22e3190b32773b085d2d116a5833a2
