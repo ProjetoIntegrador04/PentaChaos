@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
   ClipboardList,
@@ -105,14 +105,18 @@ const SidebarIntern: React.FC = () => {
                   {item.subItems.map((sub, i) => {
                     const SubIcon = sub.icon;
                     return (
-                      <NavLink
+                      <a
                         key={i}
-                        to={sub.path}
-                        className={({ isActive }) => `submenu-item ${isActive ? "active" : ""}`}
+                        href={sub.path}
+                        className={`submenu-item ${location.pathname === sub.path ? "active" : ""}`}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          window.location.href = sub.path;
+                        }}
                       >
                         {SubIcon && <SubIcon size={16} />}
                         <span>{sub.label}</span>
-                      </NavLink>
+                      </a>
                     );
                   })}
                 </div>
@@ -122,14 +126,18 @@ const SidebarIntern: React.FC = () => {
 
           const Icon = item.icon;
           return (
-            <NavLink
+            <a
               key={index}
-              to={item.path!}
-              className={({ isActive }) => `nav-item ${isActive ? "active" : ""}`}
+              href={item.path!}
+              className={`nav-item ${location.pathname === item.path ? "active" : ""}`}
+              onClick={(e) => {
+                e.preventDefault();
+                window.location.href = item.path!;
+              }}
             >
               <Icon size={20} />
               <span>{item.label}</span>
-            </NavLink>
+            </a>
           );
         })}
       </nav>

@@ -12,7 +12,10 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "axios": "^1.12.2",
+    "jspdf": "^2.5.2",
+    "jspdf-autotable": "^3.8.4",
     "leaflet": "^1.9.4",
+    "lucide-react": "^0.553.0",
     "lucide-react": "^0.553.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",

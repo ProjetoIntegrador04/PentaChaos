@@ -36,5 +36,19 @@ public class SquadResponse {
         private String username;
         private String fullName;
         private String email;
+        private String ra;
+        private Set<RoleInfo> roles;
+    }
+
+    /**
+     * DTO simplificado de role
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class RoleInfo {
+        private Long id;
+        private String name;
     }
 }

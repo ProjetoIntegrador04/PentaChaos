@@ -15,4 +15,6 @@ public interface ClockEntryRepository extends JpaRepository<ClockEntry, Long> {
     Optional<ClockEntry> findTopByUserIdAndTipoOrderByCreatedAtDesc(Long userId, String tipo);
     
     List<ClockEntry> findByUserIdAndTimestampBetween(Long userId, LocalDateTime startDate, LocalDateTime endDate);
+    
+    List<ClockEntry> findByUserIdAndTipoAndTimestampBetween(Long userId, String tipo, LocalDateTime startDate, LocalDateTime endDate);
 }
