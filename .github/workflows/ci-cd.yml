@@ -26,6 +26,7 @@ jobs:
       - name: Build backend (compilation + syntax validation)
         working-directory: ./backend/sge-app
         run: mvn -B -e -X clean compile
+        # Docker compose Up
 
       - name: Run tests
         working-directory: ./backend/sge-app
