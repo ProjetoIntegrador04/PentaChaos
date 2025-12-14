@@ -387,7 +387,7 @@ export default function DashboardV2() {
           
           {/* Botão para gerenciar funções */}
           <button
-            onClick={() => navigate('/squads')}
+            onClick={() => window.location.href = '/manage-roles'}
             style={{
               marginTop: '16px',
               width: '100%',

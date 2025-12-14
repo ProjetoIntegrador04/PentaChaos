@@ -45,19 +45,18 @@ const Frequency: React.FC = () => {
       const resUsers = await api.get<Usuario[]>("/api/v1/users");
       console.log("📡 Usuários carregados:", resUsers.data);
 
-      // 2. Para cada usuário, buscar pontos do dia (não existe endpoint por data específica)
-      // Vamos buscar o histórico e filtrar pela data selecionada
+      // 2. Para cada usuário, buscar pontos da data selecionada usando o novo endpoint
+      const selectedDateStr = selectedDate.toISOString().split('T')[0];
+      
       const frequencyPromises = resUsers.data.map(async (user) => {
         try {
-          // Buscar histórico do usuário (como ADMIN pode ver todos)
-          const resHistory = await api.get<ClockEntry[]>(`/api/v1/clockentries/me/history`);
+          // Buscar pontos do usuário por data específica (ADMIN endpoint)
+          const resHistory = await api.get<ClockEntry[]>(
+            `/api/v1/clockentries/users/${user.id}/history?startDate=${selectedDateStr}&endDate=${selectedDateStr}`
+          );
           
-          // Filtrar pontos do dia selecionado
-          const selectedDateStr = selectedDate.toISOString().split('T')[0];
-          const pontosHoje = resHistory.data.filter(ponto => {
-            const pontoDateStr = ponto.timestamp.split('T')[0];
-            return pontoDateStr === selectedDateStr;
-          });
+          const pontosHoje = resHistory.data;
+          console.log(`📊 Pontos do usuário ${user.username}:`, pontosHoje);
 
           // Organizar pontos em array [ENTRY, LUNCH_START, LUNCH_END, EXIT]
           const entry = pontosHoje.find(p => p.tipo === "ENTRY");
@@ -86,8 +85,9 @@ const Frequency: React.FC = () => {
           };
 
           return userFreq;
-        } catch {
-          // Se der erro (403 - não pode ver pontos de outros), retorna sem pontos
+        } catch (err) {
+          console.error(`❌ Erro ao buscar pontos do usuário ${user.username}:`, err);
+          // Se der erro, retorna sem pontos
           return {
             id: user.id,
             status: user.enabled ? "ATIVO" : "INATIVO",

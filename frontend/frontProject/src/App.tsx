@@ -9,9 +9,12 @@ import React from "react";
   import Dashboard from "./pages/Coordinator/Dashboard";
   import Users from "./pages/Coordinator/Users";
   import Squads from "./pages/Coordinator/Squads";
+  import ManageRoles from "./pages/Coordinator/ManageRoles";
   import CoordinatorSettings from "./pages/Coordinator/Settings"; // Nome atualizado
   import CoordinatorFrequency from "./pages/Coordinator/Frequency"; // Nome atualizado
   import Task from "./pages/Coordinator/Task";
+  import AdjustmentRequests from "./pages/Coordinator/AdjustmentRequests";
+  import Notifications from "./pages/Notifications"; // Nova página de notificações
 
   // Páginas do Estagiário
   import MainLayoutIntern from "./components/Layout/MainLayoutIntern";
@@ -37,9 +40,12 @@ import React from "react";
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/usuarios" element={<Users />} />
                 <Route path="/squads" element={<Squads />} />
+                <Route path="/manage-roles" element={<ManageRoles />} />
                 <Route path="/settings" element={<CoordinatorSettings />} />
                 <Route path="/frequencia" element={<CoordinatorFrequency />} />
                 <Route path="/task" element={<Task />} /> 
+                <Route path="/adjustment-requests" element={<AdjustmentRequests />} />
+                <Route path="/notifications" element={<Notifications />} />
               </Route>
             </Route>
 
@@ -51,6 +57,7 @@ import React from "react";
                 <Route path="/intern/frequencia" element={<InternFrequency />} />
                 <Route path="/intern/settings" element={<InternSettings />} />
                 <Route path="/intern/task" element={<InternTasks />} />
+                <Route path="/intern/notifications" element={<Notifications />} />
               </Route>
             </Route>
             
