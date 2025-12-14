@@ -1,399 +1,765 @@
-# SGE App - Sistema de Gestão Empresarial
+# 🎯 PentaChaos - Sistema de Gestão Empresarial# 🎯 PentaChaos - Sistema de Gestão Empresarial
 
-A Spring Boot backend application with JWT-based authentication, PostgreSQL database, and Docker containerization.
 
-## 🚀 Quick Start
 
-### Prerequisites
+> Sistema completo de gestão de equipes ágeis com controle de ponto por geolocalização, gerenciamento de squads, tarefas e notificações em tempo real.Sistema completo de gestão empresarial com controle de pontos, squads, tarefas e usuários. Desenvolvido com Spring Boot (backend), React (frontend web), React Native/Expo (mobile) e PostgreSQL.
 
-- Docker installed
-- Git (to clone the repository)
 
-### Environment Setup
 
-**Yes, you need to create a `.env` file** before running the application. This file contains sensitive configuration data that should not be committed to version control.
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5-brightgreen.svg)](https://spring.io/projects/spring-boot)## 🚀 Iniciar o Projeto (Docker)
 
-1. **Create the `.env` file** in the project root directory:
+[![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 
-```bash
-# Database Configuration
-POSTGRES_DB=
-POSTGRES_USER=
-POSTGRES_PASSWORD=
+[![React Native](https://img.shields.io/badge/React%20Native-0.81-purple.svg)](https://reactnative.dev/)### Pré-requisitos
 
-# JWT Configuration
-JWT_SECRET_KEY=
-JWT_EXPIRATION=
-JWT_REFRESH_EXPIRATION=
-```
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue.svg)](https://www.postgresql.org/)
 
-2. **Run the application**:
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg)](https://www.docker.com/)- **Docker** e **Docker Compose** instalados
+
+- Portas disponíveis: 3000, 8080, 8081, 5432
+
+---
+
+### Comando Único
+
+## 📋 Sobre o Projeto
 
 ```bash
-docker compose up --build -d
+
+**PentaChaos** é uma solução integrada para gestão de equipes ágeis, desenvolvida como Projeto Integrador IV do SENAI. O sistema permite:docker compose up -d
+
 ```
 
-The application will be available at:
-- **Backend API**: http://localhost:8080
-- **Frontend Web**: http://localhost:3000
-- **Mobile App**: http://localhost:8081
-- **Database**: localhost:5432
+- ⏰ **Controle de Ponto** com geolocalização GPS
 
-### Services
+- 👥 **Gestão de Squads** e equipes**Pronto!** O sistema estará disponível em:
 
-The project consists of 4 Docker containers:
+- ✅ **Gerenciamento de Tarefas** com prioridades
 
-1. **pentachaos-db**: PostgreSQL 15 database
-2. **pentachaos-backend**: Spring Boot API (Java 21)
-3. **pentachaos-frontend**: React + Vite web application (Nginx)
-4. **pentachaos-mobile**: React Native/Expo mobile application
+- 🔔 **Notificações Push** em tempo real| Serviço | URL | Descrição |
 
-### Stopping the Application
+- 📊 **Dashboard** com métricas e KPIs|---------|-----|-----------|
+
+- 🔐 **Autenticação JWT** segura| 🌐 **Frontend Web** | http://localhost:3000 | Interface web (coordenadores) |
+
+- 📱 **Multi-plataforma** (Web + Mobile)| 📱 **Mobile App** | http://localhost:8081 | App mobile (membros) |
+
+| 🔧 **Backend API** | http://localhost:8080 | API REST |
+
+### 🏆 Projeto SAGA SENAI de Inovação| 🗄️ **PostgreSQL** | localhost:5432 | Banco de dados |
+
+
+
+Este projeto faz parte do programa [SAGA SENAI](https://gpinovacao.senai.br/), respondendo à demanda da indústria por soluções digitais de gestão.### Parar o Sistema
+
+
+
+---```bash
+
+docker compose down       # Para os containers
+
+## 🚀 Quick Startdocker compose down -v    # Para + remove dados do banco
+
+```
+
+### Pré-requisitos
+
+## 📦 Arquitetura do Sistema
+
+- **Docker** e **Docker Compose** instalados
+
+- Portas livres: `3000`, `8080`, `8081`, `5432````
+
+pentachaos/
+
+### Iniciar Sistema Completo├── backend/sge-app/          # Spring Boot 3.5 + Java 21
+
+├── frontend/frontProject/     # React + Vite + TypeScript
+
+```bash├── integrador-mobile/         # React Native + Expo
+
+# Clone o repositório└── docker-compose.yml         # Orquestração completa
+
+git clone https://github.com/ProjetoIntegrador04/PentaChaos.git```
+
+cd PentaChaos
+
+### Tecnologias
+
+# Suba todos os serviços
+
+docker compose up -d**Backend:**
+
+- Spring Boot 3.5
+
+# Aguarde ~30 segundos para inicialização- Spring Security + JWT
+
+```- PostgreSQL 15
+
+- Java 21
+
+✅ **Pronto!** Acesse:
+
+**Frontend Web:**
+
+| Serviço | URL | Descrição |- React 18
+
+|---------|-----|-----------|- Vite
+
+| 🌐 **Frontend Web** | http://localhost:3000 | Dashboard coordenadores |- TypeScript
+
+| 📱 **Mobile App** | http://localhost:8081 | App para membros |- TailwindCSS
+
+| 🔧 **API Backend** | http://localhost:8080 | REST API |
+
+| 📊 **API Docs** | http://localhost:8080/swagger-ui.html | Documentação OpenAPI |**Mobile:**
+
+- React Native 0.81
+
+### Parar Sistema- Expo SDK 54
+
+- TypeScript
+
+```bash- Expo Router
+
+docker compose down       # Para containers
+
+docker compose down -v    # Para + remove dados## 🔐 Autenticação
+
+```
+
+### Sistema JWT
+
+---
+
+- **Access Token**: 7 dias de validade
+
+## 👥 Usuários de Teste- **Refresh Token**: 30 dias de validade
+
+- **Armazenamento Seguro**: SecureStore (mobile) / LocalStorage (web)
+
+| Email | Senha | Papel | Descrição |
+
+|-------|-------|-------|-----------|### Usuários Padrão
+
+| `eliezer@pentachaos.com.br` | `senha123` | **ADMIN** | Coordenador (acesso total) |
+
+| `beatriz.alves@pentachaos.com.br` | `senha123` | **USER** | Membro de squad || Email | Senha | Papel | Acesso |
+
+| `mariana.costa@pentachaos.com.br` | `senha123` | **USER** | Membro de squad ||-------|-------|-------|--------|
+
+| eliezer@pentachaos.com.br | senha123 | ADMIN | Web + Mobile |
+
+---| beatriz.alves@pentachaos.com.br | senha123 | USER | Mobile |
+
+| mariana.costa@pentachaos.com.br | senha123 | USER | Mobile |
+
+## 🏗️ Arquitetura
+
+### Endpoints de Autenticação
+
+### Stack Tecnológica
 
 ```bash
-docker compose down
-```
 
-To remove volumes (database data):
+```POST /api/v1/auth/login         # Login (email/username + senha)
 
-```bash
-docker compose down -v
-```
+┌─────────────────────────────────────────────────────────┐POST /api/v1/auth/refresh       # Renovar token
 
-## 🔐 Authentication System
+│                    FRONTEND WEB                          │GET  /api/v1/users/me           # Dados do usuário logado
 
-This application implements a robust JWT-based authentication system with the following features:
+│              React 18 + Vite + TypeScript                │  "isAdmin": false
 
-### Authentication Endpoints
+│                   Port: 3000 (Nginx)                     │}
 
-| Endpoint | Method | Description | Authentication Required |
-|----------|--------|-------------|------------------------|
-| `/auth/register` | POST | Register a new user | **Yes - ADMIN Role** |
-| `/auth/login` | POST | Login with username/email and password | No |
-| `/auth/refresh` | POST | Refresh access token using refresh token | No |
+└────────────────────┬────────────────────────────────────┘```
 
-**Important:** User registration is restricted to administrators (ADMIN role). Only coordinators can create new users in the system.
+                     │
 
-### Authentication Flow
+┌────────────────────┴────────────────────────────────────┐**Note:** 
 
-1. **User Registration**: Users can register with username, email, and password
-2. **User Login**: Users can login with either username or email
-3. **JWT Token Generation**: Upon successful login, the system returns:
-   - Access Token (expires in 24 hours)
-   - Refresh Token (expires in 7 days)
-   - Token expiration time
+│                   MOBILE APP                             │- Only `username`, `email`, and `password` are required. All other fields are optional.
 
-### Request/Response Examples
+│         React Native 0.81 + Expo SDK 54                  │- `isAdmin`: Set to `true` to create a user with ADMIN role (coordinator). Default is `false`.
 
-#### User Registration (ADMIN Only)
-```bash
-POST /auth/register
-Authorization: Bearer {admin_token}
-Content-Type: application/json
+│                   Port: 8081                             │- `squad`: Not defined during registration. Should be assigned later through user update endpoint.
 
-{
-  "username": "johndoe",
-  "email": "john@example.com",
-  "password": "securepassword123",
-  "fullName": "John Doe",
-  "ra": "123456",
-  "phoneNumber": "(11) 98765-4321",
-  "isAdmin": false
-}
-```
+└────────────────────┬────────────────────────────────────┘
 
-**Note:** 
-- Only `username`, `email`, and `password` are required. All other fields are optional.
-- `isAdmin`: Set to `true` to create a user with ADMIN role (coordinator). Default is `false`.
-- `squad`: Not defined during registration. Should be assigned later through user update endpoint.
+                     │**Response:**
 
-**Response:**
-```json
-{
-  "id": 1,
-  "username": "johndoe",
-  "email": "john@example.com",
-  "enabled": true,
-  "roles": []
-}
-```
+                     │ HTTP/REST + JWT```json
 
-**Authorization:** This endpoint requires an ADMIN role token in the Authorization header.
+                     ▼{
 
-#### User Login
-```bash
-POST /auth/login
-Content-Type: application/json
+┌─────────────────────────────────────────────────────────┐  "id": 1,
 
-{
+│                  BACKEND API                             │  "username": "johndoe",
+
+│       Spring Boot 3.5 + Spring Security 6                │  "email": "john@example.com",
+
+│                   Port: 8080                             │  "enabled": true,
+
+└────────────────────┬────────────────────────────────────┘  "roles": []
+
+                     │}
+
+                     │ JDBC```
+
+                     ▼
+
+┌─────────────────────────────────────────────────────────┐**Authorization:** This endpoint requires an ADMIN role token in the Authorization header.
+
+│                  DATABASE                                │
+
+│             PostgreSQL 15-alpine                         │#### User Login
+
+│                   Port: 5432                             │```bash
+
+└─────────────────────────────────────────────────────────┘POST /auth/login
+
+```Content-Type: application/json
+
+
+
+### Estrutura do Projeto{
+
   "usernameOrEmail": "johndoe",  // Can be username or email
-  "password": "securepassword123"
-}
-```
 
-**Response:**
-```json
-{
+```  "password": "securepassword123"
+
+PentaChaos/}
+
+├── 📂 backend/sge-app/          # Spring Boot Backend```
+
+│   ├── src/main/java/           # Código Java
+
+│   ├── src/main/resources/      # Configurações**Response:**
+
+│   ├── Dockerfile               # Container backend```json
+
+│   └── pom.xml                  # Dependências Maven{
+
+│  "accessToken": "eyJhbGciOiJIUzUxMiJ9...",
+
+├── 📂 frontend/frontProject/    # React Frontend  "refreshToken": "eyJhbGciOiJIUzUxMiJ9...",
+
+│   ├── src/                     # Código React  "tokenType": "Bearer",
+
+│   ├── Dockerfile               # Container frontend  "expiresIn": 86400000
+
+│   └── package.json             # Dependências npm}
+
+│```
+
+├── 📂 integrador-mobile/        # React Native Mobile
+
+│   ├── app/                     # Telas (Expo Router)#### Token Refresh
+
+│   ├── components/              # Componentes reutilizáveis```bash
+
+│   ├── services/                # API clientsPOST /auth/refresh
+
+│   └── package.json             # Dependências npmContent-Type: application/json
+
+│
+
+├── 📂 docs/                     # Documentação{
+
+│   ├── VISION.md               # Documento de Visão  "refreshToken": "eyJhbGciOiJIUzUxMiJ9..."
+
+│   ├── prd.md                  # Product Requirements}
+
+│   ├── branch-management.md    # Git workflow```
+
+│   └── commit-pattern.md       # Padrões de commit
+
+│**Response:**
+
+└── docker-compose.yml          # Orquestração completa```json
+
+```{
+
   "accessToken": "eyJhbGciOiJIUzUxMiJ9...",
-  "refreshToken": "eyJhbGciOiJIUzUxMiJ9...",
+
+---  "refreshToken": "eyJhbGciOiJIUzUxMiJ9...",
+
   "tokenType": "Bearer",
-  "expiresIn": 86400000
+
+## ✨ Funcionalidades Principais  "expiresIn": 86400000
+
 }
-```
 
-#### Token Refresh
-```bash
-POST /auth/refresh
-Content-Type: application/json
+### 🔐 Autenticação & Autorização```
 
-{
-  "refreshToken": "eyJhbGciOiJIUzUxMiJ9..."
-}
-```
 
-**Response:**
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzUxMiJ9...",
-  "refreshToken": "eyJhbGciOiJIUzUxMiJ9...",
-  "tokenType": "Bearer",
-  "expiresIn": 86400000
-}
-```
 
-### Using the Access Token
+- **JWT** com access token (7 dias) + refresh token (30 dias)### Using the Access Token
 
-Include the access token in the `Authorization` header for protected endpoints:
+- **Spring Security 6** com filtros personalizados
+
+- **Senhas criptografadas** com BCryptInclude the access token in the `Authorization` header for protected endpoints:
+
+- **Controle de acesso** baseado em roles (ADMIN/USER)
 
 ```bash
-GET /api/protected-endpoint
+
+### ⏰ Controle de PontoGET /api/protected-endpoint
+
 Authorization: Bearer eyJhbGciOiJIUzUxMiJ9...
-```
 
-## 🏗️ Architecture
+- **Geolocalização GPS** para registro de entrada/saída```
+
+- **Validação de horários** e regras de negócio
+
+- **Histórico completo** de registros## 🏗️ Architecture
+
+- **Dashboard** com frequência mensal
 
 ### Technology Stack
 
+### 👥 Gestão de Squads
+
 - **Backend**: Spring Boot 3.5.6
-- **Java Version**: 21
-- **Database**: PostgreSQL 15
-- **Authentication**: JWT (JSON Web Tokens)
-- **Security**: Spring Security 6
+
+- **CRUD completo** de squads- **Java Version**: 21
+
+- **Atribuição de membros** e coordenadores- **Database**: PostgreSQL 15
+
+- **Visualização hierárquica** de equipes- **Authentication**: JWT (JSON Web Tokens)
+
+- **Métricas por squad**- **Security**: Spring Security 6
+
 - **Containerization**: Docker & Docker Compose
-- **Build Tool**: Maven
 
-### Project Structure
+### ✅ Gerenciamento de Tarefas- **Build Tool**: Maven
 
-```
-src/
+
+
+- **Criação e atribuição** de tarefas### Project Structure
+
+- **Prioridades** (ALTA, MEDIA, BAIXA)
+
+- **Status** (TODO, IN_PROGRESS, DONE)```
+
+- **Deadline tracking**src/
+
 ├── main/
-│   ├── java/com/sge/sge_app/
-│   │   ├── config/           # Configuration classes
-│   │   │   ├── SecurityConfig.java
-│   │   │   └── ModelMapperConfig.java
-│   │   ├── controller/       # REST Controllers
-│   │   │   └── AuthController.java
-│   │   ├── domain/model/     # JPA Entities
-│   │   │   ├── User.java
-│   │   │   └── Role.java
-│   │   ├── dto/              # Data Transfer Objects
-│   │   │   ├── request/
-│   │   │   └── response/
-│   │   ├── security/         # Security components
-│   │   │   ├── JwtTokenProvider.java
-│   │   │   ├── JwtAuthenticationFilter.java
-│   │   │   └── CustomUserDetailsService.java
-│   │   └── services/         # Business logic
-│   └── resources/
-│       └── application.properties
-```
 
-## 🔧 Configuration
+### 🔔 Notificações│   ├── java/com/sge/sge_app/
+
+│   │   ├── config/           # Configuration classes
+
+- **Push notifications** via Expo│   │   │   ├── SecurityConfig.java
+
+- **Notificações in-app** em tempo real│   │   │   └── ModelMapperConfig.java
+
+- **Centro de notificações** com histórico│   │   ├── controller/       # REST Controllers
+
+- **Badges de contador** não lidas│   │   │   └── AuthController.java
+
+│   │   ├── domain/model/     # JPA Entities
+
+---│   │   │   ├── User.java
+
+│   │   │   └── Role.java
+
+## 🔧 Desenvolvimento Local│   │   ├── dto/              # Data Transfer Objects
+
+│   │   │   ├── request/
+
+### Backend (Spring Boot)│   │   │   └── response/
+
+│   │   ├── security/         # Security components
+
+```bash│   │   │   ├── JwtTokenProvider.java
+
+cd backend/sge-app│   │   │   ├── JwtAuthenticationFilter.java
+
+│   │   │   └── CustomUserDetailsService.java
+
+# Com Maven│   │   └── services/         # Business logic
+
+./mvnw spring-boot:run│   └── resources/
+
+│       └── application.properties
+
+# Com Docker```
+
+docker build -t pentachaos-backend .
+
+docker run -p 8080:8080 pentachaos-backend## 🔧 Configuration
+
+```
 
 ### Environment Variables
 
+**Configuração:** `backend/sge-app/src/main/resources/application.properties`
+
 The application uses the following environment variables (defined in `.env`):
 
+### Frontend (React)
+
 | Variable | Description | Default Value |
-|----------|-------------|---------------|
-| `POSTGRES_DB` | Database name | `sge_app_db` |
+
+```bash|----------|-------------|---------------|
+
+cd frontend/frontProject| `POSTGRES_DB` | Database name | `sge_app_db` |
+
 | `POSTGRES_USER` | Database username | `admin_sge` |
-| `POSTGRES_PASSWORD` | Database password | `mysecretpassword` |
-| `JWT_SECRET_KEY` | Secret key for JWT signing | `i0o++I7jThwmozMy2cNjH+HeC6d6LBqKkoPbi3yYIfA=` |
+
+# Instalar dependências| `POSTGRES_PASSWORD` | Database password | `mysecretpassword` |
+
+npm install| `JWT_SECRET_KEY` | Secret key for JWT signing | `i0o++I7jThwmozMy2cNjH+HeC6d6LBqKkoPbi3yYIfA=` |
+
 | `JWT_EXPIRATION` | Access token expiration (ms) | `86400000` (24 hours) |
-| `JWT_REFRESH_EXPIRATION` | Refresh token expiration (ms) | `604800000` (7 days) |
+
+# Modo desenvolvimento| `JWT_REFRESH_EXPIRATION` | Refresh token expiration (ms) | `604800000` (7 days) |
+
+npm run dev        # Port 5173
 
 ### Database Configuration
 
-The application automatically creates the database schema using Hibernate DDL auto-update. The database connection is configured through environment variables in the Docker Compose file.
+# Build produção
 
-### CORS Configuration
+npm run buildThe application automatically creates the database schema using Hibernate DDL auto-update. The database connection is configured through environment variables in the Docker Compose file.
 
-The application is configured to accept requests from:
+npm run preview    # Testar build
+
+```### CORS Configuration
+
+
+
+### Mobile (React Native)The application is configured to accept requests from:
+
 - `http://localhost:5173` (Vite development server)
-- `http://localhost:3000` (React development server)
+
+```bash- `http://localhost:3000` (React development server)
+
+cd integrador-mobile
 
 ## 🐳 Docker Configuration
 
-### Services
+# Instalar dependências
 
-1. **Database Service** (`db`):
-   - PostgreSQL 15 Alpine
+npm install### Services
+
+
+
+# Iniciar Expo1. **Database Service** (`db`):
+
+npx expo start   - PostgreSQL 15 Alpine
+
    - Port: 5432
-   - Persistent data storage
 
-2. **Application Service** (`app`):
-   - Spring Boot application
-   - Port: 8080
-   - Depends on database service
+# Opções:   - Persistent data storage
 
-### Docker Commands
+# - Pressione 'w' para web
 
-```bash
+# - Pressione 'a' para Android2. **Application Service** (`app`):
+
+# - Pressione 'i' para iOS   - Spring Boot application
+
+# - Escaneie QR Code com Expo Go   - Port: 8080
+
+```   - Depends on database service
+
+
+
+**⚠️ Importante:** Configure a URL da API em `integrador-mobile/utils/constants.ts`### Docker Commands
+
+
+
+---```bash
+
 # Build and start all services
-docker compose up --build -d
 
-# View logs
+## 🗄️ Banco de Dadosdocker compose up --build -d
+
+
+
+### Modelo de Dados# View logs
+
 docker compose logs -f
 
-# Stop services
-docker compose down
+O sistema utiliza **PostgreSQL 15** com as seguintes tabelas principais:
 
-# Stop and remove volumes (⚠️ This will delete all data)
-docker compose down -v
-```
+# Stop services
+
+- `users` - Usuários do sistemadocker compose down
+
+- `roles` - Papéis de acesso (ADMIN, USER)
+
+- `squads` - Squads/equipes# Stop and remove volumes (⚠️ This will delete all data)
+
+- `tasks` - Tarefasdocker compose down -v
+
+- `clock_entries` - Registros de ponto```
+
+- `notifications` - Notificações
 
 ## 🔒 Security Features
 
+### Seed Data
+
 ### JWT Implementation
 
-- **Algorithm**: HS512 (HMAC with SHA-512)
-- **Access Token**: Short-lived (24 hours)
-- **Refresh Token**: Long-lived (7 days)
+O banco é inicializado automaticamente com dados de teste via `data.sql`. Inclui:
+
+- 10 usuários de exemplo- **Algorithm**: HS512 (HMAC with SHA-512)
+
+- 3 squads pré-configurados- **Access Token**: Short-lived (24 hours)
+
+- Tarefas e notificações de exemplo- **Refresh Token**: Long-lived (7 days)
+
 - **Claims**: Username, roles, issued at, expiration
+
+---
 
 ### Password Security
 
+## 📡 API Endpoints
+
 - Passwords are hashed using Spring Security's BCrypt
-- Minimum password length: 6 characters
+
+### Autenticação- Minimum password length: 6 characters
+
 - Maximum password length: 100 characters
 
-### User Management
+```http
 
-- Users can be enabled/disabled
-- Account lockout support
+POST   /api/v1/auth/login          # Login (JWT)### User Management
+
+POST   /api/v1/auth/refresh        # Renovar token
+
+GET    /api/v1/users/me            # Usuário logado- Users can be enabled/disabled
+
+```- Account lockout support
+
 - Credential expiration support
-- Role-based access control (RBAC)
 
-## 🧪 Testing the Authentication
+### Usuários- Role-based access control (RBAC)
 
-### Using curl
 
-1. **Register a new user**:
-```bash
+
+```http## 🧪 Testing the Authentication
+
+GET    /api/v1/users               # Listar (ADMIN)
+
+POST   /api/v1/users               # Criar (ADMIN)### Using curl
+
+PUT    /api/v1/users/{id}          # Atualizar
+
+DELETE /api/v1/users/{id}          # Deletar (ADMIN)1. **Register a new user**:
+
+``````bash
+
 curl -X POST http://localhost:8080/auth/register \
-  -H "Content-Type: application/json" \
+
+### Clock Entries (Ponto)  -H "Content-Type: application/json" \
+
   -d '{
-    "username": "testuser",
-    "email": "test@example.com",
-    "password": "password123"
-  }'
+
+```http    "username": "testuser",
+
+POST   /api/v1/clockentries        # Registrar ponto    "email": "test@example.com",
+
+GET    /api/v1/clockentries/me/today        # Pontos de hoje    "password": "password123"
+
+GET    /api/v1/clockentries/me/history      # Histórico  }'
+
+``````
+
+
+
+### Squads2. **Login**:
+
+```bash
+
+```httpcurl -X POST http://localhost:8080/auth/login \
+
+GET    /api/v1/squads              # Listar  -H "Content-Type: application/json" \
+
+POST   /api/v1/squads              # Criar (ADMIN)  -d '{
+
+PUT    /api/v1/squads/{id}         # Atualizar (ADMIN)    "usernameOrEmail": "testuser",
+
+DELETE /api/v1/squads/{id}         # Deletar (ADMIN)    "password": "password123"
+
+```  }'
+
 ```
 
-2. **Login**:
-```bash
-curl -X POST http://localhost:8080/auth/login \
-  -H "Content-Type: application/json" \
-  -d '{
-    "usernameOrEmail": "testuser",
-    "password": "password123"
-  }'
-```
+### Tarefas
 
 3. **Use the access token**:
-```bash
-curl -X GET http://localhost:8080/api/protected-endpoint \
-  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
-```
 
-## 🚨 Troubleshooting
+```http```bash
 
-### Common Issues
+GET    /api/v1/tasks               # Listarcurl -X GET http://localhost:8080/api/protected-endpoint \
 
-1. **Application won't start**:
+POST   /api/v1/tasks               # Criar  -H "Authorization: Bearer YOUR_ACCESS_TOKEN"
+
+PUT    /api/v1/tasks/{id}          # Atualizar```
+
+DELETE /api/v1/tasks/{id}          # Deletar
+
+```## 🚨 Troubleshooting
+
+
+
+📚 **Documentação completa:** http://localhost:8080/swagger-ui.html### Common Issues
+
+
+
+---1. **Application won't start**:
+
    - Ensure `.env` file exists with all required variables
-   - Check if ports 8080 and 5432 are available
+
+## 🔒 Segurança   - Check if ports 8080 and 5432 are available
+
    - Verify Docker is running
 
-2. **Database connection issues**:
-   - Wait for database to fully initialize (may take 30-60 seconds)
-   - Check database logs: `docker compose logs db`
+### Implementações
 
-3. **JWT token issues**:
-   - Ensure JWT_SECRET_KEY is properly set
-   - Check token expiration times
+2. **Database connection issues**:
+
+✅ **Autenticação JWT** robusta     - Wait for database to fully initialize (may take 30-60 seconds)
+
+✅ **Senhas criptografadas** (BCrypt cost 10)     - Check database logs: `docker compose logs db`
+
+✅ **CORS** configurado  
+
+✅ **SQL Injection** prevenido (JPA)  3. **JWT token issues**:
+
+✅ **XSS Protection** habilitado     - Ensure JWT_SECRET_KEY is properly set
+
+✅ **HTTPS** recomendado em produção     - Check token expiration times
+
    - Verify token format in Authorization header
+
+### OWASP Top 10 Coverage
 
 ### Logs
 
-```bash
-# View application logs
-docker compose logs app
+| Vulnerabilidade | Mitigação |
 
-# View database logs
-docker compose logs db
+|----------------|-----------|```bash
 
-# View all logs
+| A01: Broken Access Control | Spring Security + RBAC |# View application logs
+
+| A02: Cryptographic Failures | BCrypt + JWT + HTTPS |docker compose logs app
+
+| A03: Injection | JPA Prepared Statements |
+
+| A07: Auth Failures | JWT com expiração |# View database logs
+
+| A08: Software/Data Integrity | Validação de entrada |docker compose logs db
+
+
+
+---# View all logs
+
 docker compose logs
-```
 
-## 📝 Development
+## 📚 Documentação Adicional```
 
-### Local Development
+
+
+- 📖 [**Documento de Visão**](docs/VISION.md) - Visão geral do produto (requisito do projeto)## 📝 Development
+
+- 📝 [**PRD**](docs/prd.md) - Product Requirements Document
+
+- 🌿 [**Git Workflow**](docs/branch-management.md) - Fluxo de branches### Local Development
+
+- 💬 [**Commits**](docs/commit-pattern.md) - Padrão de commits
 
 For local development without Docker:
 
+---
+
 1. Install Java 21 and Maven
-2. Install PostgreSQL and create database
+
+## 👥 Equipe2. Install PostgreSQL and create database
+
 3. Update `application.properties` with local database settings
-4. Run: `mvn spring-boot:run`
 
-### Building the Application
+Desenvolvido por alunos do **SENAI** como Projeto Integrador IV:4. Run: `mvn spring-boot:run`
 
-```bash
-# Build JAR file
-mvn clean package
+
+
+- **Gabriel Eliezer Rodrigues** - Full Stack### Building the Application
+
+- **David Francisco Vieira** - Backend
+
+- **Rafael Rodrigues** - Frontend```bash
+
+- **José Henrique Bernardes Vieira** - Mobile# Build JAR file
+
+- **Pablo Vinicius Domingues Sanches** - DevOpsmvn clean package
+
+- **Daniel Marques De Melos Asiatico** - QA
 
 # Run tests
-mvn test
 
-# Skip tests during build
+---mvn test
+
+
+
+## 📄 Licença# Skip tests during build
+
 mvn clean package -DskipTests
-```
 
-## 🧪 Testing
+Este projeto foi desenvolvido para fins acadêmicos no contexto do **Projeto Integrador IV - SENAI**.```
 
-O sistema possui uma suíte abrangente de testes que garante a qualidade e confiabilidade da aplicação.
 
-### **Testes Implementados**
 
-#### **1. Testes de Integração**
+---## 🧪 Testing
+
+
+
+## 🔗 Links ÚteisO sistema possui uma suíte abrangente de testes que garante a qualidade e confiabilidade da aplicação.
+
+
+
+- 🎨 [Protótipo Figma](https://www.figma.com/design/D6GEmmBtiQgZz95ZBHu6e3/Projeto-Integrador-Final)### **Testes Implementados**
+
+- 🏢 [SAGA SENAI de Inovação](https://gpinovacao.senai.br/)
+
+- 📊 [Kanban Board](https://github.com/orgs/ProjetoIntegrador04/projects/1)#### **1. Testes de Integração**
+
 - **SimpleApplicationTest**: Valida se o contexto completo da aplicação Spring Boot carrega corretamente
-  - ✅ Configurações do banco H2 em memória
+
+---  - ✅ Configurações do banco H2 em memória
+
   - ✅ Integração entre todas as camadas (Controller, Service, Repository)
-  - ✅ Injeção de dependências
 
-#### **2. Testes Unitários**
+## 🆘 Suporte  - ✅ Injeção de dependências
+
+
+
+Encontrou um problema? Abra uma [issue](https://github.com/ProjetoIntegrador04/PentaChaos/issues).#### **2. Testes Unitários**
+
 - **ClockEntryServiceSimpleTest**: Testa o serviço de registro de ponto isoladamente
-  - ✅ Mocks com Mockito para isolar dependências
+
+---  - ✅ Mocks com Mockito para isolar dependências
+
   - ✅ Validação de instanciação do service
-  - ✅ Verificação de injeção de dependências
 
-### **Configuração de Testes**
+<div align="center">  - ✅ Verificação de injeção de dependências
 
-- **Perfil de teste separado**: `application-test.properties`
+
+
+**⭐ Se este projeto foi útil, considere dar uma estrela!**### **Configuração de Testes**
+
+
+
+Feito com ❤️ por **PentaChaos Team** - SENAI 2025- **Perfil de teste separado**: `application-test.properties`
+
 - **Banco H2 em memória**: Testes isolados sem dependência do PostgreSQL
-- **Framework**: JUnit 5 + Mockito + Spring Boot Test
+
+</div>- **Framework**: JUnit 5 + Mockito + Spring Boot Test
+
 - **Cobertura atual**: 3/3 testes (100% de sucesso)
 
 ### **Executando os Testes**
