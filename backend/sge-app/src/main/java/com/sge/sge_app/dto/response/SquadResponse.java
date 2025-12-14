@@ -37,6 +37,7 @@ public class SquadResponse {
         private String fullName;
         private String email;
         private String ra;
+        private String squadRole; // Função na Squad (P.O, Desenvolvedor, etc)
         private Set<RoleInfo> roles;
     }
 

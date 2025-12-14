@@ -110,8 +110,16 @@ public class SquadService {
         User user = userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + request.getUserId()));
 
+        // Adiciona na relação ManyToMany (squad_members) - permite múltiplas squads
         squad.addMember(user);
         Squad updatedSquad = squadRepository.save(squad);
+        
+        // OPCIONAL: Define como squad principal se o usuário não tiver uma
+        if (user.getSquad() == null || user.getSquad().isEmpty()) {
+            user.setSquad(squad.getName());
+            userRepository.save(user);
+        }
+        
         return mapToResponse(updatedSquad);
     }
 
@@ -126,8 +134,16 @@ public class SquadService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + userId));
 
+        // Remove da relação ManyToMany (squad_members)
         squad.removeMember(user);
         Squad updatedSquad = squadRepository.save(squad);
+        
+        // OPCIONAL: Se era a squad principal, limpa o campo
+        if (squad.getName().equals(user.getSquad())) {
+            user.setSquad("");
+            userRepository.save(user);
+        }
+        
         return mapToResponse(updatedSquad);
     }
 
@@ -142,10 +158,36 @@ public class SquadService {
     }
 
     /**
+     * Atualiza a função/role de um membro no squad
+     */
+    @Transactional
+    public SquadResponse updateMemberRole(@NonNull Long squadId, @NonNull Long userId, @NonNull String squadRole) {
+        Squad squad = squadRepository.findById(squadId)
+                .orElseThrow(() -> new ResourceNotFoundException("Squad não encontrado com ID: " + squadId));
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado com ID: " + userId));
+
+        // Verifica se o usuário está no squad
+        if (!squad.getMembers().contains(user)) {
+            throw new IllegalArgumentException("Usuário não é membro deste squad");
+        }
+
+        // Atualiza a função do usuário
+        user.setSquadRole(squadRole);
+        userRepository.save(user);
+
+        return mapToResponse(squad);
+    }
+
+    /**
      * Converte Squad para SquadResponse
      */
     private SquadResponse mapToResponse(Squad squad) {
-        Set<SquadResponse.UserBasicInfo> members = squad.getMembers().stream()
+        // Usa a relação ManyToMany (squad_members) para suportar múltiplas squads
+        Set<User> squadMembers = squad.getMembers();
+        
+        Set<SquadResponse.UserBasicInfo> members = squadMembers.stream()
                 .map(user -> {
                     Set<SquadResponse.RoleInfo> roles = user.getRoles().stream()
                             .map(role -> SquadResponse.RoleInfo.builder()
@@ -160,6 +202,7 @@ public class SquadService {
                             .fullName(user.getFullName())
                             .email(user.getEmail())
                             .ra(user.getRa())
+                            .squadRole(user.getSquadRole())
                             .roles(roles)
                             .build();
                 })
@@ -169,7 +212,7 @@ public class SquadService {
                 .id(squad.getId())
                 .name(squad.getName())
                 .description(squad.getDescription())
-                .memberCount(squad.getMemberCount())
+                .memberCount(members.size()) // Contar membros reais
                 .members(members)
                 .createdAt(squad.getCreatedAt())
                 .updatedAt(squad.getUpdatedAt())

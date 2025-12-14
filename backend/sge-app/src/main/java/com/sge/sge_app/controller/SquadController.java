@@ -2,6 +2,7 @@ package com.sge.sge_app.controller;
 
 import com.sge.sge_app.dto.request.AddMemberRequest;
 import com.sge.sge_app.dto.request.SquadRequest;
+import com.sge.sge_app.dto.request.UpdateMemberRoleRequest;
 import com.sge.sge_app.dto.response.SquadResponse;
 import com.sge.sge_app.services.SquadService;
 import jakarta.validation.Valid;
@@ -119,5 +120,19 @@ public class SquadController {
     public ResponseEntity<List<SquadResponse>> getSquadsByUserId(@PathVariable Long userId) {
         List<SquadResponse> squads = squadService.getSquadsByUserId(userId);
         return ResponseEntity.ok(squads);
+    }
+
+    /**
+     * Atualiza a função/role de um membro no squad
+     * Apenas ADMIN pode atualizar funções
+     */
+    @PutMapping("/{squadId}/members/{userId}/role")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<SquadResponse> updateMemberRole(
+            @PathVariable Long squadId,
+            @PathVariable Long userId,
+            @Valid @RequestBody UpdateMemberRoleRequest request) {
+        SquadResponse squad = squadService.updateMemberRole(squadId, userId, request.getSquadRole());
+        return ResponseEntity.ok(squad);
     }
 }
