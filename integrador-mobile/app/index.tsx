@@ -33,18 +33,29 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
+      console.log('═══════════════════════════════════════');
+      console.log('🔐 INICIANDO LOGIN');
+      console.log('   Username:', email.trim());
+      console.log('═══════════════════════════════════════');
+
       // Faz login usando o contexto
       await login({
         usernameOrEmail: email.trim(),
         password: senha,
       });
 
-      console.log("✅ Login realizado com sucesso!");
+      console.log('═══════════════════════════════════════');
+      console.log("✅ ✅ ✅ LOGIN REALIZADO COM SUCESSO!");
+      console.log('═══════════════════════════════════════');
       
       // Navega para a home
       router.replace({ pathname: "/home" });
     } catch (error: any) {
-      console.error("❌ Erro no login:", error);
+      console.log('═══════════════════════════════════════');
+      console.error("❌ ❌ ❌ ERRO NO LOGIN");
+      console.error("   Mensagem:", error.message);
+      console.error("   Response:", error.response?.data);
+      console.log('═══════════════════════════════════════');
 
       // Mensagens de erro amigáveis
       let errorMessage = "Erro ao fazer login. Verifique suas credenciais.";

@@ -61,20 +61,31 @@ export default function FrequenciaScreen() {
     try {
       setLoading(true);
       console.log('📋 Carregando histórico de pontos...');
+      console.log('📋 Usuário:', user?.username, '| Admin:', isAdmin);
       
       // Sempre buscar histórico (simplificado)
       const historico = await clockEntryService.buscarHistorico();
       console.log('📋 Histórico recebido:', historico.length, 'registros');
+      console.log('📋 Primeira entrada:', historico[0]);
       
       if (isAdmin) {
         setTodosOsPontos(historico);
+        console.log('📋 Total de pontos (admin):', historico.length);
       } else {
         setPontosHoje(historico);
+        console.log('📋 Pontos hoje:', historico.length);
       }
     } catch (error: any) {
       console.error('❌ Erro ao carregar pontos:', error);
+      console.error('❌ Status:', error.response?.status);
       console.error('❌ Detalhes do erro:', error.response?.data);
-      Alert.alert('Erro', 'Não foi possível carregar os pontos.');
+      console.error('❌ Headers:', error.config?.headers);
+      
+      const mensagem = error.response?.status === 401 
+        ? 'Sua sessão expirou. Faça login novamente.' 
+        : 'Não foi possível carregar os pontos.';
+      
+      Alert.alert('Erro', mensagem);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -138,12 +149,30 @@ export default function FrequenciaScreen() {
     if (!pontoParaRegistrar) return;
     
     setModalConfirmacao(false);
-    console.log('🔵 Usuário confirmou, registrando ponto...');
+    console.log('');
+    console.log('════════════════════════════════════════');
+    console.log('🔵 INICIANDO REGISTRO DE PONTO');
+    console.log('   Tipo:', pontoParaRegistrar.tipo);
+    console.log('   Label:', pontoParaRegistrar.label);
+    console.log('   Usuário:', user?.username);
+    console.log('════════════════════════════════════════');
+    console.log('');
     
     try {
       setRegistrandoPonto(true);
+      
+      // Registrar ponto
       const resultado = await clockEntryService.registrarPonto(pontoParaRegistrar.tipo);
-      console.log('✅ Ponto registrado com sucesso:', resultado);
+      
+      console.log('');
+      console.log('════════════════════════════════════════');
+      console.log('✅ ✅ ✅ SUCESSO! Ponto registrado!');
+      console.log('   ID:', resultado.id);
+      console.log('   Tipo:', resultado.tipo);
+      console.log('   Timestamp:', resultado.timestamp);
+      console.log('════════════════════════════════════════');
+      console.log('');
+      
       const hora = clockEntryService.formatarHora(resultado.timestamp);
       
       setMensagemSucesso(`${pontoParaRegistrar.label} registrado às ${hora}`);
@@ -153,14 +182,28 @@ export default function FrequenciaScreen() {
       await carregarPontosHoje();
       console.log('🔵 Pontos recarregados!');
     } catch (error: any) {
-      console.error('❌ Erro ao registrar ponto:', error);
-      console.error('❌ Resposta do servidor:', error.response);
+      console.log('');
+      console.log('════════════════════════════════════════');
+      console.log('❌ ❌ ❌ ERRO AO REGISTRAR PONTO');
+      console.log('   Nome do erro:', error.name);
+      console.log('   Mensagem:', error.message);
+      console.log('   Status HTTP:', error.response?.status);
+      console.log('   Data do servidor:', error.response?.data);
+      console.log('   URL:', error.config?.url);
+      console.log('   Método:', error.config?.method);
+      console.log('   Headers enviados:', error.config?.headers);
+      console.log('════════════════════════════════════════');
+      console.log('');
       
       // Extrair mensagem de erro do backend
       let mensagemTexto = 'Ocorreu um erro ao registrar o ponto';
       let tituloErro = '❌ Erro ao Registrar Ponto';
       
-      if (error.response?.data?.message) {
+      // Tratamento especial para erro 401
+      if (error.response?.status === 401) {
+        tituloErro = '🔐 Sessão Expirada';
+        mensagemTexto = 'Sua sessão expirou. Por favor, faça login novamente.';
+      } else if (error.response?.data?.message) {
         // Mensagem vinda do backend
         mensagemTexto = error.response.data.message;
         
