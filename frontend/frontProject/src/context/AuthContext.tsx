@@ -26,17 +26,25 @@ export const AuthProvider: React.FC<React.PropsWithChildren> = ({ children }) =>
     return valid;
   });
 
+  // Validação única no mount
+  useEffect(() => {
+    const token = getStoredToken();
+    const valid = isValidJwt(token);
+    console.log("🔄 AuthContext mount - Token validation:", { valid });
+    
+    if (!valid && roles.length > 0) { 
+      console.log("❌ Invalid token on mount - clearing auth");
+      clearAuth(); 
+      setRoles([]);
+      setIsAuthenticated(false);
+    }
+  }, []); // Array vazio - executa apenas no mount
+
   // Atualiza isAuthenticated quando roles mudam
   useEffect(() => {
     const token = getStoredToken();
     const valid = isValidJwt(token);
-    console.log("🔄 AuthContext useEffect - Token validation:", { valid, roles });
-    setIsAuthenticated(valid);
-    if (!valid) { 
-      console.log("❌ Invalid token - clearing auth");
-      clearAuth(); 
-      setRoles([]); 
-    }
+    setIsAuthenticated(valid && roles.length > 0);
   }, [roles]);
 
   const value = useMemo<AuthCtx>(() => ({

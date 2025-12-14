@@ -27,6 +27,7 @@ interface Usuario {
 }
 
 interface Squad {
+  id?: number;  // ID do squad (vem do backend)
   name: string;
   members: Usuario[];
 }
@@ -264,6 +265,7 @@ const SquadModal: React.FC<SquadModalProps> = ({
 // =============================
 const Squads: React.FC = () => {
   const [users, setUsers] = useState<Usuario[]>([]);
+  const [squadsFromBackend, setSquadsFromBackend] = useState<Array<{id: number; name: string; memberCount: number; members: Array<{id: number; username: string; fullName?: string}>}>>([]);
   const [loading, setLoading] = useState(true);
   const [busca, setBusca] = useState("");
 
@@ -286,24 +288,11 @@ const Squads: React.FC = () => {
       console.log("📡 Usuários carregados:", usersRes.data);
       
       // Buscar squads da API
-      const squadsRes = await api.get<Array<{id: number; name: string; members: Array<{id: number}>}>>("/api/v1/squads");
+      const squadsRes = await api.get("/api/v1/squads");
       console.log("📡 Squads carregadas da API:", squadsRes.data);
+      setSquadsFromBackend(squadsRes.data || []);
       
-      // Mesclar os dados: adicionar membros das squads aos usuários
-      const usersWithSquads = usersRes.data.map(user => {
-        // Encontrar a squad deste usuário
-        const userSquad = squadsRes.data.find(squad => 
-          squad.members.some((m) => m.id === user.id)
-        );
-        
-        return {
-          ...user,
-          squad: userSquad ? userSquad.name : ""
-        };
-      });
-      
-      console.log("✅ Usuários com squads mescladas:", usersWithSquads);
-      setUsers(usersWithSquads || []);
+      setUsers(usersRes.data || []);
     } catch (err) {
       console.error("❌ Erro ao buscar dados:", err);
       
@@ -325,27 +314,37 @@ const Squads: React.FC = () => {
   }, []);
 
   const squads: Squad[] = useMemo(() => {
-    const map = new Map<string, Usuario[]>();
-
-    users.forEach((u) => {
-      const squadName = u.squad?.trim();
-      if (!squadName) return;
-      if (!map.has(squadName)) map.set(squadName, []);
-      map.get(squadName)!.push(u);
+    // Usar squads do backend (suporta múltiplas squads por usuário)
+    const list: Squad[] = squadsFromBackend.map(squad => {
+      const members: Usuario[] = squad.members.map(member => {
+        // Encontrar dados completos do usuário
+        const fullUser = users.find(u => u.id === member.id);
+        return fullUser || {
+          id: member.id,
+          username: member.username,
+          email: "",
+          fullName: member.fullName || member.username,
+          ra: "",
+          squad: squad.name,
+          enabled: true,
+          roles: []
+        };
+      });
+      
+      return {
+        id: squad.id,
+        name: squad.name,
+        members
+      };
     });
 
-    const list: Squad[] = Array.from(map.entries()).map(([name, members]) => ({
-      name,
-      members,
-    }));
-
-    console.log("📋 Squads calculadas:", list.map(s => ({ name: s.name, membros: s.members.length })));
+    console.log("📋 Squads do backend:", list.map(s => ({ id: s.id, name: s.name, membros: s.members.length })));
 
     const term = busca.trim().toLowerCase();
     return term
       ? list.filter((s) => s.name.toLowerCase().includes(term))
       : list;
-  }, [users, busca]);
+  }, [squadsFromBackend, users, busca]);
 
   const selectedSquad: Squad | null = useMemo(() => {
     if (!squads.length) return null;
@@ -398,58 +397,85 @@ const Squads: React.FC = () => {
   };
 
   const handleSaveSquad = async (data: { name: string; memberIds: number[] }) => {
-    const newName = data.name;
-    const memberIds = new Set(data.memberIds);
+    const newName = data.name.trim();
+    const memberIdsSet = new Set(data.memberIds);
 
     const oldName = editingSquadName;
 
-    console.log("📡 Salvando squad:", { newName, memberIds: Array.from(memberIds), isEditing: !!oldName });
+    console.log("📡 Salvando squad:", { newName, memberIds: Array.from(memberIdsSet), isEditing: !!oldName });
 
     // Validar que há pelo menos 1 membro
-    if (memberIds.size === 0) {
+    if (memberIdsSet.size === 0) {
       alert("Selecione pelo menos 1 estagiário para a squad!");
       return;
     }
 
     try {
-      const oldMembers =
-        oldName != null
-          ? users.filter((u) => u.squad === oldName)
-          : [];
+      // 1. Se for uma NOVA squad, criar a entidade Squad no backend PRIMEIRO
+      if (!oldName) {
+        console.log(`🆕 Criando entidade Squad: ${newName}`);
+        try {
+          await api.post("/api/v1/squads", {
+            name: newName,
+            description: `Squad ${newName}`,
+          });
+          console.log("✅ Squad criada no backend!");
+        } catch (error: any) {
+          if (error.response?.status === 409 || error.response?.data?.message?.includes("já existe")) {
+            console.log("⚠️ Squad já existe no backend, continuando...");
+          } else {
+            console.error("❌ Erro ao criar squad:", error);
+            alert("Erro ao criar squad: " + (error.response?.data?.message || error.message));
+            return;
+          }
+        }
+      }
 
+      // 2. Adicionar membros à squad usando o endpoint correto
       const requests: Promise<unknown>[] = [];
 
+      // Se estiver editando, remover membros que não estão mais na lista
       if (oldName != null) {
-        oldMembers.forEach((u) => {
-          if (!memberIds.has(u.id)) {
-            console.log(`🔄 Removendo ${u.username} da squad ${oldName}`);
-            // ✅ Endpoint correto
+        const oldSquad = squads.find(s => s.name === oldName);
+        if (oldSquad && oldSquad.members) {
+          const oldMemberIds = new Set(oldSquad.members.map(m => m.id));
+          oldMemberIds.forEach((memberId) => {
+            if (!memberIdsSet.has(memberId)) {
+              console.log(`🔄 Removendo membro ${memberId} da squad ${oldName}`);
+              requests.push(
+                api.delete(`/api/v1/squads/${oldSquad.id}/members/${memberId}`)
+              );
+            }
+          });
+        }
+      }
+
+      // Adicionar novos membros à squad usando POST /squads/{id}/members
+      const currentSquad = squads.find(s => s.name === newName);
+      if (currentSquad) {
+        const currentMemberIds = new Set(currentSquad.members?.map(m => m.id) || []);
+        
+        memberIdsSet.forEach((userId: number) => {
+          // Só adiciona se o usuário NÃO estiver na squad
+          if (!currentMemberIds.has(userId)) {
+            console.log(`➕ Adicionando usuário ${userId} à squad ${newName}`);
             requests.push(
-              api.put(`/api/v1/users/${u.id}`, {
-                squad: "",
+              api.post(`/api/v1/squads/${currentSquad.id}/members`, {
+                userId: userId
               })
             );
+          } else {
+            console.log(`✓ Usuário ${userId} já está na squad ${newName}`);
           }
         });
       }
 
-      memberIds.forEach((userId) => {
-        const user = users.find((u) => u.id === userId);
-        if (!user) return;
-
-        if (user.squad !== newName) {
-          console.log(`➕ Adicionando ${user.username} à squad ${newName}`);
-          // ✅ Endpoint correto
-          requests.push(
-            api.put(`/api/v1/users/${user.id}`, {
-              squad: newName,
-            })
-          );
-        }
-      });
-
-      console.log(`🚀 Executando ${requests.length} requisições...`);
-      await Promise.all(requests);
+      console.log(`🚀 Executando ${requests.length} requisições de atualização...`);
+      
+      if (requests.length > 0) {
+        await Promise.all(requests);
+      }
+      
       console.log("✅ Squad salva com sucesso!");
       
       // Recarregar usuários para atualizar a lista de squads

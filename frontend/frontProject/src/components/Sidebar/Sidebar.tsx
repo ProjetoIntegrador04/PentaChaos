@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Home, Users, Shield, LogOut, Settings, ChevronDown, BarChart2, List, ClipboardList } from 'lucide-react'; 
+import { Home, Users, Shield, LogOut, Settings, ChevronDown, BarChart2, List, ClipboardList, CheckCircle } from 'lucide-react'; 
 import { useAuth } from '../../context/useAuth';
 import './Sidebar.css';
 import logo from '../../assets/images/image.png';
@@ -33,6 +33,7 @@ const Sidebar: React.FC = () => {
     // Você provavelmente tem "/intern/ponto" aqui por engano.
     // ==========================================================
     
+    { icon: CheckCircle, label: 'Solicitações de Ajuste', path: '/adjustment-requests' },
     { icon: Settings, label: 'Configuracoes', path: '/settings' },
     { icon: LogOut, label: 'Sair' }, // Sem path, usa o handleLogout
   ], []);

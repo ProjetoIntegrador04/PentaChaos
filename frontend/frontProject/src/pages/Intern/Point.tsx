@@ -29,6 +29,15 @@ interface PontoPayload {
   timestamp?: string;
 }
 
+// Interface para pontos do dia
+interface ClockEntry {
+  id: number;
+  tipo: PontoTipo;
+  timestamp: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
 // ==============================
 // Funções auxiliares
 // ==============================
@@ -276,12 +285,14 @@ const Ponto: React.FC = () => {
         ) : pontosHoje.length > 0 ? (
           <div className="pontos-list">
             {pontosHoje.map((ponto) => {
-              const tipo = {
+              const tipoMap: Record<PontoTipo, { label: string; icon: string }> = {
                 ENTRY: { label: "Entrada", icon: "🟢" },
                 EXIT: { label: "Saída", icon: "🔴" },
                 LUNCH_START: { label: "Início Pausa", icon: "🟡" },
                 LUNCH_END: { label: "Fim Pausa", icon: "🟡" },
-              }[ponto.tipo];
+              };
+              
+              const tipo = tipoMap[ponto.tipo] || { label: ponto.tipo, icon: "⚪" };
 
               const hora = new Date(ponto.timestamp).toLocaleTimeString("pt-BR", {
                 hour: "2-digit",

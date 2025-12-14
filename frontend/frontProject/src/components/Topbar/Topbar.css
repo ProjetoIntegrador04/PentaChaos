@@ -47,7 +47,7 @@
   transform: translateY(-2px);
 }
 
-/* Ponto vermelho de notificação */
+/* Ponto vermelho de notificação (Antigo - ponto simples) */
 .notification-dot {
   position: absolute;
   top: 8px;
@@ -59,3 +59,31 @@
   border: 1.5px solid white;
 }
 
+/* Badge numérico de notificação (Novo - com número) */
+.notification-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  background-color: #ef4444;
+  color: white;
+  border-radius: 10px;
+  border: 2px solid white;
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}

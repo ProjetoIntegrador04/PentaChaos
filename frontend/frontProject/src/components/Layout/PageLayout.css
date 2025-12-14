@@ -1,0 +1,17 @@
+/* Layout de Página com Topbar */
+.page-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f0f4f8;
+}
+
+.page-content {
+  flex: 1;
+  padding: 0;
+}
+
+/* Para páginas que já têm seu próprio padding */
+.page-layout.no-padding .page-content {
+  padding: 0;
+}

@@ -46,7 +46,7 @@ async function refreshToken(): Promise<string | null> {
 
   try {
     console.log("🔄 Tentando renovar token...");
-    const res = await axios.post(`${api.defaults.baseURL}/auth/refresh`, {
+    const res = await axios.post(`${api.defaults.baseURL}/api/v1/auth/refresh`, {
       refreshToken: rt,
     });
 
