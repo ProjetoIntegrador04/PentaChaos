@@ -164,8 +164,10 @@ public class UserController {
             if (updateData.getSquad() != null) {
                 user.setSquad(updateData.getSquad());
             }
-            // Atualiza o campo enabled (ativo/inativo)
-            user.setEnabled(updateData.isEnabled());
+            // Atualiza o campo enabled (ativo/inativo) APENAS se for enviado
+            if (updateData.getEnabled() != null) {
+                user.setEnabled(updateData.getEnabled());
+            }
 
             userRepository.save(user);
 

@@ -51,7 +51,8 @@ public class TaskService {
         } else {
             // USER vê apenas suas tarefas
             return repository.findAll().stream()
-                    .filter(task -> username.equals(task.getResponsavel()))
+                    .filter(task -> task.getResponsavel() != null && 
+                                   username.equals(task.getResponsavel().getUsername()))
                     .collect(Collectors.toList());
         }
     }

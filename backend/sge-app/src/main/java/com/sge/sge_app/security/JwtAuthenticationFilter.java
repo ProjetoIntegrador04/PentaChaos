@@ -35,11 +35,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                                     FilterChain filterChain) throws ServletException, IOException {
         try {
             String jwt = getJwtFromRequest(request);
+            
+            logger.debug("🔐 JWT do request: {}", jwt != null ? jwt.substring(0, Math.min(30, jwt.length())) + "..." : "NENHUM");
 
             if (StringUtils.hasText(jwt) && tokenProvider.validateToken(jwt)) {
 
                 // Agora o subject é o ID do usuário
                 String userId = tokenProvider.getUsernameFromToken(jwt);
+                logger.debug("✅ Token válido para userId: {}", userId);
 
                 UserDetails userDetails = customUserDetailsService.loadUserById(Long.parseLong(userId));
 
@@ -55,9 +58,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 );
 
                 SecurityContextHolder.getContext().setAuthentication(authentication);
+                logger.debug("✅ Autenticação definida no contexto para: {}", userDetails.getUsername());
+            } else {
+                logger.warn("⚠️ Token inválido ou ausente para: {} {}", request.getMethod(), request.getRequestURI());
             }
         } catch (Exception ex) {
-            logger.error("Falha ao definir autenticação no contexto", ex);
+            logger.error("❌ Falha ao definir autenticação no contexto", ex);
         }
 
         filterChain.doFilter(request, response);

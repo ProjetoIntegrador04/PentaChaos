@@ -19,25 +19,29 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
     private final JwtTokenProvider tokenProvider;
     private final UserService userService;
     private final CustomUserDetailsService userDetailsService;
+    private final PasswordEncoder passwordEncoder;
 
     public AuthController(AuthenticationManager authenticationManager,
                           JwtTokenProvider tokenProvider,
                           UserService userService,
-                          CustomUserDetailsService userDetailsService) {
+                          CustomUserDetailsService userDetailsService,
+                          PasswordEncoder passwordEncoder) {
         this.authenticationManager = authenticationManager;
         this.tokenProvider = tokenProvider;
         this.userService = userService;
         this.userDetailsService = userDetailsService;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @GetMapping("/")
@@ -146,6 +150,19 @@ public class AuthController {
     public ResponseEntity<UserResponseDTO> me(@AuthenticationPrincipal UserDetails principal) {
         var user = userService.findByUsernameOrEmail(principal.getUsername());
         return ResponseEntity.ok(UserResponseDTO.from(user));
+    }
+
+    // ============================================================
+    // ENDPOINT TEMPORÁRIO PARA GERAR HASHES (REMOVER EM PRODUÇÃO)
+    // ============================================================
+    @GetMapping("/generate-hash")
+    public ResponseEntity<String> generateHash(@RequestParam String password) {
+        String hash = passwordEncoder.encode(password);
+        boolean matches = passwordEncoder.matches(password, hash);
+        return ResponseEntity.ok(String.format(
+            "Password: %s\nHash: %s\nLength: %d\nMatches: %b", 
+            password, hash, hash.length(), matches
+        ));
     }
 }
 

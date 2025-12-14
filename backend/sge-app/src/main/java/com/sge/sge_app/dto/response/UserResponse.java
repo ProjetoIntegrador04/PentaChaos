@@ -23,7 +23,8 @@ public class UserResponse {
     private String fullName;
     private String ra;
     private String squad;
+    private String squadRole;
     private String phoneNumber;
-    private boolean enabled;
+    private Boolean enabled;  // Wrapper para permitir null
     private Set<Role> roles;
 }
