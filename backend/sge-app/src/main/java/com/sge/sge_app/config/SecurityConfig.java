@@ -78,6 +78,8 @@ public class SecurityConfig {
         // 🔥 AQUI ESTÁ O QUE LIBERA O LOGIN / REGISTER / REFRESH
         http.authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**").permitAll()
+                .requestMatchers("/api/v1/auth/**").permitAll()
+                .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
                 .anyRequest().authenticated()
         );
@@ -92,7 +94,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "http://localhost:3000", "http://localhost:8081"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
