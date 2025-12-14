@@ -135,6 +135,26 @@ public class ClockEntryService {
         String tipo = request.getTipo();
         Long userId = request.getUserId();
         LocalDate hoje = LocalDate.now();
+        LocalDateTime agora = LocalDateTime.now();
+
+        // **NOVA VALIDAÇÃO: Prevenir duplicações rápidas do mesmo tipo**
+        // Não permitir registrar o mesmo tipo em menos de 30 segundos
+        Optional<ClockEntry> ultimoRegistroMesmoTipo = clockEntryRepository
+                .findTopByUserIdAndTipoOrderByCreatedAtDesc(userId, tipo);
+        
+        if (ultimoRegistroMesmoTipo.isPresent()) {
+            ClockEntry ultimoRegistro = ultimoRegistroMesmoTipo.get();
+            long segundosDesdeUltimoRegistro = java.time.Duration.between(
+                ultimoRegistro.getCreatedAt(), 
+                agora
+            ).getSeconds();
+            
+            if (segundosDesdeUltimoRegistro < 30) {
+                throw new BusinessException(
+                    "Aguarde pelo menos 30 segundos antes de registrar o mesmo tipo de ponto novamente"
+                );
+            }
+        }
 
         switch (tipo) {
             case "EXIT":
@@ -148,6 +168,17 @@ public class ClockEntryService {
                 // Verificar se o ENTRY é do mesmo dia
                 if (!ultimoEntry.get().getTimestamp().toLocalDate().equals(hoje)) {
                     throw new BusinessException("EXIT deve ser registrado no mesmo dia do ENTRY");
+                }
+                
+                // **NOVA VALIDAÇÃO: Verificar se já existe EXIT após o último ENTRY**
+                List<ClockEntry> pontosHojeExit = clockEntryRepository.findByUserIdAndTimestampBetween(
+                        userId, hoje.atStartOfDay(), hoje.plusDays(1).atStartOfDay());
+                
+                long entriesHojeExit = pontosHojeExit.stream().filter(p -> "ENTRY".equals(p.getTipo())).count();
+                long exitsHojeExit = pontosHojeExit.stream().filter(p -> "EXIT".equals(p.getTipo())).count();
+                
+                if (entriesHojeExit <= exitsHojeExit) {
+                    throw new BusinessException("Já existe um EXIT registrado para o último ENTRY");
                 }
                 break;
 
