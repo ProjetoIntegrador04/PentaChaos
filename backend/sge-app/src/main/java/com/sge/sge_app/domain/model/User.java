@@ -31,6 +31,7 @@ public class User extends BaseEntity implements UserDetails {
     private String fullName; // Nome completo
     private String ra; // Registro Acadêmico ou ID
     private String squad; // Squad/Equipe do usuário
+    private String squadRole; // Função na Squad (P.O, Desenvolvedor, Scrum Master, etc)
     private String phoneNumber; // Telefone
     private String emailPessoal; // Email pessoal
     

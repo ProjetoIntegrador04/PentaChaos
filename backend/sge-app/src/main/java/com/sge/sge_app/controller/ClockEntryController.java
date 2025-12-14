@@ -3,6 +3,8 @@ package com.sge.sge_app.controller;
 import com.sge.sge_app.dto.request.ClockEntryRequest; 
 import com.sge.sge_app.dto.response.ClockEntryResponse; 
 import com.sge.sge_app.services.ClockEntryService; 
+import com.sge.sge_app.domain.model.User;
+import com.sge.sge_app.repository.UserRepository;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -19,9 +21,11 @@ import java.util.List;
 public class ClockEntryController {
 
     private final ClockEntryService clockEntryService;
+    private final UserRepository userRepository;
 
-    public ClockEntryController(ClockEntryService clockEntryService) {
+    public ClockEntryController(ClockEntryService clockEntryService, UserRepository userRepository) {
         this.clockEntryService = clockEntryService;
+        this.userRepository = userRepository;
     }
 
     @PostMapping
@@ -68,6 +72,28 @@ public class ClockEntryController {
     public ResponseEntity<List<ClockEntryResponse>> getPontosUsuarioHoje(@PathVariable Long userId) {
         List<ClockEntryResponse> pontos = clockEntryService.buscarPontosUsuarioPorData(userId, null, null);
         return ResponseEntity.ok(pontos);
+    }
+
+    @GetMapping("/users/{userId}/history")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ClockEntryResponse>> getPontosUsuarioPorData(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate) {
+        List<ClockEntryResponse> pontos = clockEntryService.buscarPontosUsuarioPorData(userId, startDate, endDate);
+        return ResponseEntity.ok(pontos);
+    }
+
+    @GetMapping("/me/frequency")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<Double> getMinhaFrequencia(
+            @RequestParam(defaultValue = "30") int days,
+            Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        double frequencia = clockEntryService.calcularFrequencia(user.getId(), days);
+        return ResponseEntity.ok(frequencia);
     }
 
     @GetMapping("/users/{userId}/frequency")
