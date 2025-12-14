@@ -2,22 +2,19 @@
  * Constantes da aplicação
  */
 
-// ⚠️ IMPORTANTE: Alterar para o IP da sua máquina!
-// Para descobrir:
-// Windows: ipconfig
-// Mac/Linux: ifconfig
-// Procurar pelo IPv4 da rede Wi-Fi (ex: 192.168.1.100)
+// ⚠️ IMPORTANTE: Configuração da URL da API
+// - Para simulador/web: usa localhost:8080
+// - Para dispositivo físico: use o IP da sua máquina (ex: 192.168.1.100:8080)
+// - Em produção: usa a variável de ambiente EXPO_PUBLIC_API_URL
 
-export const API_BASE_URL = process.env.NODE_ENV === 'development'
-  ? 'http://localhost:8080'  // Localhost para testes web
-  : 'https://sua-api-producao.com';
+export const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8080';
 
-// Endpoints da API
+// Endpoints da API (ATUALIZADOS para /api/v1)
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: '/auth/login',
-    REGISTER: '/auth/register',
-    REFRESH: '/auth/refresh',
+    LOGIN: '/api/v1/auth/login',
+    REGISTER: '/api/v1/auth/register',
+    REFRESH: '/api/v1/auth/refresh',
   },
   CLOCKENTRY: {
     BASE: '/api/v1/clockentries',

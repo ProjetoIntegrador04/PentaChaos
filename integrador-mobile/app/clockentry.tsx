@@ -29,6 +29,7 @@ export default function ClockEntryScreen() {
   const [location, setLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [historico, setHistorico] = useState<ClockEntryResponse[]>([]);
   const [lastEntry, setLastEntry] = useState<ClockEntryResponse | null>(null);
+  const [lastClickTime, setLastClickTime] = useState<number>(0);
 
   useEffect(() => {
     loadLocation();
@@ -91,12 +92,21 @@ export default function ClockEntryScreen() {
    */
   const handleRegistrarPonto = async (tipo: ClockEntryType) => {
     try {
+      // **PROTEÇÃO CONTRA CLIQUES DUPLOS**
+      const now = Date.now();
+      if (now - lastClickTime < 3000) { // 3 segundos
+        Alert.alert('Aguarde', 'Aguarde alguns segundos antes de registrar outro ponto');
+        return;
+      }
+      setLastClickTime(now);
+
       setLoading(true);
 
       // Verifica permissão novamente
       const hasPermission = await clockEntryService.verificarPermissaoLocalizacao();
       if (!hasPermission) {
         Alert.alert('Erro', 'Permissão de localização necessária');
+        setLoading(false);
         return;
       }
 

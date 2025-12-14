@@ -22,6 +22,7 @@ export default function ModalTarefaScreen() {
   const params = useLocalSearchParams();
   const taskId = params.id ? Number(params.id) : null;
   const isEditMode = !!taskId;
+  const readOnly = params.readOnly === 'true'; // User tem acesso limitado
 
   // Form states
   const [titulo, setTitulo] = useState('');
@@ -71,10 +72,22 @@ export default function ModalTarefaScreen() {
       setDescricao(task.descricao);
       setStatus(task.status);
       setPrioridade(task.prioridade);
-      setResponsavel(task.responsavel);
-      setDataConclusao(task.dataConclusao || '');
       
-      console.log('✅ Tarefa carregada para edição');
+      // Extrai o ID do responsável (pode ser objeto ou string)
+      if (typeof task.responsavel === 'object' && task.responsavel?.id) {
+        setResponsavel(task.responsavel.id.toString());
+      } else if (typeof task.responsavel === 'string') {
+        setResponsavel(task.responsavel);
+      }
+      
+      // Converte data do backend (YYYY-MM-DD) para formato de exibição (DD/MM/YYYY)
+      if (task.dataConclusao) {
+        setDataConclusao(convertDateToDisplayFormat(task.dataConclusao));
+      } else {
+        setDataConclusao('');
+      }
+      
+      console.log('✅ Tarefa carregada para edição', readOnly ? '(Modo Limitado)' : '(Modo Completo)');
     } catch (error: any) {
       console.error('❌ Erro ao carregar tarefa:', error);
       Alert.alert('Erro', 'Não foi possível carregar os dados da tarefa');
@@ -86,6 +99,11 @@ export default function ModalTarefaScreen() {
 
   const validateForm = (): boolean => {
     const newErrors: { [key: string]: string } = {};
+
+    // Se modo readOnly, apenas valida o status (sempre válido)
+    if (readOnly) {
+      return true;
+    }
 
     if (!titulo.trim()) {
       newErrors.titulo = 'Título é obrigatório';
@@ -103,16 +121,66 @@ export default function ModalTarefaScreen() {
       newErrors.responsavel = 'Selecione um responsável';
     }
 
-    // Validação de data (formato YYYY-MM-DD)
+    // Validação de data (formato DD/MM/YYYY)
     if (dataConclusao) {
-      const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+      const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
       if (!dateRegex.test(dataConclusao)) {
-        newErrors.dataConclusao = 'Data inválida (use: AAAA-MM-DD)';
+        newErrors.dataConclusao = 'Data inválida (use: DD/MM/AAAA)';
+      } else {
+        // Verifica se a data é válida
+        const [day, month, year] = dataConclusao.split('/').map(Number);
+        const date = new Date(year, month - 1, day);
+        if (date.getDate() !== day || date.getMonth() !== month - 1 || date.getFullYear() !== year) {
+          newErrors.dataConclusao = 'Data inválida';
+        }
       }
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  /**
+   * Converte data de DD/MM/YYYY para YYYY-MM-DD (formato backend)
+   */
+  const convertDateToBackendFormat = (dateStr: string): string | undefined => {
+    if (!dateStr) return undefined;
+    
+    const dateRegex = /^\d{2}\/\d{2}\/\d{4}$/;
+    if (!dateRegex.test(dateStr)) return undefined;
+    
+    const [day, month, year] = dateStr.split('/');
+    return `${year}-${month}-${day}`;
+  };
+
+  /**
+   * Converte data de YYYY-MM-DD para DD/MM/YYYY (formato exibição)
+   */
+  const convertDateToDisplayFormat = (dateStr: string): string => {
+    if (!dateStr) return '';
+    
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    if (!dateRegex.test(dateStr)) return dateStr;
+    
+    const [year, month, day] = dateStr.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
+  /**
+   * Aplica máscara de data DD/MM/YYYY
+   */
+  const handleDateChange = (text: string) => {
+    // Remove tudo que não é número
+    let cleaned = text.replace(/\D/g, '');
+    
+    // Aplica a máscara
+    if (cleaned.length >= 5) {
+      cleaned = cleaned.substring(0, 2) + '/' + cleaned.substring(2, 4) + '/' + cleaned.substring(4, 8);
+    } else if (cleaned.length >= 3) {
+      cleaned = cleaned.substring(0, 2) + '/' + cleaned.substring(2);
+    }
+    
+    setDataConclusao(cleaned);
   };
 
   const handleSave = async () => {
@@ -123,27 +191,37 @@ export default function ModalTarefaScreen() {
     try {
       setLoading(true);
 
+      // Converte data para formato do backend (YYYY-MM-DD)
+      const dataBackend = convertDateToBackendFormat(dataConclusao);
+
       if (isEditMode && taskId) {
-        // Atualizar tarefa existente
-        await taskService.updateTask(taskId, {
-          titulo,
-          descricao,
-          status,
-          prioridade,
-          responsavel,
-          dataConclusao: dataConclusao || undefined,
-        });
-        
-        Alert.alert('✅ Sucesso', 'Tarefa atualizada com sucesso!');
+        // Modo readOnly: apenas atualiza o status
+        if (readOnly) {
+          await taskService.updateTask(taskId, {
+            status,
+          });
+          Alert.alert('✅ Sucesso', 'Status da tarefa atualizado!');
+        } else {
+          // Admin: atualiza tudo
+          await taskService.updateTask(taskId, {
+            titulo,
+            descricao,
+            status,
+            prioridade,
+            responsavel: { id: Number(responsavel) }, // Envia como objeto com id
+            dataConclusao: dataBackend,
+          });
+          Alert.alert('✅ Sucesso', 'Tarefa atualizada com sucesso!');
+        }
       } else {
-        // Criar nova tarefa
+        // Criar nova tarefa (apenas admin)
         const newTask: TaskCreateRequest = {
           titulo,
           descricao,
           status,
           prioridade,
-          responsavel,
-          dataConclusao: dataConclusao || undefined,
+          responsavel: { id: Number(responsavel) }, // Envia como objeto com id
+          dataConclusao: dataBackend,
         };
 
         await taskService.createTask(newTask);
@@ -187,48 +265,71 @@ export default function ModalTarefaScreen() {
             <Ionicons name="arrow-back" size={24} color="#333" />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>
-            {isEditMode ? 'Editar Tarefa' : 'Nova Tarefa'}
+            {readOnly ? 'Atualizar Status' : isEditMode ? 'Editar Tarefa' : 'Nova Tarefa'}
           </Text>
           <View style={styles.placeholder} />
         </View>
 
         <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
           <View style={styles.form}>
+            {readOnly && (
+              <View style={styles.infoBox}>
+                <Ionicons name="information-circle" size={20} color="#1E63B0" />
+                <Text style={styles.infoText}>
+                  Você pode atualizar apenas o status da tarefa
+                </Text>
+              </View>
+            )}
+
             {/* Título */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Título <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={[styles.input, errors.titulo && styles.inputError]}
-                placeholder="Digite o título da tarefa"
-                value={titulo}
-                onChangeText={setTitulo}
-                maxLength={100}
-              />
-              {errors.titulo && <Text style={styles.errorText}>{errors.titulo}</Text>}
-            </View>
+            {!readOnly ? (
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>
+                  Título <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={[styles.input, errors.titulo && styles.inputError]}
+                  placeholder="Digite o título da tarefa"
+                  value={titulo}
+                  onChangeText={setTitulo}
+                  maxLength={100}
+                />
+                {errors.titulo && <Text style={styles.errorText}>{errors.titulo}</Text>}
+              </View>
+            ) : (
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Título:</Text>
+                <Text style={styles.readOnlyText}>{titulo}</Text>
+              </View>
+            )}
 
             {/* Descrição */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Descrição <Text style={styles.required}>*</Text>
-              </Text>
-              <TextInput
-                style={[styles.textArea, errors.descricao && styles.inputError]}
-                placeholder="Descreva a tarefa em detalhes"
-                value={descricao}
-                onChangeText={setDescricao}
+            {!readOnly ? (
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>
+                  Descrição <Text style={styles.required}>*</Text>
+                </Text>
+                <TextInput
+                  style={[styles.textArea, errors.descricao && styles.inputError]}
+                  placeholder="Descreva a tarefa em detalhes"
+                  value={descricao}
+                  onChangeText={setDescricao}
                 multiline
                 numberOfLines={4}
                 maxLength={500}
               />
               {errors.descricao && <Text style={styles.errorText}>{errors.descricao}</Text>}
             </View>
+            ) : (
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Descrição:</Text>
+                <Text style={styles.readOnlyText}>{descricao}</Text>
+              </View>
+            )}
 
             {/* Status */}
             <View style={styles.formGroup}>
-              <Text style={styles.label}>Status</Text>
+              <Text style={styles.label}>Status {readOnly && <Text style={styles.required}>*</Text>}</Text>
               <View style={styles.pickerContainer}>
                 <Picker
                   selectedValue={status}
@@ -244,27 +345,30 @@ export default function ModalTarefaScreen() {
             </View>
 
             {/* Prioridade */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Prioridade</Text>
-              <View style={styles.pickerContainer}>
-                <Picker
-                  selectedValue={prioridade}
-                  onValueChange={(value) => setPrioridade(value as TaskPriority)}
-                  style={styles.picker}
-                >
-                  <Picker.Item label="🟢 Baixa" value="BAIXA" />
-                  <Picker.Item label="🟡 Média" value="MEDIA" />
-                  <Picker.Item label="🟠 Alta" value="ALTA" />
-                  <Picker.Item label="🔴 Urgente" value="URGENTE" />
-                </Picker>
+            {!readOnly && (
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Prioridade</Text>
+                <View style={styles.pickerContainer}>
+                  <Picker
+                    selectedValue={prioridade}
+                    onValueChange={(value) => setPrioridade(value as TaskPriority)}
+                    style={styles.picker}
+                  >
+                    <Picker.Item label="🟢 Baixa" value="BAIXA" />
+                    <Picker.Item label="🟡 Média" value="MEDIA" />
+                    <Picker.Item label="🟠 Alta" value="ALTA" />
+                    <Picker.Item label="🔴 Urgente" value="URGENTE" />
+                  </Picker>
+                </View>
               </View>
-            </View>
+            )}
 
             {/* Responsável */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>
-                Responsável <Text style={styles.required}>*</Text>
-              </Text>
+            {!readOnly && (
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>
+                  Responsável <Text style={styles.required}>*</Text>
+                </Text>
               <View style={[styles.pickerContainer, errors.responsavel && styles.inputError]}>
                 <Picker
                   selectedValue={responsavel}
@@ -276,27 +380,31 @@ export default function ModalTarefaScreen() {
                     <Picker.Item
                       key={user.id}
                       label={`${user.username} (${user.email})`}
-                      value={user.username}
+                      value={user.id.toString()}
                     />
                   ))}
                 </Picker>
               </View>
               {errors.responsavel && <Text style={styles.errorText}>{errors.responsavel}</Text>}
             </View>
+            )}
 
             {/* Data de Conclusão (Opcional) */}
-            <View style={styles.formGroup}>
-              <Text style={styles.label}>Data de Conclusão (Opcional)</Text>
-              <TextInput
-                style={[styles.input, errors.dataConclusao && styles.inputError]}
-                placeholder="AAAA-MM-DD (ex: 2025-12-31)"
-                value={dataConclusao}
-                onChangeText={setDataConclusao}
-                maxLength={10}
-              />
-              {errors.dataConclusao && <Text style={styles.errorText}>{errors.dataConclusao}</Text>}
-              <Text style={styles.helperText}>Formato: AAAA-MM-DD</Text>
-            </View>
+            {!readOnly && (
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>Data de Conclusão (Opcional)</Text>
+                <TextInput
+                  style={[styles.input, errors.dataConclusao && styles.inputError]}
+                  placeholder="DD/MM/AAAA (ex: 31/12/2025)"
+                  value={dataConclusao}
+                  onChangeText={handleDateChange}
+                  maxLength={10}
+                  keyboardType="numeric"
+                />
+                {errors.dataConclusao && <Text style={styles.errorText}>{errors.dataConclusao}</Text>}
+                <Text style={styles.helperText}>Formato: DD/MM/AAAA</Text>
+              </View>
+            )}
 
             {/* Botões */}
             <View style={styles.buttonContainer}>
@@ -376,8 +484,31 @@ const styles = StyleSheet.create({
   form: {
     padding: 20,
   },
+  infoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E3F2FD',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 20,
+    gap: 10,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#1E63B0',
+  },
   formGroup: {
     marginBottom: 20,
+  },
+  readOnlyText: {
+    fontSize: 16,
+    color: '#333',
+    backgroundColor: '#F5F5F5',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E0E0E0',
   },
   label: {
     fontSize: 16,

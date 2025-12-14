@@ -19,6 +19,8 @@ class AuthService {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
+      console.log('🔐 Tentando fazer login...', credentials.username);
+      
       const response = await api.post<LoginResponse>(
         API_ENDPOINTS.AUTH.LOGIN,
         credentials
@@ -26,9 +28,17 @@ class AuthService {
 
       const { accessToken, refreshToken } = response.data;
 
+      console.log('📝 Salvando tokens...');
+      console.log('   Access Token:', accessToken ? accessToken.substring(0, 20) + '...' : 'VAZIO');
+      console.log('   Refresh Token:', refreshToken ? refreshToken.substring(0, 20) + '...' : 'VAZIO');
+
       // Salva tokens de forma segura
       await secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
       await secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, refreshToken);
+
+      // Verifica se salvou corretamente
+      const savedToken = await secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      console.log('✅ Token salvo:', savedToken ? 'SIM' : 'NÃO');
 
       console.log('✅ Login realizado com sucesso');
       return response.data;

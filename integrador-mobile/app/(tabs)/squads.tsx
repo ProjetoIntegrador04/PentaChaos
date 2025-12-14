@@ -1,29 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TextInput, FlatList, TouchableOpacity, Alert, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TextInput, FlatList, TouchableOpacity, Alert, Image, ActivityIndicator } from 'react-native';
 import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useAuth } from '../../context/AuthContext';
 import { usePerfilModal } from '../../context/PerfilModalContext';
 import { useProfileImage } from '../../context/ProfileImageContext';
-
-type SquadType = {
-  id: string;
-  name: string;
-  members: number;
-};
-
-const initialSquadData: SquadType[] = [
-  { id: '1', name: 'Squad LSD', members: 2 },
-  { id: '2', name: 'Squad INFRA', members: 2 },
-  { id: '3', name: 'Squad CASE', members: 2 },
-  { id: '4', name: 'Squad 404', members: 2 },
-  { id: '5', name: 'Squad Alpha', members: 2 },
-];
+import squadService from '../../services/squad.service';
+import { Squad } from '../../types/squad.types';
+import CadastrarSquadModal from '../cadastrarSquadModal';
+import EditarSquadModal from '../editarSquadModal';
 
 type SquadItemProps = {
-  item: SquadType;
-  onEdit: (item: SquadType) => void;
-  onViewMembers: (item: SquadType) => void;
+  item: Squad;
+  onEdit: (item: Squad) => void;
+  onViewMembers: (item: Squad) => void;
 };
 
 const SquadItem = ({ item, onEdit, onViewMembers }: SquadItemProps) => (
@@ -36,7 +26,7 @@ const SquadItem = ({ item, onEdit, onViewMembers }: SquadItemProps) => (
       <Text style={styles.squadNameText}>{item.name}</Text>
       <TouchableOpacity style={styles.integrantesContainer} onPress={(e) => { e.stopPropagation(); onViewMembers(item); }}>
         <FontAwesome5 name="user" size={14} color="#1E63B0" />
-        <Text style={styles.integrantesText}>{item.members}</Text>
+        <Text style={styles.integrantesText}>{item.memberCount}</Text>
       </TouchableOpacity>
       <TouchableOpacity style={styles.editButton} onPress={(e) => { e.stopPropagation(); onEdit(item); }}>
         <FontAwesome5 name="pencil-alt" size={18} color="#a0a0a0" />
@@ -50,8 +40,13 @@ export default function SquadsScreen() {
   const { openModal } = usePerfilModal();
   const { profileImage } = useProfileImage();
   const [searchText, setSearchText] = useState('');
-  const [filteredSquads, setFilteredSquads] = useState(initialSquadData);
+  const [squads, setSquads] = useState<Squad[]>([]);
+  const [filteredSquads, setFilteredSquads] = useState<Squad[]>([]);
+  const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState("Usuário");
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingSquad, setEditingSquad] = useState<Squad | null>(null);
 
   useEffect(() => {
     if (user?.username) {
@@ -59,20 +54,69 @@ export default function SquadsScreen() {
     }
   }, [user]);
 
+  // Carrega squads do backend
+  useEffect(() => {
+    loadSquads();
+  }, []);
+
+  const loadSquads = async () => {
+    try {
+      setLoading(true);
+      const data = await squadService.getAllSquads();
+      setSquads(data);
+      setFilteredSquads(data);
+      console.log('✅ Squads carregados:', data.length);
+    } catch (error: any) {
+      console.error('❌ Erro ao carregar squads:', error);
+      Alert.alert('Erro', 'Não foi possível carregar os squads. Verifique sua conexão.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (searchText === '') {
-      setFilteredSquads(initialSquadData);
+      setFilteredSquads(squads);
     } else {
-      const results = initialSquadData.filter(squad =>
+      const results = squads.filter(squad =>
         squad.name.toLowerCase().includes(searchText.toLowerCase())
       );
       setFilteredSquads(results);
     }
-  }, [searchText]);
+  }, [searchText, squads]);
 
-  const handleAddSquad = () => Alert.alert("Adicionar", "A tela para adicionar um novo squad será aberta aqui.");
-  const handleEditSquad = (squad: SquadType) => Alert.alert("Editar", `Editar o ${squad.name}`);
-  const handleViewMembers = (squad: SquadType) => Alert.alert("Integrantes", `Visualizar os ${squad.members} integrantes do ${squad.name}`);
+  const handleAddSquad = () => {
+    setShowAddModal(true);
+  };
+
+  const handleEditSquad = (squad: Squad) => {
+    setEditingSquad(squad);
+    setShowEditModal(true);
+  };
+
+  const handleViewMembers = (squad: Squad) => {
+    if (squad.memberCount === 0) {
+      Alert.alert("Integrantes", `${squad.name} ainda não tem integrantes.`);
+      return;
+    }
+    
+    Alert.alert(
+      "Integrantes", 
+      `${squad.name} tem ${squad.memberCount} integrante(s):\n\n` + 
+      squad.members.map(m => `• ${m.fullName || m.username}${m.squadRole ? ` (${m.squadRole})` : ''}`).join('\n')
+    );
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.safeArea}>
+        <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+          <ActivityIndicator size="large" color="#1E63B0" />
+          <Text style={{ marginTop: 10, color: '#666' }}>Carregando squads...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -135,7 +179,7 @@ export default function SquadsScreen() {
                 onViewMembers={handleViewMembers} 
                 />
             )}
-            keyExtractor={item => item.id}
+            keyExtractor={item => item.id.toString()}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
             ListFooterComponent={() => (
                 <View style={styles.addButtonContainer}>
@@ -147,6 +191,28 @@ export default function SquadsScreen() {
             )}
             />
         </View>
+
+        {/* Modal de Cadastro de Squad */}
+        <CadastrarSquadModal
+          visible={showAddModal}
+          onClose={() => setShowAddModal(false)}
+          onSuccess={() => {
+            loadSquads(); // Recarrega a lista após criar
+          }}
+        />
+
+        {/* Modal de Edição de Squad */}
+        <EditarSquadModal
+          visible={showEditModal}
+          squad={editingSquad}
+          onClose={() => {
+            setShowEditModal(false);
+            setEditingSquad(null);
+          }}
+          onSuccess={() => {
+            loadSquads(); // Recarrega a lista após editar
+          }}
+        />
       </View>
     </SafeAreaView>
   );

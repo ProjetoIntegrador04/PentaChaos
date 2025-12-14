@@ -4,7 +4,7 @@
  */
 
 import api from './api';
-import { Squad, SquadRequest, AddMemberRequest } from '../types/squad.types';
+import { Squad, SquadRequest, AddMemberRequest, UpdateMemberRoleRequest } from '../types/squad.types';
 
 class SquadService {
   /**
@@ -67,6 +67,14 @@ class SquadService {
    */
   async getSquadsByUserId(userId: number): Promise<Squad[]> {
     const response = await api.get<Squad[]>(`/api/v1/squads/user/${userId}`);
+    return response.data;
+  }
+
+  /**
+   * Atualiza a função/role de um membro no squad (apenas ADMIN)
+   */
+  async updateMemberRole(squadId: number, userId: number, data: UpdateMemberRoleRequest): Promise<Squad> {
+    const response = await api.put<Squad>(`/api/v1/squads/${squadId}/members/${userId}/role`, data);
     return response.data;
   }
 }
