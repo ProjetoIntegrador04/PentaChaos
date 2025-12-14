@@ -7,7 +7,8 @@ import api from './api';
 import * as Location from 'expo-location';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
-import { API_ENDPOINTS } from '../utils/constants';
+import { API_ENDPOINTS, STORAGE_KEYS } from '../utils/constants';
+import { secureStorage } from '../utils/storage';
 import {
   ClockEntryRequest,
   ClockEntryResponse,
@@ -18,27 +19,30 @@ import {
 class ClockEntryService {
   /**
    * Registra um ponto (entrada, saída, almoço)
+   * VERSÃO SIMPLIFICADA E CORRIGIDA
    */
   async registrarPonto(tipo: ClockEntryType): Promise<ClockEntryResponse> {
     try {
+      console.log('🔵 [1/4] Iniciando registro de ponto:', tipo);
+
       // 1. Solicitar permissão de localização
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         throw new Error('Permissão de localização negada. Ative nas configurações.');
       }
+      console.log('✅ [2/4] Permissão de localização OK');
 
       // 2. Obter localização atual com alta precisão
-      console.log('📍 Obtendo localização...');
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
+      console.log('✅ [3/4] Localização obtida:', location.coords.latitude, location.coords.longitude);
 
       // 3. Preparar dados do ponto
-      const fonte: FonteType =
-        Platform.OS === 'android' ? 'MOBILE_ANDROID' : 'MOBILE_IOS';
+      const fonte: FonteType = Platform.OS === 'android' ? 'MOBILE_ANDROID' : 
+                               Platform.OS === 'ios' ? 'MOBILE_IOS' : 'WEB';
 
-      const deviceId =
-        Device.osInternalBuildId || Device.modelId || 'unknown_device';
+      const deviceId = Device.osInternalBuildId || Device.modelId || 'web_device';
 
       const request: ClockEntryRequest = {
         tipo,
@@ -50,7 +54,11 @@ class ClockEntryService {
         deviceId,
       };
 
-      console.log('📤 Enviando registro de ponto:', request);
+      console.log('📤 [4/4] Enviando para backend:', {
+        tipo: request.tipo,
+        timestamp: request.timestamp,
+        fonte: request.fonte
+      });
 
       // 4. Enviar para o backend
       const response = await api.post<ClockEntryResponse>(
@@ -58,10 +66,14 @@ class ClockEntryService {
         request
       );
 
-      console.log('✅ Ponto registrado com sucesso:', response.data);
+      console.log('✅ ✅ ✅ Ponto registrado com sucesso!', response.data.id);
       return response.data;
     } catch (error: any) {
-      console.error('❌ Erro ao registrar ponto:', error.response?.data || error.message);
+      console.error('❌ ❌ ❌ Erro ao registrar ponto:');
+      console.error('   Status:', error.response?.status);
+      console.error('   Mensagem:', error.response?.data?.message || error.message);
+      console.error('   URL:', error.config?.url);
+      console.error('   Headers:', error.config?.headers);
       throw error;
     }
   }
@@ -227,6 +239,21 @@ class ClockEntryService {
       LUNCH_END: '#2196F3', // Azul
     };
     return cores[tipo] || '#757575';
+  }
+
+  /**
+   * Busca frequência do usuário autenticado do backend
+   * @param days Número de dias (7, 30, 90)
+   * @returns Percentual de frequência (0-100)
+   */
+  async buscarFrequencia(days: number = 30): Promise<number> {
+    try {
+      const response = await api.get(`${API_ENDPOINTS.CLOCKENTRY.BASE}/me/frequency?days=${days}`);
+      return Math.round(response.data);
+    } catch (error: any) {
+      console.error('❌ Erro ao buscar frequência:', error);
+      throw error;
+    }
   }
 }
 

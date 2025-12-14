@@ -1,8 +1,9 @@
 /**
  * Configuração centralizada do Axios para comunicação com o backend
+ * VERSÃO SIMPLIFICADA - SEM REFRESH AUTOMÁTICO (para debug)
  */
 
-import axios, { AxiosError, AxiosRequestConfig, InternalAxiosRequestConfig } from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL, STORAGE_KEYS, TIMEOUTS } from '../utils/constants';
 import { secureStorage } from '../utils/storage';
 import { router } from 'expo-router';
@@ -16,130 +17,72 @@ const api = axios.create({
   },
 });
 
-// Flag para evitar múltiplas tentativas de refresh
-let isRefreshing = false;
-let failedQueue: Array<{
-  resolve: (value?: any) => void;
-  reject: (reason?: any) => void;
-}> = [];
-
-const processQueue = (error: Error | null, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (error) {
-      prom.reject(error);
-    } else {
-      prom.resolve(token);
-    }
-  });
-  failedQueue = [];
-};
-
 /**
- * Interceptor de REQUEST
- * Adiciona o token JWT em todas as requisições
+ * Interceptor de REQUEST - Adiciona token em TODAS as requisições
  */
 api.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    const token = await secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
-
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
+    try {
+      // Pega o token do storage
+      const token = await secureStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+      
+      console.log('═══════════════════════════════════════');
+      console.log('📤 REQUEST INTERCEPTOR');
+      console.log('   Método:', config.method?.toUpperCase());
+      console.log('   URL:', config.url);
+      console.log('   Token existe?', token ? 'SIM' : 'NÃO');
+      
+      if (token) {
+        console.log('   Token (primeiros 30 chars):', token.substring(0, 30) + '...');
+        config.headers.Authorization = `Bearer ${token}`;
+        console.log('   ✅ Authorization header definido');
+      } else {
+        console.log('   ⚠️ NENHUM TOKEN ENCONTRADO!');
+      }
+      
+      console.log('═══════════════════════════════════════');
+      
+      return config;
+    } catch (error) {
+      console.error('❌ ERRO NO REQUEST INTERCEPTOR:', error);
+      return config;
     }
-
-    console.log(`📤 API REQUEST: ${config.method?.toUpperCase()} ${config.url}`);
-    return config;
   },
   (error) => {
-    console.error('❌ Erro no interceptor de request:', error);
+    console.error('❌ ERRO NO REQUEST INTERCEPTOR (reject):', error);
     return Promise.reject(error);
   }
 );
 
 /**
- * Interceptor de RESPONSE
- * Trata erros e faz refresh automático do token quando expira
+ * Interceptor de RESPONSE - Trata erros
  */
 api.interceptors.response.use(
   (response) => {
-    console.log(`✅ API RESPONSE: ${response.status} ${response.config.url}`);
+    console.log('═══════════════════════════════════════');
+    console.log('✅ RESPONSE SUCCESS');
+    console.log('   Status:', response.status);
+    console.log('   URL:', response.config.url);
+    console.log('═══════════════════════════════════════');
     return response;
   },
   async (error: AxiosError) => {
-    const originalRequest = error.config as AxiosRequestConfig & { _retry?: boolean };
-
-    // Se o erro é 401 e ainda não tentou fazer refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      if (isRefreshing) {
-        // Se já está fazendo refresh, adiciona na fila
-        return new Promise((resolve, reject) => {
-          failedQueue.push({ resolve, reject });
-        })
-          .then((token) => {
-            if (originalRequest.headers) {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-            }
-            return api(originalRequest);
-          })
-          .catch((err) => Promise.reject(err));
-      }
-
-      originalRequest._retry = true;
-      isRefreshing = true;
-
-      try {
-        const refreshToken = await secureStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
-
-        if (!refreshToken) {
-          throw new Error('Refresh token não encontrado');
-        }
-
-        // Tenta fazer refresh do token
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
-
-        const { accessToken, refreshToken: newRefreshToken } = response.data;
-
-        // Salva os novos tokens
-        await secureStorage.setItem(STORAGE_KEYS.ACCESS_TOKEN, accessToken);
-        await secureStorage.setItem(STORAGE_KEYS.REFRESH_TOKEN, newRefreshToken);
-
-        // Processa fila de requisições que falharam
-        processQueue(null, accessToken);
-
-        // Refaz a requisição original com o novo token
-        if (originalRequest.headers) {
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        }
-        return api(originalRequest);
-      } catch (refreshError) {
-        // Se falhou ao fazer refresh, desloga o usuário
-        processQueue(refreshError as Error, null);
-        await secureStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
-        await secureStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-        await secureStorage.removeItem(STORAGE_KEYS.USER_DATA);
-
-        // Redireciona para login
-        router.replace('/');
-        return Promise.reject(refreshError);
-      } finally {
-        isRefreshing = false;
-      }
-    }
-
-    // Log de erro detalhado
+    console.log('═══════════════════════════════════════');
+    console.log('❌ RESPONSE ERROR');
+    console.log('   Status:', error.response?.status);
+    console.log('   URL:', error.config?.url);
+    console.log('   Mensagem:', error.message);
+    
     if (error.response) {
-      console.error(`❌ API ERROR ${error.response.status}:`, {
-        url: error.config?.url,
-        method: error.config?.method,
-        data: error.response.data,
-      });
-    } else if (error.request) {
-      console.error('❌ Sem resposta do servidor:', error.message);
-    } else {
-      console.error('❌ Erro na requisição:', error.message);
+      console.log('   Data do servidor:', error.response.data);
+      console.log('   Headers da resposta:', error.response.headers);
     }
-
+    
+    console.log('═══════════════════════════════════════');
+    
+    // NÃO redireciona automaticamente - deixa a tela tratar o erro
+    // A tela vai mostrar mensagem apropriada e decidir se redireciona ou não
+    
     return Promise.reject(error);
   }
 );
