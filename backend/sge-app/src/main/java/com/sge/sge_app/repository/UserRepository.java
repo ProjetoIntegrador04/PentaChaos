@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -19,5 +20,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     // Método para buscar usuário por username ou email
     Optional<User> findByUsernameOrEmail(String username, String email);
+    
+    // Método para buscar usuários por squad
+    List<User> findBySquad(String squad);
 }
 
