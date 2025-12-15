@@ -3,168 +3,37 @@ name: Backend CI/CD
 on:
   push:
     branches: [ develop, main ]
-    paths:
-      - 'backend/**'
-      - '.github/workflows/backend-ci.yml'
   pull_request:
     branches: [ develop, main ]
-    paths:
-      - 'backend/**'
-  workflow_dispatch:  # ⭐ Permite disparar manualmente pelo GitHub
+  workflow_dispatch:
 
 jobs:
-  test:
-    name: Run Tests
+  test-and-build:
+    name: 🧪 Test & Build
     runs-on: ubuntu-latest
-    
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: sge_db_test
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
 
     steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
 
-    - name: ☕ Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: maven
+      - name: ☕ Setup Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
 
-    - name: 🔧 Configure test database
-      working-directory: ./backend/sge-app
-      run: |
-        echo "spring.datasource.url=jdbc:postgresql://localhost:5432/sge_db_test" > src/test/resources/application-test.properties
-        echo "spring.datasource.username=postgres" >> src/test/resources/application-test.properties
-        echo "spring.datasource.password=postgres" >> src/test/resources/application-test.properties
-        echo "spring.jpa.hibernate.ddl-auto=create-drop" >> src/test/resources/application-test.properties
+      - name: 🔑 Grant execute permission
+        working-directory: ./backend/sge-app
+        run: chmod +x mvnw
 
-    - name: 🔑 Grant execute permission to mvnw
-      working-directory: ./backend/sge-app
-      run: chmod +x mvnw
+      - name: 🧪 Run Tests
+        working-directory: ./backend/sge-app
+        run: ./mvnw test
 
-    - name: 🧪 Run tests
-      working-directory: ./backend/sge-app
-      run: ./mvnw test --batch-mode --fail-at-end
+      - name: 🏗️ Build Application
+        working-directory: ./backend/sge-app
+        run: ./mvnw clean package -DskipTests
 
-    - name: 📊 Generate test report
-      if: always()
-      uses: dorny/test-reporter@v1
-      with:
-        name: Backend Test Results
-        path: backend/sge-app/target/surefire-reports/*.xml
-        reporter: java-junit
-        fail-on-error: false
-
-    - name: 📈 Upload coverage to Codecov
-      if: success()
-      uses: codecov/codecov-action@v4
-      with:
-        files: ./backend/sge-app/target/site/jacoco/jacoco.xml
-        flags: backend
-        name: backend-coverage
-
-  build:
-    name: Build Application
-    needs: test
-    runs-on: ubuntu-latest
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: ☕ Set up JDK 21
-      uses: actions/setup-java@v4
-      with:
-        java-version: '21'
-        distribution: 'temurin'
-        cache: maven
-
-    - name: 🔑 Grant execute permission to mvnw
-      working-directory: ./backend/sge-app
-      run: chmod +x mvnw
-
-    - name: 🏗️ Build with Maven
-      working-directory: ./backend/sge-app
-      run: ./mvnw clean package -DskipTests --batch-mode
-
-    - name: 🐳 Build Docker image
-      working-directory: ./backend/sge-app
-      run: docker build -t sge-backend:${{ github.sha }} .
-
-    - name: 📦 Save Docker image
-      run: docker save sge-backend:${{ github.sha }} | gzip > backend-image.tar.gz
-
-    - name: ⬆️ Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: backend-image
-        path: backend-image.tar.gz
-        retention-days: 5
-
-  deploy:
-    name: Deploy to Production
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    
-    steps:
-    - name: 📥 Checkout code
-      uses: actions/checkout@v4
-
-    - name: 🚀 Deploy notification
-      run: |
-        echo "🎉 Deploying to production..."
-        echo "Backend SHA: ${{ github.sha }}"
-        echo "Deployed by: ${{ github.actor }}"
-        echo "Commit message: ${{ github.event.head_commit.message }}"
-
-    # Descomente quando tiver as credenciais da EC2
-    # - name: 🔑 Configure SSH
-    #   uses: webfactory/ssh-agent@v0.9.0
-    #   with:
-    #     ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
-
-    # - name: 🚢 Deploy to EC2
-    #   run: |
-    #     ssh -o StrictHostKeyChecking=no ubuntu@${{ secrets.EC2_HOST }} << 'EOF'
-    #       cd /home/ubuntu/PentaChaos
-    #       git pull origin main
-    #       docker compose down
-    #       docker compose up --build -d
-    #       echo "✅ Deployment completed!"
-    #     EOF
-
-  notify:
-    name: Notify Status
-    needs: [test, build, deploy]
-    runs-on: ubuntu-latest
-    if: always()
-    
-    steps:
-    - name: 📢 Success notification
-      if: ${{ needs.test.result == 'success' && needs.build.result == 'success' }}
-      run: |
-        echo "✅ CI/CD Pipeline succeeded!"
-        echo "Tests: ✅ PASSED"
-        echo "Build: ✅ SUCCESS"
-
-    - name: ❌ Failure notification
-      if: ${{ needs.test.result == 'failure' || needs.build.result == 'failure' }}
-      run: |
-        echo "❌ CI/CD Pipeline failed!"
-        echo "Tests: ${{ needs.test.result }}"
-        echo "Build: ${{ needs.build.result }}"
-        exit 1
+      - name: ✅ Success
+        run: echo "✅ Backend CI/CD concluído com sucesso!"

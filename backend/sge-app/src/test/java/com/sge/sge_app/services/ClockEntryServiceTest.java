@@ -173,8 +173,10 @@ class ClockEntryServiceTest {
         when(authentication.getName()).thenReturn("testuser");
         when(userRepository.findByUsernameOrEmail("testuser", "testuser"))
                 .thenReturn(Optional.of(testUser));
+        when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("EXIT")))
+                .thenReturn(Optional.empty()); // Não existe EXIT anterior
         when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("ENTRY")))
-                .thenReturn(Optional.empty());
+                .thenReturn(Optional.empty()); // Não existe ENTRY anterior
 
         // When & Then
         BusinessException exception = assertThrows(BusinessException.class,
@@ -246,6 +248,8 @@ class ClockEntryServiceTest {
         when(authentication.getName()).thenReturn("testuser");
         when(userRepository.findByUsernameOrEmail("testuser", "testuser"))
                 .thenReturn(Optional.of(testUser));
+        when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("LUNCH_START")))
+                .thenReturn(Optional.empty()); // Não existe LUNCH_START anterior
         when(clockEntryRepository.findByUserIdAndTimestampBetween(eq(1L), any(), any()))
                 .thenReturn(List.of()); // Nenhum ponto registrado hoje
 
@@ -270,8 +274,10 @@ class ClockEntryServiceTest {
         when(authentication.getName()).thenReturn("testuser");
         when(userRepository.findByUsernameOrEmail("testuser", "testuser"))
                 .thenReturn(Optional.of(testUser));
+        when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("EXIT")))
+                .thenReturn(Optional.empty()); // Não existe EXIT anterior (previne duplicação)
         when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("ENTRY")))
-                .thenReturn(Optional.of(entryAnterior));
+                .thenReturn(Optional.of(entryAnterior)); // Existe ENTRY anterior
         when(clockEntryRepository.save(any(ClockEntry.class)))
                 .thenReturn(savedClockEntry);
 
