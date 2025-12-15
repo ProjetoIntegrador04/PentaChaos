@@ -1,0 +1,340 @@
+@startuml PentaChaos Architecture
+
+!theme blueprint
+skinparam backgroundColor #FFFFFF
+skinparam componentStyle rectangle
+skinparam shadowing true
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 80
+
+' Estilo das conexões
+skinparam arrow {
+  Color #37474F
+  Thickness 2
+  FontColor #000000
+}
+
+' Estilo dos pacotes
+skinparam package {
+  BackgroundColor gradient
+  BorderColor #37474F
+  BorderThickness 2
+  FontSize 14
+  FontStyle bold
+  FontColor #000000
+}
+
+' Estilo dos componentes
+skinparam component {
+  BorderThickness 2
+  FontSize 12
+  FontColor #000000
+}
+
+' Estilo das notas
+skinparam note {
+  BorderColor #795548
+  BackgroundColor #FFF8E1
+  BorderThickness 2
+  FontColor #000000
+}
+
+' Estilo do database
+skinparam database {
+  FontColor #000000
+}
+
+' Estilo geral de texto
+skinparam defaultFontColor #000000
+
+title <size:20><b><color:#000000>Sistema de Gerenciamento Empresarial (SGE) - PentaChaos</color></b></size>\n<size:16><color:#000000>Arquitetura Completa do Sistema</color></size>
+
+' ====================
+' CAMADA DE APRESENTAÇÃO
+' ====================
+package "📱 FRONTEND LAYER" <<Rectangle>> #E3F2FD {
+  component "🌐 Web Application\n<size:11><i>React + TypeScript + Vite</i></size>" as WebApp #42A5F5
+  component "📱 Mobile Application\n<size:11><i>React Native + Expo</i></size>" as MobileApp #1E88E5
+  
+  note right of WebApp #FFF9C4
+    <b>🎯 Funcionalidades Web:</b>
+    • Interface para Coordenadores
+    • Dashboard de Frequência
+    • Gestão de Usuários/Squads
+    • Relatórios e Estatísticas
+  end note
+  
+  note right of MobileApp #FFF9C4
+    <b>🎯 Funcionalidades Mobile:</b>
+    • Interface para Colaboradores
+    • Registro de Ponto (Face ID)
+    • Consulta de Frequência
+    • Notificações Push
+  end note
+}
+
+' ====================
+' CAMADA DE API GATEWAY
+' ====================
+package "🚪 API GATEWAY" <<Rectangle>> #FFF3E0 {
+  component "⚡ Load Balancer\n<size:11><i>Nginx / AWS ALB</i></size>" as Gateway #FF9800
+  
+  note right of Gateway #E1F5FE
+    <b>🔧 Responsabilidades:</b>
+    • Roteamento de requisições
+    • SSL/TLS Termination
+    • Rate Limiting
+    • CORS Configuration
+  end note
+}
+
+' ====================
+' CAMADA DE APLICAÇÃO
+' ====================
+package "⚙️ BACKEND LAYER" <<Rectangle>> #E8F5E9 {
+  package "🍃 Spring Boot Application\n<size:12><i>Monolito Modular</i></size>" #C8E6C9 {
+    
+    ' Controllers
+    package "🎮 Controllers" #A5D6A7 {
+      component [🔐 AuthController] as AuthCtrl #81C784
+      component [👤 UserController] as UserCtrl #81C784
+      component [⏰ ClockEntryController] as ClockCtrl #81C784
+      component [👥 SquadController] as SquadCtrl #81C784
+      component [📊 DashboardController] as DashCtrl #81C784
+    }
+    
+    ' Services
+    package "💼 Services\n<size:10><i>Business Logic</i></size>" #81C784 {
+      component [AuthService] as AuthSvc #66BB6A
+      component [UserService] as UserSvc #66BB6A
+      component [ClockEntryService] as ClockSvc #66BB6A
+      component [SquadService] as SquadSvc #66BB6A
+      component [NotificationService] as NotifSvc #66BB6A
+      component [BiometricService] as BioSvc #66BB6A
+    }
+    
+    ' Repositories
+    package "💾 Repositories\n<size:10><i>Data Access</i></size>" #66BB6A {
+      component [UserRepository] as UserRepo #4CAF50
+      component [ClockEntryRepository] as ClockRepo #4CAF50
+      component [SquadRepository] as SquadRepo #4CAF50
+      component [RefreshTokenRepository] as TokenRepo #4CAF50
+    }
+    
+    ' Security
+    package "🔒 Security Layer" #4CAF50 {
+      component [🛡️ JWT Filter] as JwtFilter #388E3C
+      component [⚙️ Security Config] as SecConfig #388E3C
+      component [🔑 JWT Service] as JwtSvc #388E3C
+    }
+  }
+}
+
+' ====================
+' CAMADA DE DADOS
+' ====================
+package "💿 DATA LAYER" <<Rectangle>> #FCE4EC {
+  database "🐘 PostgreSQL 15\n<size:11><i>Relational Database</i></size>" as PostgresDB #E91E63 {
+    frame "📋 Tables" {
+      component [👤 users] as UsersTable #F06292
+      component [⏰ clock_entries] as ClockTable #F06292
+      component [👥 squads] as SquadsTable #F06292
+      component [🔑 refresh_tokens] as TokensTable #F06292
+    }
+  }
+  
+  note right of PostgresDB #E8F5E9
+    <b>📊 Principais Entidades:</b>
+    • <b>Users:</b> Colaboradores do sistema
+    • <b>ClockEntry:</b> Registros de ponto
+    • <b>Squad:</b> Times/Turmas
+    • <b>RefreshToken:</b> Sessões ativas
+  end note
+}
+
+' ====================
+' SERVIÇOS EXTERNOS
+' ====================
+package "☁️ EXTERNAL SERVICES" <<Rectangle>> #F3E5F5 {
+  component "📦 AWS S3\n<size:11><i>File Storage</i></size>" as S3 #AB47BC
+  component "📧 AWS SES\n<size:11><i>Email Service</i></size>" as SES #9C27B0
+  component "👁️ Face Recognition API\n<size:11><i>Biometria</i></size>" as FaceAPI #8E24AA
+  
+  note right of S3 #FFF3E0
+    <b>📁 Armazenamento:</b>
+    • Fotos de colaboradores
+    • Documentos e relatórios
+    • Backups automáticos
+  end note
+}
+
+' ====================
+' CI/CD & DevOps
+' ====================
+package "🔧 DEVOPS INFRASTRUCTURE" <<Rectangle>> #ECEFF1 {
+  component "🚀 GitHub Actions\n<size:11><i>CI/CD Pipeline</i></size>" as GHA #546E7A
+  component "🐳 Docker Registry\n<size:11><i>Container Images</i></size>" as DockerReg #607D8B
+  component "☁️ AWS ECS Fargate\n<size:11><i>Container Orchestration</i></size>" as ECS #78909C
+  
+  note right of GHA #E1F5FE
+    <b>⚙️ Pipeline Stages:</b>
+    1️⃣ Code Checkout
+    2️⃣ Run Tests (JUnit + Mockito)
+    3️⃣ Build Application
+    4️⃣ Create Docker Image
+    5️⃣ Push to Registry
+    6️⃣ Deploy to ECS
+    
+    <b>📊 Métricas:</b>
+    • 28+ testes automatizados
+    • Coverage: 79%
+    • Tempo: ~5-8 minutos
+  end note
+}
+
+' ====================
+' MONITORING
+' ====================
+package "📈 MONITORING & LOGGING" <<Rectangle>> #FFF9C4 {
+  component "📊 AWS CloudWatch\n<size:11><i>Logs & Metrics</i></size>" as CloudWatch #FBC02D
+  component "💓 Spring Boot Actuator\n<size:11><i>Health Checks</i></size>" as Actuator #F9A825
+}
+
+' ====================
+' CONEXÕES - Frontend → Gateway
+' ====================
+WebApp -[#1976D2,thickness=3]down-> Gateway : <b>HTTPS</b>\n<size:10>REST API</size>
+MobileApp -[#1976D2,thickness=3]down-> Gateway : <b>HTTPS</b>\n<size:10>REST API</size>
+
+' ====================
+' CONEXÕES - Gateway → Backend
+' ====================
+Gateway -[#FF6F00,thickness=3]down-> AuthCtrl : <size:10>/api/v1/auth/*</size>
+Gateway -[#FF6F00,thickness=3]down-> UserCtrl : <size:10>/api/v1/users/*</size>
+Gateway -[#FF6F00,thickness=3]down-> ClockCtrl : <size:10>/api/v1/clock-entries/*</size>
+Gateway -[#FF6F00,thickness=3]down-> SquadCtrl : <size:10>/api/v1/squads/*</size>
+Gateway -[#FF6F00,thickness=3]down-> DashCtrl : <size:10>/api/v1/dashboard/*</size>
+
+' ====================
+' CONEXÕES - Security Filter
+' ====================
+JwtFilter .[#D32F2F,thickness=2].> AuthCtrl : <size:9>Intercept</size>
+JwtFilter .[#D32F2F,thickness=2].> UserCtrl : <size:9>Validate JWT</size>
+JwtFilter .[#D32F2F,thickness=2].> ClockCtrl : <size:9>Extract User</size>
+JwtFilter .[#D32F2F,thickness=2].> SquadCtrl : <size:9>Check Roles</size>
+JwtFilter .[#D32F2F,thickness=2].> DashCtrl : <size:9>Authorize</size>
+
+SecConfig .[#388E3C,thickness=2].> JwtFilter : <size:9>Configure</size>
+JwtSvc .[#388E3C,thickness=2].> JwtFilter : <size:9>Token Validation</size>
+
+' ====================
+' CONEXÕES - Controllers → Services
+' ====================
+AuthCtrl -[#4CAF50,thickness=2]down-> AuthSvc
+UserCtrl -[#4CAF50,thickness=2]down-> UserSvc
+ClockCtrl -[#4CAF50,thickness=2]down-> ClockSvc
+SquadCtrl -[#4CAF50,thickness=2]down-> SquadSvc
+DashCtrl -[#4CAF50,thickness=2]down-> ClockSvc
+
+' ====================
+' CONEXÕES - Services → Repositories
+' ====================
+AuthSvc -[#2E7D32,thickness=2]down-> UserRepo
+AuthSvc -[#2E7D32,thickness=2]down-> TokenRepo
+AuthSvc -[#2E7D32,thickness=2]down-> JwtSvc
+UserSvc -[#2E7D32,thickness=2]down-> UserRepo
+ClockSvc -[#2E7D32,thickness=2]down-> ClockRepo
+SquadSvc -[#2E7D32,thickness=2]down-> SquadRepo
+NotifSvc .[#7B1FA2,thickness=2].> SES : <size:9>Send Emails</size>
+
+' ====================
+' CONEXÕES - Repositories → Database
+' ====================
+UserRepo -[#C2185B,thickness=3]down-> UsersTable
+ClockRepo -[#C2185B,thickness=3]down-> ClockTable
+SquadRepo -[#C2185B,thickness=3]down-> SquadsTable
+TokenRepo -[#C2185B,thickness=3]down-> TokensTable
+
+' ====================
+' CONEXÕES - External Services
+' ====================
+BioSvc .[#7B1FA2,thickness=2].> FaceAPI : <size:9>Validate Face</size>
+UserSvc .[#7B1FA2,thickness=2].> S3 : <size:9>Upload Photos</size>
+NotifSvc .[#7B1FA2,thickness=2].> SES : <size:9>Send Notifications</size>
+
+' ====================
+' CONEXÕES - CI/CD
+' ====================
+GHA -[#455A64,thickness=3]down-> DockerReg : <size:10>Push Images</size>
+DockerReg -[#455A64,thickness=3]down-> ECS : <size:10>Pull Images</size>
+ECS -[#455A64,thickness=3]down-> Gateway : <size:10>Deploy</size>
+
+' ====================
+' CONEXÕES - Monitoring
+' ====================
+Actuator .[#F57F17,thickness=2].> CloudWatch : <size:9>Send Metrics</size>
+PostgresDB .[#F57F17,thickness=2].> CloudWatch : <size:9>DB Logs</size>
+ECS .[#F57F17,thickness=2].> CloudWatch : <size:9>Container Logs</size>
+
+' ====================
+' LEGENDAS E NOTAS
+' ====================
+legend right
+  <b><size:14>🛠️ STACK TECNOLÓGICO</size></b>
+  
+  <b><color:#1976D2>📱 Frontend Web:</color></b>
+  • React 18 + TypeScript
+  • Vite (Build Tool)
+  • Axios (HTTP Client)
+  • React Router v6
+  
+  <b><color:#1976D2>📱 Mobile:</color></b>
+  • React Native 0.74
+  • Expo SDK 51
+  • Expo Router
+  
+  <b><color:#388E3C>⚙️ Backend:</color></b>
+  • Java 21 (LTS)
+  • Spring Boot 3.5.6
+  • Spring Security + JWT
+  • JPA/Hibernate
+  
+  <b><color:#C2185B>💿 Database:</color></b>
+  • PostgreSQL 15
+  • Docker Container
+  
+  <b><color:#455A64>🔧 DevOps:</color></b>
+  • GitHub Actions
+  • Docker & Docker Compose
+  • AWS ECS Fargate
+  • AWS RDS (Production)
+  
+  <b><color:#D32F2F>🔒 Autenticação:</color></b>
+  • JWT (HS256)
+  • Access Token: 7 dias
+  • Refresh Token: 30 dias
+  • RBAC: ADMIN, USER
+  
+  <b><color:#F57F17>📊 CI/CD:</color></b>
+  • 28+ Testes Automatizados
+  • Pipeline: ~5-8 minutos
+  • Coverage: 79%
+end legend
+
+note bottom
+  <b><size:14>🔐 FLUXO DE AUTENTICAÇÃO JWT</size></b>
+  
+  <b>1️⃣</b> User → POST /api/v1/auth/login (username, password)
+  <b>2️⃣</b> Backend valida credenciais via AuthenticationManager
+  <b>3️⃣</b> Gera JWT Access Token (válido por 7 dias)
+  <b>4️⃣</b> Gera Refresh Token (válido por 30 dias)
+  <b>5️⃣</b> Frontend armazena tokens (localStorage/sessionStorage)
+  <b>6️⃣</b> Todas requisições incluem: <i>Authorization: Bearer <token></i>
+  <b>7️⃣</b> JWT Filter intercepta e valida token em cada request
+  <b>8️⃣</b> Se token expirado, usa refresh token para renovar
+  
+  <b><color:#D32F2F>⚠️ Segurança:</color></b> Tokens assinados com HS256, roles verificados em cada endpoint
+end note
+
+@enduml
