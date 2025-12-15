@@ -51,6 +51,10 @@ jobs:
         echo "spring.datasource.password=postgres" >> src/test/resources/application-test.properties
         echo "spring.jpa.hibernate.ddl-auto=create-drop" >> src/test/resources/application-test.properties
 
+    - name: 🔑 Grant execute permission to mvnw
+      working-directory: ./backend/sge-app
+      run: chmod +x mvnw
+
     - name: 🧪 Run tests
       working-directory: ./backend/sge-app
       run: ./mvnw test --batch-mode --fail-at-end
@@ -87,6 +91,10 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: maven
+
+    - name: 🔑 Grant execute permission to mvnw
+      working-directory: ./backend/sge-app
+      run: chmod +x mvnw
 
     - name: 🏗️ Build with Maven
       working-directory: ./backend/sge-app
