@@ -42,6 +42,14 @@ jobs:
         working-directory: ./backend/sge-app
         run: chmod +x mvnw
 
+      - name: 🐘 Wait for PostgreSQL
+        run: |
+          until pg_isready -h localhost -p 5432 -U postgres; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+          echo "✅ PostgreSQL is ready!"
+
       - name: 🧪 Run Tests
         working-directory: ./backend/sge-app
         run: ./mvnw test -Dspring.profiles.active=test
@@ -50,6 +58,7 @@ jobs:
           SPRING_DATASOURCE_URL: jdbc:postgresql://localhost:5432/sge_test
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
+          SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
 
       - name: 🏗️ Build Application
         working-directory: ./backend/sge-app
