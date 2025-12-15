@@ -265,10 +265,13 @@ class ClockEntryServiceTest {
     void deveRegistrarExitComSucessoAposEntry() {
         // Given
         validRequest.setTipo("EXIT");
+        LocalDateTime hoje = LocalDateTime.now();
+        LocalDateTime entryHoje = hoje.withHour(9).withMinute(0).withSecond(0); // 09:00 hoje
+        
         ClockEntry entryAnterior = ClockEntry.builder()
                 .userId(1L)
                 .tipo("ENTRY")
-                .timestamp(LocalDateTime.now().minusHours(8))
+                .timestamp(entryHoje) // Garantido ser hoje
                 .build();
 
         when(authentication.getName()).thenReturn("testuser");
@@ -277,7 +280,9 @@ class ClockEntryServiceTest {
         when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("EXIT")))
                 .thenReturn(Optional.empty()); // Não existe EXIT anterior (previne duplicação)
         when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("ENTRY")))
-                .thenReturn(Optional.of(entryAnterior)); // Existe ENTRY anterior
+                .thenReturn(Optional.of(entryAnterior)); // Existe ENTRY anterior no mesmo dia
+        when(clockEntryRepository.findByUserIdAndTimestampBetween(anyLong(), any(), any()))
+                .thenReturn(List.of(entryAnterior)); // Retorna o ENTRY quando buscar pontos de hoje
         when(clockEntryRepository.save(any(ClockEntry.class)))
                 .thenReturn(savedClockEntry);
 
