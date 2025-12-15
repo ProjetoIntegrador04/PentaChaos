@@ -173,7 +173,7 @@ class ClockEntryServiceTest {
         when(authentication.getName()).thenReturn("testuser");
         when(userRepository.findByUsernameOrEmail("testuser", "testuser"))
                 .thenReturn(Optional.of(testUser));
-        when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(1L, "ENTRY"))
+        when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("ENTRY")))
                 .thenReturn(Optional.empty());
 
         // When & Then
@@ -270,7 +270,7 @@ class ClockEntryServiceTest {
         when(authentication.getName()).thenReturn("testuser");
         when(userRepository.findByUsernameOrEmail("testuser", "testuser"))
                 .thenReturn(Optional.of(testUser));
-        when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(1L, "ENTRY"))
+        when(clockEntryRepository.findTopByUserIdAndTipoOrderByCreatedAtDesc(anyLong(), eq("ENTRY")))
                 .thenReturn(Optional.of(entryAnterior));
         when(clockEntryRepository.save(any(ClockEntry.class)))
                 .thenReturn(savedClockEntry);

@@ -9,6 +9,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -26,7 +27,7 @@ class UserRepositoryTest {
     void setUp() {
         sampleUser = User.builder()
                 .username("testuser")
-                .email("test@example.com")
+                .email(UUID.randomUUID() + "@test.com") // Email único para cada teste
                 .password("encodedPassword")
                 .build();
     }
@@ -40,7 +41,7 @@ class UserRepositoryTest {
         // Then
         assertNotNull(savedUser.getId());
         assertEquals("testuser", savedUser.getUsername());
-        assertEquals("test@example.com", savedUser.getEmail());
+        assertEquals(sampleUser.getEmail(), savedUser.getEmail()); // Usa email do sampleUser
         assertNotNull(savedUser.getCreatedAt());
     }
 
@@ -56,7 +57,7 @@ class UserRepositoryTest {
         // Then
         assertTrue(foundUser.isPresent());
         assertEquals("testuser", foundUser.get().getUsername());
-        assertEquals("test@example.com", foundUser.get().getEmail());
+        assertEquals(sampleUser.getEmail(), foundUser.get().getEmail()); // Usa email do sampleUser
     }
 
     @Test
@@ -66,12 +67,12 @@ class UserRepositoryTest {
         userRepository.save(sampleUser);
 
         // When
-        Optional<User> foundUser = userRepository.findByEmail("test@example.com");
+        Optional<User> foundUser = userRepository.findByEmail(sampleUser.getEmail()); // Usa email do sampleUser
 
         // Then
         assertTrue(foundUser.isPresent());
         assertEquals("testuser", foundUser.get().getUsername());
-        assertEquals("test@example.com", foundUser.get().getEmail());
+        assertEquals(sampleUser.getEmail(), foundUser.get().getEmail()); // Usa email do sampleUser
     }
 
     @Test
@@ -84,7 +85,7 @@ class UserRepositoryTest {
         Optional<User> foundByUsername = userRepository.findByUsernameOrEmail("testuser", "testuser");
         
         // When - Buscar por email
-        Optional<User> foundByEmail = userRepository.findByUsernameOrEmail("test@example.com", "test@example.com");
+        Optional<User> foundByEmail = userRepository.findByUsernameOrEmail(sampleUser.getEmail(), sampleUser.getEmail());
 
         // Then
         assertTrue(foundByUsername.isPresent());
@@ -111,7 +112,7 @@ class UserRepositoryTest {
         userRepository.save(sampleUser);
 
         // When & Then
-        assertTrue(userRepository.existsByEmail("test@example.com"));
+        assertTrue(userRepository.existsByEmail(sampleUser.getEmail())); // Usa email do sampleUser
         assertFalse(userRepository.existsByEmail("naoexiste@example.com"));
     }
 
@@ -162,7 +163,7 @@ class UserRepositoryTest {
 
         User userComMesmoEmail = User.builder()
                 .username("outrousuario")
-                .email("test@example.com") // Mesmo email
+                .email(sampleUser.getEmail()) // Mesmo email do sampleUser
                 .password("outrasenha")
                 .build();
 

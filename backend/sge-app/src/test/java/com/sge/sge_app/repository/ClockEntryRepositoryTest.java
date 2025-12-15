@@ -220,6 +220,8 @@ class ClockEntryRepositoryTest {
         ClockEntry entryInvalida = ClockEntry.builder()
                 .userId(null) // Deveria ser obrigatório
                 .tipo(null) // Deveria ser obrigatório
+                .latitude(-23.550520f) // Campo obrigatório - adicionado
+                .longitude(-46.633308f) // Campo obrigatório - adicionado
                 .build();
 
         // When & Then - Deve lançar exceção ao tentar salvar
