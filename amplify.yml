@@ -18,3 +18,8 @@ frontend:
     paths:
       - frontend/frontProject/node_modules/**/*
       - .npm/**/*
+customHeaders:
+  - pattern: '**'
+    headers:
+      - key: 'Cache-Control'
+        value: 'no-store'
