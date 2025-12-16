@@ -14,6 +14,7 @@ services:
       - sge-net
 
   app:
+    build: ./backend/sge-app
     image: sge-app:latest
     container_name: sge-app-app-1
     ports:
