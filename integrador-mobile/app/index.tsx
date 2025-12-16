@@ -91,7 +91,7 @@ export default function LoginScreen() {
               <Text style={styles.bemVindo}>Bem vindo a</Text>
               <Image source={require("../assets/images/icon.png")} style={styles.logo} resizeMode="contain" />
               <Text style={styles.desc}>
-                2RP net | Monitoramento, onde o gerenciamento, acompanhamento e organização são possíveis.
+                Monitoring | Metrics, onde o gerenciamento, acompanhamento e organização são possíveis.
               </Text>
           </LinearGradient>
 

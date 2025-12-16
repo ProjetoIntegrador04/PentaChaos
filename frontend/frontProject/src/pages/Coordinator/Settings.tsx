@@ -1,19 +1,15 @@
 import React, { useState } from "react";
-import { FiSave, FiKey, FiUser } from "react-icons/fi";
+import { FiSave, FiUser } from "react-icons/fi"; // Removi FiKey se não estiver usando, ou mantenha se houver outro uso
 import "../../styles/Coordinator/Users.css";
 import "../../styles/Coordinator/Settings.css";
 
 type SettingsState = {
-  // Perfil
   name: string;
   email: string;
 
-  // Preferências
   locale: "pt-BR" | "en-US";
-  theme: "light" | "dark";
 
   twoFactor: boolean;
-  
 };
 
 const initialState: SettingsState = {
@@ -21,8 +17,6 @@ const initialState: SettingsState = {
   email: "coordenador@empresa.com",
 
   locale: "pt-BR",
-  theme: "light",
-
 
   twoFactor: false,
 };
@@ -68,14 +62,19 @@ export default function Settings() {
           <div className="card-title">
             <FiUser /> <span>Perfil</span>
           </div>
+          
+          {/* NOME AGORA DESABILITADO */}
           <div className="form-row">
             <label>Nome</label>
             <input
               value={form.name}
               onChange={onChange("name")}
               placeholder="Seu nome"
+              disabled // Adicionado para impedir edição/clique
             />
           </div>
+
+          {/* EMAIL AGORA DESABILITADO */}
           <div className="form-row">
             <label>Email</label>
             <input
@@ -83,14 +82,16 @@ export default function Settings() {
               value={form.email}
               onChange={onChange("email")}
               placeholder="email@exemplo.com"
+              disabled // Adicionado para impedir edição/clique
             />
           </div>
+
           <div className="form-row">
             <label>Tipo de Conta</label>
             <input
-              value="Gestor" // Valor fixo, já que esta é a tela do Estagiário
-              readOnly        // O usuário não pode editar
-              disabled        // Aplica o estilo visual de desabilitado
+              value="Gestor"
+              readOnly
+              disabled
             />
           </div>
         </section>
@@ -107,13 +108,9 @@ export default function Settings() {
               <option value="en-US">English (US)</option>
             </select>
           </div>
-          <div className="form-row">
-            <label>Tema</label>
-            <select value={form.theme} onChange={onChange("theme")}>
-              <option value="light">Claro</option>
-              <option value="dark">Escuro</option>
-            </select>
-          </div>
+          
+          {/* A OPÇÃO DE TEMA FOI REMOVIDA DAQUI */}
+
         </section>
       </div>
 

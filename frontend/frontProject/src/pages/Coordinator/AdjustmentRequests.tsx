@@ -92,7 +92,7 @@ const AdjustmentRequests: React.FC = () => {
   return (
     <div className="adjustment-requests-page">
       <header className="page-header">
-        <h1>📋 Solicitações de Ajuste de Ponto</h1>
+        <h1>Solicitações de Ajuste de Ponto</h1>
         <button className="refresh-btn" onClick={loadRequests}>
           <RefreshCw size={16} />
           Atualizar
