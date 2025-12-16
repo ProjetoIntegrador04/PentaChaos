@@ -9,8 +9,8 @@ import {
   FiInfo,
   FiX,
 } from 'react-icons/fi';
-import notificationService, { Notification } from '../../services/notificationService';
-import '../../styles/Coordinator/Notifications.css';
+import notificationService from '../services/notificationService';
+import type { Notification } from '../services/notificationService';import '../styles/Coordinator/Notifications.css';
 
 const Notifications: React.FC = () => {
   const navigate = useNavigate();
