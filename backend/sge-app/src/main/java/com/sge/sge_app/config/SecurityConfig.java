@@ -29,80 +29,81 @@ import java.util.List;
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    private final CustomUserDetailsService customUserDetailsService;
-    private final JwtAuthenticationEntryPoint unauthorizedHandler;
-    private final JwtTokenProvider tokenProvider;
-    private final PasswordEncoder passwordEncoder;
+  private final CustomUserDetailsService customUserDetailsService;
+  private final JwtAuthenticationEntryPoint unauthorizedHandler;
+  private final JwtTokenProvider tokenProvider;
+  private final PasswordEncoder passwordEncoder;
 
-    public SecurityConfig(CustomUserDetailsService customUserDetailsService,
-                          JwtAuthenticationEntryPoint unauthorizedHandler,
-                          JwtTokenProvider tokenProvider,
-                          PasswordEncoder passwordEncoder) {
-        this.customUserDetailsService = customUserDetailsService;
-        this.unauthorizedHandler = unauthorizedHandler;
-        this.tokenProvider = tokenProvider;
-        this.passwordEncoder = passwordEncoder;
-    }
+  public SecurityConfig(CustomUserDetailsService customUserDetailsService,
+      JwtAuthenticationEntryPoint unauthorizedHandler,
+      JwtTokenProvider tokenProvider,
+      PasswordEncoder passwordEncoder) {
+    this.customUserDetailsService = customUserDetailsService;
+    this.unauthorizedHandler = unauthorizedHandler;
+    this.tokenProvider = tokenProvider;
+    this.passwordEncoder = passwordEncoder;
+  }
 
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter() {
-        // IMPORTANTE: agora o filtro usa loadUserById()
-        return new JwtAuthenticationFilter(tokenProvider, customUserDetailsService);
-    }
+  @Bean
+  public JwtAuthenticationFilter jwtAuthenticationFilter() {
+    // IMPORTANTE: agora o filtro usa loadUserById()
+    return new JwtAuthenticationFilter(tokenProvider, customUserDetailsService);
+  }
 
-    @Bean
-    @SuppressWarnings("deprecation")
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(customUserDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder);
-        authProvider.setPreAuthenticationChecks(new AccountStatusUserDetailsChecker());
-        return authProvider;
-    }
+  @Bean
+  @SuppressWarnings("deprecation")
+  public DaoAuthenticationProvider authenticationProvider() {
+    DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+    authProvider.setUserDetailsService(customUserDetailsService);
+    authProvider.setPasswordEncoder(passwordEncoder);
+    authProvider.setPreAuthenticationChecks(new AccountStatusUserDetailsChecker());
+    return authProvider;
+  }
 
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
-        return authenticationConfiguration.getAuthenticationManager();
-    }
+  @Bean
+  public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
+      throws Exception {
+    return authenticationConfiguration.getAuthenticationManager();
+  }
 
-    @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+  @Bean
+  public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(AbstractHttpConfigurer::disable);
+    http.csrf(AbstractHttpConfigurer::disable);
 
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+    http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
 
-        http.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(unauthorizedHandler));
+    http.exceptionHandling(exceptions -> exceptions.authenticationEntryPoint(unauthorizedHandler));
 
-        // 🔥 AQUI ESTÁ O QUE LIBERA O LOGIN / REGISTER / REFRESH
-        http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/auth/**").permitAll()
-                .requestMatchers("/api/v1/auth/**").permitAll()
-                .requestMatchers("/api/test/**").permitAll()
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
-                .anyRequest().authenticated()
-        );
+    // 🔥 AQUI ESTÁ O QUE LIBERA O LOGIN / REGISTER / REFRESH
+    http.authorizeHttpRequests(auth -> auth
+        .requestMatchers("/auth/**").permitAll()
+        .requestMatchers("/api/v1/auth/**").permitAll()
+        .requestMatchers("/api/test/**").permitAll()
+        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**").permitAll()
+        .anyRequest().authenticated());
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+    http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
-        http.authenticationProvider(authenticationProvider());
+    http.authenticationProvider(authenticationProvider());
 
-        return http.build();
-    }
+    return http.build();
+  }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("*"));
-        config.setAllowCredentials(true);
-        config.setExposedHeaders(List.of("Authorization"));
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfiguration config = new CorsConfiguration();
+    config.setAllowedOrigins(List.of(
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "https://develop.d3aawq3k9qng9z.amplifyapp.com"));
+    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+    config.setAllowedHeaders(Arrays.asList("*"));
+    config.setAllowCredentials(true);
+    config.setExposedHeaders(List.of("Authorization"));
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", config);
-        return source;
-    }
+    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+    source.registerCorsConfiguration("/**", config);
+    return source;
+  }
 }
-
