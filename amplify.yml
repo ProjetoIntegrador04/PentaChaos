@@ -18,3 +18,12 @@ frontend:
     paths:
       - frontend/frontProject/node_modules/**/*
       - .npm/**/*
+customHeaders:
+  - pattern: '**/*.js'
+    headers:
+      - key: 'Content-Type'
+        value: 'application/javascript'
+  - pattern: '**/*.mjs'
+    headers:
+      - key: 'Content-Type'
+        value: 'application/javascript'
