@@ -10,7 +10,7 @@ import {
 
 // Base da API
 const api = axios.create({
-  baseURL: 'https://3.208.130.161:8443',
+  baseURL: 'https://sge-app.duckdns.org',
   withCredentials: false,
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
