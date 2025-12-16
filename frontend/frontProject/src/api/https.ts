@@ -10,7 +10,7 @@ import {
 
 // Base da API
 const api = axios.create({
-  baseURL: 'https://sge-app.duckdns.org',
+  baseURL: import.meta.env.VITE_API_URL || 'https://sge-app.duckdns.org',
   withCredentials: false,
   headers: {
     'Content-Type': 'application/json; charset=utf-8',
