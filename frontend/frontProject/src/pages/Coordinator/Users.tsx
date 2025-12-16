@@ -186,9 +186,9 @@ const Usuarios: React.FC = () => {
         setUsuarios((prev) => prev.map((u) => (u.id === userToEdit.id ? res.data : u)));
         alert("Usuário atualizado com sucesso!");
       } else {
-        const payload = {username: formData.username, fullName: formData.fullName, email: formData.email, password: formData.password, ra: formData.ra, squad: formData.squad, phoneNumber: formData.phoneNumber, isAdmin: false};
-        console.log(" POST /auth/register", payload);
-        const res = await api.post("/auth/register", payload);
+  const payload = {username: formData.username, fullName: formData.fullName, email: formData.email, password: formData.password, ra: formData.ra, squad: formData.squad, phoneNumber: formData.phoneNumber, isAdmin: false};
+  console.log(" POST /api/v1/auth/register", payload);
+  const res = await api.post("/api/v1/auth/register", payload);
         console.log(" User created:", res.data);
         setUsuarios((prev) => [res.data.user, ...prev]);
         alert("Usuário cadastrado com sucesso!");
