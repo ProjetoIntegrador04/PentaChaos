@@ -1,7 +1,7 @@
 import React, { useState } from "react";
-import { FiSave, FiKey, FiUser } from "react-icons/fi";
-import "../../styles/Coordinator/Users.css"; // Pode reutilizar este se for comum
-import "../../styles/Intern/Settings.css";    // 1. Caminho do CSS atualizado
+import { FiSave, FiUser } from "react-icons/fi"; 
+import "../../styles/Coordinator/Users.css"; 
+import "../../styles/Intern/Settings.css";
 
 type SettingsState = {
   // Perfil
@@ -10,21 +10,19 @@ type SettingsState = {
 
   // Preferências
   locale: "pt-BR" | "en-US";
-  theme: "light" | "dark";
+  // theme: "light" | "dark"; // REMOVIDO
 
   twoFactor: boolean;
 };
 
-// 2. Dados iniciais atualizados para o Estagiário
 const initialState: SettingsState = {
-  name: "Pablo", // Usando seu nome
-  email: "pablo.estagiario@2rpnet.com.br", // Exemplo
+  name: "Pablo", 
+  email: "pablo.estagiario@2rpnet.com.br", 
   locale: "pt-BR",
-  theme: "light",
+  // theme: "light", // REMOVIDO
   twoFactor: false,
 };
 
-// 3. Nome do componente atualizado
 export default function InternSettings() {
   const [form, setForm] = useState<SettingsState>(initialState);
   const [saving, setSaving] = useState(false);
@@ -42,7 +40,7 @@ export default function InternSettings() {
 
   const save = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 700)); // Simula chamada de API
+    await new Promise((r) => setTimeout(r, 700)); 
     setSaving(false);
     setSavedAt(new Date().toLocaleTimeString());
   };
@@ -50,7 +48,6 @@ export default function InternSettings() {
   const reset = () => setForm(initialState);
 
   return (
-    // 4. Título da página atualizado
     <div className="usuarios-page">
       <header className="usuarios-header">
         <h1>Minhas Configurações</h1>
@@ -67,14 +64,19 @@ export default function InternSettings() {
           <div className="card-title">
             <FiUser /> <span>Meu Perfil</span>
           </div>
+          
+          {/* NOME: Desabilitado */}
           <div className="form-row">
             <label>Nome</label>
             <input
               value={form.name}
               onChange={onChange("name")}
               placeholder="Seu nome"
+              disabled // Bloqueia edição/clique
             />
           </div>
+
+          {/* EMAIL: Desabilitado */}
           <div className="form-row">
             <label>Email</label>
             <input
@@ -82,14 +84,16 @@ export default function InternSettings() {
               value={form.email}
               onChange={onChange("email")}
               placeholder="email@exemplo.com"
+              disabled // Bloqueia edição/clique
             />
           </div>
-<div className="form-row">
+
+          <div className="form-row">
             <label>Tipo de Conta</label>
             <input
-              value="Estagiário" // Valor fixo, já que esta é a tela do Estagiário
-              readOnly        // O usuário não pode editar
-              disabled        // Aplica o estilo visual de desabilitado
+              value="Estagiário" 
+              readOnly 
+              disabled 
             />
           </div>
         </section>
@@ -106,13 +110,9 @@ export default function InternSettings() {
               <option value="en-US">English (US)</option>
             </select>
           </div>
-          <div className="form-row">
-            <label>Tema</label>
-            <select value={form.theme} onChange={onChange("theme")}>
-              <option value="light">Claro</option>
-              <option value="dark">Escuro</option>
-            </select>
-          </div>
+          
+          {/* TEMA: Removido */}
+          
         </section>
       </div>
 

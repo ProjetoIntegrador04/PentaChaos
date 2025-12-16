@@ -127,7 +127,7 @@ function Login() {
                 <img src={logoImage} alt="2RP net Logo" className="logo-image" />
               </div>
               <p className="description">
-                2RP net Monitoring, onde o gerenciamento, acompanhamento,
+                Monitoring Metrics, onde o gerenciamento, acompanhamento,
                 organizado é possível!
               </p>
             </div>
