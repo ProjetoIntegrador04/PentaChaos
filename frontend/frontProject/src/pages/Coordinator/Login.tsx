@@ -38,7 +38,7 @@ function Login() {
     try {
       console.log("📡 Calling backend API...");
       
-      const res = await api.post("/api/v1/auth/login", {
+      const res = await api.post("/auth/login", {
         usernameOrEmail: usernameOrEmail.trim(),
         password: password,
       });
